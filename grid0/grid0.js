@@ -42,7 +42,6 @@ function draw_grid() {
 	ctx.translate(10, 10);		// add some margin
 	ctx.lineWidth = 0.5;
 	ctx.stroke(grid);
-	grid.hide();
 }
 
 function draw_hex_grid(path, width, height, sx, sy, h) {
