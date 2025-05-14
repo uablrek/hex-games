@@ -39,7 +39,7 @@ not sufficient. Instead the hexagons are defined by *(sx, sy, h)*:
 
 <img src="figures/hex.svg" width="80%" />
 
-For regular hexagons, set $sy = sx \sqrt 3 / 2$ and $h = sx/2$,
+For regular hexagons, set $s_y = s_x\sqrt 3/2$ and $h = s_x/2$,
 for instance (40,34.6,20).
 
 Now a hex path can be created as:
