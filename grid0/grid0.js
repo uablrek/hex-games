@@ -16,7 +16,7 @@
  */
 
 let defaultUiState = {
-    sx: 40,
+	sx: 40,
 	sy: 20,
 	h: 12,
 	width: 6,
@@ -53,7 +53,7 @@ function draw_hex_grid(path, width, height, sx, sy, h) {
 	for (let y = 0; y < height; y++) {
 		// Number of hexes on the (half-)row
 		const nx = Math.ceil((width - (y & 1))/2);
-		const offset = (y & 1) * dx/2;  // Odd lines are offset with dx/2
+		const offset = (y & 1) * dx/2;	// Odd lines are offset with dx/2
 		for (let x = 0; x < nx; x++) {
 			matrix.e = sx + dx*x + offset;
 			matrix.f = sy + sy*y;
@@ -66,36 +66,36 @@ function draw_hex_grid(path, width, height, sx, sy, h) {
 // ----------------------------------------------------------------------
 
 function initUi() {
-    function onchange(element) { element.addEventListener('change', getUiState); }
-    document.querySelectorAll("input[type='number']").forEach(onchange);
+	function onchange(element) { element.addEventListener('change', getUiState); }
+	document.querySelectorAll("input[type='number']").forEach(onchange);
 }
 
 function setUiState() {
-    document.getElementById('sx').value = uiState.sx;
-    document.getElementById('sy').value = uiState.sy;
-    document.getElementById('h').value = uiState.h;
-    document.getElementById('width').value = uiState.width;
-    document.getElementById('height').value = uiState.height;
+	document.getElementById('sx').value = uiState.sx;
+	document.getElementById('sy').value = uiState.sy;
+	document.getElementById('h').value = uiState.h;
+	document.getElementById('width').value = uiState.width;
+	document.getElementById('height').value = uiState.height;
 }
 
 function getUiState() {
-    uiState.sx = document.getElementById('sx').valueAsNumber;
-    uiState.sy = document.getElementById('sy').valueAsNumber;
-    uiState.h = document.getElementById('h').valueAsNumber;
-    uiState.width = document.getElementById('width').valueAsNumber;
-    uiState.height = document.getElementById('height').valueAsNumber;
+	uiState.sx = document.getElementById('sx').valueAsNumber;
+	uiState.sy = document.getElementById('sy').valueAsNumber;
+	uiState.h = document.getElementById('h').valueAsNumber;
+	uiState.width = document.getElementById('width').valueAsNumber;
+	uiState.height = document.getElementById('height').valueAsNumber;
 	draw_clear();
 	draw_grid();
 }
 
 function initCanvas() {
-    let size = Math.min(
+	let size = Math.min(
 		canvas.parentNode.clientWidth, canvas.parentNode.clientHeight);
-    canvas.style.width = size + 'px';
-    canvas.style.height = size + 'px';
-    size = 1024;
-    canvas.width = size;
-    canvas.height = size;
+	canvas.style.width = size + 'px';
+	canvas.style.height = size + 'px';
+	size = 1024;
+	canvas.width = size;
+	canvas.height = size;
 	console.log(`Canvas size "${size}"`);
 }
 
