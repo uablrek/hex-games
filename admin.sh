@@ -8,7 +8,7 @@
 
 prg=$(basename $0)
 dir=$(dirname $0); dir=$(readlink -f $dir)
-tmp=/tmp/tmp/$USER/tmp/${prg}_$$
+me=$dir/$prg
 
 die() {
     echo "ERROR: $*" >&2
@@ -35,31 +35,25 @@ findf() {
 findar() {
 	findf $1.tar.bz2 || findf $1.tar.gz || findf $1.tar.xz || findf $1.zip
 }
-
-##   env [--wsclean]
-##     Print environment.
-cmd_env() {
-	test "$envread" = "yes" && return 0
-	envread=yes
-
-	eset \
-		HEX_GAMES_WORKSPACE=/tmp/tmp/$USER/hex-games \
-		GITHUBD=$HOME/go/src/github.com
-	WS=$HEX_GAMES_WORKSPACE
-	eset \
-		ruffle=$GITHUBD/ruffle-rs/ruffle/target/release/ruffle_desktop \
-		FLEX=apache-flex-sdk-4.16.1-bin \
-		mapgen2_as=$GITHUBD/amitp/mapgen2_as \
-		mapgen2=$GITHUBD/redblobgames/mapgen2 \
-		__project=$dir/grid0 \
-		__browser=/opt/google/chrome/chrome
-
-	if test "$cmd" = "env"; then
-		set | grep -E "^($opts)="
-		test "$__wsclean" = "yes" && rm -r $WS
-		exit 0
-	fi
-	mkdir -p $WS
+#   commands [prefix]
+#   alias [alias]
+#     Used to set bash command completion and command alias;
+#       eval $(./admin.sh alias)
+cmd_commands() {
+	local prefix=$(echo $1 | tr -- - _)
+	grep -E "^cmd_$prefix.*\(" $me | sed -E 's,cmd_([^\(]+).*,\1,' \
+		| grep -Ev '^(commands|alias)$' | tr -- _ -
+}
+cmd_alias() {
+	local c=$(basename $me .sh)
+	test -n "$1" && c=$1
+	cat <<EOF
+alias $c=$me;
+_${c}_completion() {
+  $me commands \$2;
+};
+complete -o bashdefault -o default -C _${c}_completion $c
+EOF
 }
 # Set variables unless already defined
 eset() {
@@ -72,7 +66,32 @@ eset() {
 	done
 }
 
-##   flex_unpack
+##   env
+##     Print environment.
+cmd_env() {
+	test "$envread" = "yes" && return 0
+	envread=yes
+
+	eset TEMP=/tmp/tmp/$USER
+	tmp=$TEMP/${prg}_$$
+
+	eset \
+		HEX_GAMES_WORKSPACE=/tmp/tmp/$USER/hex-games \
+		GITHUBD=$HOME/go/src/github.com
+	WS=$HEX_GAMES_WORKSPACE
+	eset \
+		ruffle=$GITHUBD/ruffle-rs/ruffle/target/release/ruffle_desktop \
+		FLEX=apache-flex-sdk-4.16.1-bin \
+		mapgen2_as=$GITHUBD/amitp/mapgen2_as \
+		mapgen2=$GITHUBD/redblobgames/mapgen2
+
+	if test "$cmd" = "env"; then
+		set | grep -E "^($opts)="
+		exit 0
+	fi
+	mkdir -p $WS
+}
+##   flex-unpack
 ##     Unpack the ActionScript compiler
 cmd_flex_unpack() {
 	test -d $WS/$FLEX && return 0
@@ -83,7 +102,53 @@ cmd_flex_unpack() {
 	mkdir -p $WS/$FLEX/27.0
 	cp $f $WS/$FLEX/27.0
 }
-##   mapgen2_as_build
+##   red-blob-check
+##     Check requirements for red-blob mapgen2 and mapgen2_as
+cmd_red_blob_check() {
+	local ok=yes
+	if test -d $WS/$FLEX; then
+		echo "OK: Flex [$WS/$FLEX]"
+	else
+		if findar $FLEX; then
+			echo "OK: flex archive [$f]"
+		else
+			ok=no
+			echo "MISSING: $FLEX"
+			echo "Download from https://flex.apache.org/download-binaries.html"
+		fi
+	fi
+	if test -r $mapgen2/package.json; then
+		echo "OK: Mapgen2 clone [$mapgen2]"
+	else
+		ok=no
+		echo "MISSING: Mapgen2 clone [$mapgen2]"
+	fi
+	if test -r $mapgen2_as/Map.as; then
+		echo "OK: Mapgen2_as clone [$mapgen2_as]"
+	else
+		ok=no
+		echo "MISSING: Mapgen2_as clone [$mapgen2_as]"
+	fi
+	if which esbuild > /dev/null; then
+		echo "OK: esbuild is in the PATH"
+	else
+		ok=no
+		echo "MISSING: esbuild is NOT in the PATH"
+	fi
+	if test -n "$BROWSER"; then
+		if test -x "$BROWSER"; then
+			echo "OK: browser [$BROWSER]"
+		else
+			ok=no
+			echo "MISSING: executable [$BROWSER]"
+		fi
+	else
+		echo 'MISSING: [$BROWSER]'
+	fi
+	test "$ok" = "yes" || die "Something is missing"
+	return 0
+}
+##   mapgen2-as-build
 ##     Build the mapgen2 ActionScript version
 cmd_mapgen2_as_build() {
 	test -d $mapgen2_as || die "mapgen2_as not cloned"
@@ -94,7 +159,7 @@ cmd_mapgen2_as_build() {
 		-source-path+=third-party/as3delaunay/src \
 		-source-path+=third-party/as3corelib/src mapgen2.as
 }
-##   mapgen2_as_run
+##   mapgen2-as-run
 ##     Run the mapgen2 ActionScript version
 cmd_mapgen2_as_run() {
 	test -x $ruffle || "Not executable [$ruffle]"
@@ -102,55 +167,26 @@ cmd_mapgen2_as_run() {
 	test -r $swf || die "Not readable [$swf]"
 	$ruffle $swf
 }
-##   mapgen2_build [--open]
+##   mapgen2-build [--clean] [--open]
 ##     Build mapgen2
 cmd_mapgen2_build() {
 	test -d $mapgen2 || die "mapgen2 not cloned"
 	# https://github.com/redblobgames/mapgen2/issues/9
+	test "$__clean" = "yes" && rm -r $WS/mapgen2
 	mkdir -p $WS/mapgen2
-	cp $mapgen2/map-icons.png $WS/mapgen2
-	__project=$mapgen2
-	__out=$WS/mapgen2/build/_bundle.js
-	cmd_build $@
-}
-##   build [--project=dir] [--out=] [--open] [-- esbuild-options...]
-
-##     Build a bundle. The path to the --project dir must be absolute
-##     and the dir must contain a "package.json" and a "embed.html"
-##     file. Output defaults to
-##     $HEX_GAMES_WORKSPACE/<project-name>/<project-name>.js
-cmd_build() {
-	which esbuild > /dev/null || die "Not in path [esbuild]"
-	test -r $__project/package.json || \
-		die "Not readable [$__project/package.json]"
-	local html=$__project/embed.html
-	test -r $html || die "Not readable [$html]"
-	local name=$(basename $__project)
-	test -n "$__out" || __out=$WS/$name/$name.js
-	local outd=$(dirname $__out)
-	mkdir -p $outd || die "Failed mkdir [$outd]"
-	cp $html $outd
-	cd $__project
-	local bundle=bundle.js
-	test -r $bundle || bundle=$name.js
-	test -r $bundle || die "Not readable [$bundle]"
-	esbuild --bundle $name.js --loader:.png=dataurl \
-		--outfile=$__out $@ || die esbuild
-	test "$__open" = "yes" && cmd_open
-}
-##   open [--browser=path] [--project=dir]
-##     Open a project in the browser. The --project dir must contain a
-##     "embed.html" file
-cmd_open() {
-	local name=$(basename $__project)
-	local file=$WS/$name/embed.html
-	test -r $file || die "Not readable [$file]"
-	GTK_MODULES= $__browser --new-window file://$file
+	cd $mapgen2
+	test -d ./node_modules || npm install
+	./build.sh || die "Build failed"
+	cp -r map-icons.png embed.html build $WS/mapgen2
+	test "$__open" = "yes" || return 0
+	test -n "$BROWSER" || die 'Not defined [$BROWSER]'
+	test -x "$BROWSER" || die "Not executable [$BROWSER]"
+	GTK_MODULES= $BROWSER --new-window file://$WS/mapgen2/embed.html
 }
 
 ##
 # Get the command
-cmd=$1
+cmd=$(echo $1 | tr -- - _)
 shift
 grep -q "^cmd_$cmd()" $0 $hook || die "Invalid command [$cmd]"
 

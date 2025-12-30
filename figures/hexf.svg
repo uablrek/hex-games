@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+    width="480.00" height="240.00">
+    <pattern id="Hex" width="69.28" height="40.00" patternUnits="userSpaceOnUse">
+      <path fill="none" stroke="black" stroke-width="1"
+        d="m 0 20.00 l 23.09 0 l 11.55 -20.00 l 23.09 0 l 11.55 20.00 l -11.55 20.00 l -23.09 0 l -11.55 -20.00" />
+    </pattern>
+    <rect x="0" y="0" fill="url(#Hex)" stroke="black" width="480.00" height="240.00" stroke-width="1" />
+</svg>

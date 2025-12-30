@@ -5,57 +5,103 @@ Experiments with turn-based games on a hex grid.
 I have wanted to write a hex based, turn-based game for a long time. I
 have actually started (and abandoned) such projects at least 3
 times. A problem has been what language and graphic environment to
-use. This take I use HTML5/canvas and JavaScript.
+use. This take I use HTML5/canvas, SVG and JavaScript.
 
 Much inspiration (and code) is taken from [Red Blob Games](
-https://www.redblobgames.com/). An excellent site! I covers most
-aspects, for instance [map generation](
-https://www.redblobgames.com/maps/mapgen2/).
+https://www.redblobgames.com/). An excellent site!
 
 
 ## admin.sh
 
-Most things are done with the [admin.sh](admin.sh) script.
+Most things can be done with the [admin.sh](admin.sh) script.
 ```
-./admin.sh               # Help printout
-./admin.sh env           # Print working environment
-./admin.sh build --open  # Build the default project and open a browser window
+eval $(./admin.sh alias) # Define "admin" alias with command completion
+admin                    # Help printout
+admin env                # Print working environment
+admin <tab><tab>         # suggest available commands
 ```
-
-[Esbuild](https://esbuild.github.io/) is used to build bundles and
-must be in the path.
 
 Set environment variables if necessary. Example:
 ```
-export __project=/absolute/path/to/my/project
-export __browser=$HOME/bin/firefox/firefox
+export GITHUBD=$HOME/go/src/github.com
+export BROWSER=/usr/bin/firefox
 ```
 
 
-## Hexagons
+## Manually crafted maps
 
-I want non-regular flat-top hexagons, so a single *size* parameter is
-not sufficient. Instead the hexagons are defined by *(sx, sy, h)*:
+These are usually the best. Scalable Vector Graphics (SVG) is used
+and edited with [Inkscape](https://inkscape.org/).
 
-<img src="figures/hex.svg" width="80%" />
+The hex-grid *can* be created using scripts, but IMO it is better to
+use a SVG
+[pattern](https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorials/SVG_from_scratch/Patterns).
 
-For regular hexagons, set $s_y = s_x\sqrt 3/2$ and $h = s_x/2$,
-for instance (40,34.6,20).
+<p float="left">
+  <img src="figures/hexp.svg" width="30%" />
+  <img src="figures/hexf.svg" width="30%" />
+</p>
 
-Now a hex path can be created as:
-
-```javascript
-const d = 2 * (sx - h);
-let hex = new Path2D(`m ${-sx} 0 l ${h} ${-sy} ${d} 0 ${h} ${sy} ${-h} ${sy} ${-d} 0 z`);
+These images were created with:
+```
+eval $(./hex.py emit-completion)
+hex emit-grid --size 40 --rect 480x240  > figures/hexp.svg
+hex emit-grid --size 40 --rect 480x240 --flattop > figures/hexf.svg
 ```
 
-## Hex grid
 
-A hex grid can be created by adding hex Path2D's with appropriate
-spacing. [grid0](grid0/grid0.js) is an example.
+## Red Blob Games
 
-All lines inside the grid are drawn twice, and it shows (but not
-much). This is non-trivial to fix and messes up the code, so I don't
-care for now. And BTW, creating the grid is a one-time event, so speed
-is not an issue.
+[Red Blob Games](https://www.redblobgames.com/)
+([github](https://github.com/redblobgames)) is truly amazing. It seems
+to cover everything! For instance [hex-grids](
+https://www.redblobgames.com/grids/hexagons/). Older examples are
+written in [ActionScript](https://en.wikipedia.org/wiki/ActionScript)
+(flash), but newer are in JavaScript and [HTML5 canvas](
+https://en.wikipedia.org/wiki/Canvas_element).
 
+### Mapgen2 - ActionScript version
+
+Here is a [demo of generated hex-maps](
+https://theory.stanford.edu/~amitp/game-programming/polygon-map-generation/demo.html) ([github](https://github.com/amitp/mapgen2)). Clone it and update
+submodules with `git submodule update --init`.
+
+To build you need the [Flex SDK](
+https://flex.apache.org/download-binaries.html). That in turn needs
+`playerglobal.swc` which is hard to find since Adobe has cut support
+(and downloading). After some google'ing I found it [here](
+https://github.com/nexussays/playerglobal/blob/master/11.5/playerglobal.swc).
+[Ruffle](https://github.com/ruffle-rs/ruffle) is used for flash emulation.
+This project is maintained and built fine on my Ubuntu 24.04 LTS. Then run
+`mapgen2.swf` with ruffle.
+
+If you have cloned to `$GITHUBD` and downloaded required files, do:
+```
+admin red-blob-check
+admin mapgen2-as-build
+admin mapgen2-as-run
+```
+
+### Mapgen2
+
+The new version of [mapgen2](https://www.redblobgames.com/maps/mapgen2/)
+([github](https://github.com/redblobgames/mapgen2/))
+uses JavaScript and HTML5.
+
+To build and run, make sure [esbuild](https://esbuild.github.io/) is
+in the path, and call `./build.sh` in the mapgen2 directory. Then open
+`embed.html` in your browser. Or do:
+
+```
+export BROWSER=/usr/bin/firefox
+admin mapgen2-build --open
+```
+
+
+## Non-regular Hexagons
+
+Initially I wanted to use non-regular Hexagons, but it becomes messy
+so I have abandoned this for now. A single *size* parameter is not
+sufficient. Instead the hexagons may be defined by *(sx, sy, h)*:
+
+<img src="figures/hex.svg" width="50%" />
