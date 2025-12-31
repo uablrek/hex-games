@@ -24,6 +24,25 @@ def arg_parser():
     doc=globals()[fn].__doc__
     return argparse.ArgumentParser(prog=prog, description=doc)
 
+def svg_head(width, height, metadata=""):
+    license='http://creativecommons.org/publicdomain/zero/1.0/'
+    svg = f'''<svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:cc="http://creativecommons.org/ns#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:hex="https://github.com/uablrek/hex-games"
+    width="{width:.2f}" height="{height:.2f}">
+<metadata>
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <cc:license rdf:resource="{license}" />
+      </cc:Work>
+    </rdf:RDF>
+    {metadata}
+</metadata>
+'''
+    return svg
+
 # ----------------------------------------------------------------------
 # Commands;
 
@@ -88,15 +107,15 @@ def cmd_emit_grid(args):
 
     # Construct the svg
     rdim = args.rect.split('x')
-    rectW = float(rdim[0])
-    rectH = float(rdim[1])
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg"
-    width="{rectW:.2f}" height="{rectH:.2f}">
-    <pattern id="Hex" width="{pw:.2f}" height="{ph:.2f}" patternUnits="userSpaceOnUse">
+    width = float(rdim[0])
+    height = float(rdim[1])
+    svg = svg_head(width, height, metadata=f'<hex:params scale="{args.scale}" />')
+    svg += f'''<pattern
+    id="Hex" width="{pw:.2f}" height="{ph:.2f}" patternUnits="userSpaceOnUse">
       <path fill="none" stroke="black" stroke-width="1"
         d="{p}" />
-    </pattern>
-    <rect x="0" y="0" fill="url(#Hex)" stroke="black" width="{rectW:.2f}" height="{rectH:.2f}" stroke-width="1" />
+</pattern>
+<rect x="0" y="0" fill="url(#Hex)" stroke="black" width="{width:.2f}" height="{height:.2f}" stroke-width="1" />
 </svg>'''
     print(svg)
     return 0
