@@ -24,6 +24,7 @@ def arg_parser():
     doc=globals()[fn].__doc__
     return argparse.ArgumentParser(prog=prog, description=doc)
 
+# Return a SVG header with CC0 license
 def svg_head(width, height, metadata=""):
     license='http://creativecommons.org/publicdomain/zero/1.0/'
     svg = f'''<svg
@@ -109,6 +110,7 @@ def cmd_emit_grid(args):
     rdim = args.rect.split('x')
     width = float(rdim[0])
     height = float(rdim[1])
+    # preserve "scale" in the image!
     svg = svg_head(width, height, metadata=f'<hex:params scale="{args.scale}" />')
     svg += f'''<pattern
     id="Hex" width="{pw:.2f}" height="{ph:.2f}" patternUnits="userSpaceOnUse">
@@ -120,6 +122,33 @@ def cmd_emit_grid(args):
     print(svg)
     return 0
 
+def cmd_svg_data(args):
+    """Emit svg image as JavaScript string.
+    Whitespaces are compressed to a single space, double-quotes and
+    url-chars are escaped, and the string is pre-pended with
+    "data:image/svg+xml,"
+    """
+    parser = arg_parser()
+    parser.add_argument(
+        '--file', default="", help="File to read (default stdin")
+    args = parser.parse_args(args[1:])
+    if args.file:
+        with open(args.file, 'r') as file:
+            data = file.read()
+    else:
+        data = sys.stdin.read()
+
+    # compress whitespace
+    data = ' '.join(data.split())
+    # escape url characters (e.g. '#'). (I am not happy with this)
+    import urllib.parse
+    data = urllib.parse.quote(data, safe='"<> =()/:')
+    # escape '"'
+    data = data.replace('"', '\\"')
+    # The first '/' must be escaped, or it will magically be transformed to '.'
+    # Why is this happening???
+    print("data:image\\/svg+xml," + data)
+    return 0
 
 # ----------------------------------------------------------------------
 # Parse args

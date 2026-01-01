@@ -76,7 +76,7 @@ cmd_env() {
 	tmp=$TEMP/${prg}_$$
 
 	eset \
-		HEX_GAMES_WORKSPACE=/tmp/tmp/$USER/hex-games \
+		HEX_GAMES_WORKSPACE=$TEMP/hex-games \
 		GITHUBD=$HOME/go/src/github.com
 	WS=$HEX_GAMES_WORKSPACE
 	eset \
@@ -90,6 +90,8 @@ cmd_env() {
 		exit 0
 	fi
 	mkdir -p $WS
+	rdir=$PWD
+	cd $dir
 }
 ##   flex-unpack
 ##     Unpack the ActionScript compiler
@@ -183,6 +185,54 @@ cmd_mapgen2_build() {
 	test -x "$BROWSER" || die "Not executable [$BROWSER]"
 	GTK_MODULES= $BROWSER --new-window file://$WS/mapgen2/embed.html
 }
+##   build [--appd=dir] [--clean] [--open] <dir>
+##     Build an example/project.
+##     --clean - Delete existing appd. This is default in $TEMP
+##     --open - Open in $BROWSER after succesful build
+cmd_build() {
+	which esbuild > /dev/null || die 'Not in $PATH [esbuild]'
+	src $1
+	test -r $src/index.html || die "No index.html in [$src]"
+	appdir
+	cp $src/* $__appd
+	cd $__appd
+	test -r build.sh && . ./build.sh 
+	esbuild --bundle --outfile=bundle.js --loader:.svg=dataurl \
+		--loader:.png=dataurl --loader:.jpg=dataurl . || die esbuild
+	# Remove everything except index.html and bundle.js
+	local f
+	for f in $(find . -type f); do
+		echo $f | grep -qE '^./(index.html|bundle.js)$' || rm $f
+	done
+	test "$__open" != "yes" && return 0
+	test -n "$BROWSER" || die 'Not set [$BROWSER]'
+	if which xdotool > /dev/null; then
+		# Try to close the old window
+		# https://askubuntu.com/questions/616738/how-do-i-close-a-new-firefox-window-from-the-terminal
+		local title=$(grep -F '<title>' index.html | cut -d'>' -f2 | cut -d'<' -f1)
+		local window=$(xdotool search --name "$title")
+		test -n "$window" && xdotool key --window $window Ctrl+Shift+w
+	fi
+	cd $dir
+	GTK_MODULES= $BROWSER --new-window file://$__appd/index.html
+}
+appdir() {
+	eset __appd=$WS/app
+	echo $__appd | grep -q "^$TEMP" && eset __clean=yes
+	test "$__clean" = "yes" && rm -rf $__appd
+	mkdir -p $__appd
+}
+# Check, and set $src and $main
+src() {
+	test -n "$1" || die "Parameter missing"
+	cd $rdir
+	test -d "$1" || die "Not a directory [$1]"
+	src=$(readlink -f "$1")
+	test -r $src/package.json || die "No package.json in [$1]"
+	main=$(cat $src/package.json | jq -r .main)
+	test -r $src/$main || die "Missing [$main]"
+}
+
 
 ##
 # Get the command

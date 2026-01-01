@@ -8,8 +8,18 @@ times. A problem has been what language and graphic environment to
 use. This take I use HTML5/canvas, SVG and JavaScript.
 
 Much inspiration (and code) is taken from [Red Blob Games](
-https://www.redblobgames.com/). An excellent site!
+https://www.redblobgames.com/). An excellent site! [Konva](
+https://konvajs.org/docs/index.html) is used for most canvas
+manipulations, and [Inkscape](https://inkscape.org/) for SVG drawing.
 
+To try the grid example, Unzip the release and open `grid/index.html`
+in your browser. No dependencies needed!
+
+### Dependencies
+
+* [esbuild](https://esbuild.github.io/) - Must be in your $PATH
+* [Konva](https://konvajs.org/docs/index.html) - Scripts must be able to impot
+* [Inkscape](https://inkscape.org/) - for SVG drawing
 
 ## admin.sh
 
@@ -27,14 +37,14 @@ export GITHUBD=$HOME/go/src/github.com
 export BROWSER=/usr/bin/firefox
 ```
 
-
 ## Manually crafted maps
 
 These are usually the best. Scalable Vector Graphics (SVG) is used
 and edited with [Inkscape](https://inkscape.org/).
 
-The hex-grid *can* be created using scripts, but IMO it is better to
-use a SVG
+### Hex grid
+
+The hex grid *can* be created using scripts, but IMO it is better to use an SVG
 [pattern](https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorials/SVG_from_scratch/Patterns).
 
 <p float="left">
@@ -48,6 +58,9 @@ eval $(./hex.py emit-completion)
 hex emit-grid --size 40 --rect 480x240  > figures/hexp.svg
 hex emit-grid --size 40 --rect 480x240 --flattop > figures/hexf.svg
 ```
+
+An svg-pattern-grid can be created in this way and be imported as a
+"layer" in `Inkscape`.
 
 
 ## Red Blob Games
@@ -96,7 +109,6 @@ in the path, and call `./build.sh` in the mapgen2 directory. Then open
 export BROWSER=/usr/bin/firefox
 admin mapgen2-build --open
 ```
-
 
 ## Non-regular Hexagons
 
