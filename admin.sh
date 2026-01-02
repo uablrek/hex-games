@@ -185,6 +185,17 @@ cmd_mapgen2_build() {
 	test -x "$BROWSER" || die "Not executable [$BROWSER]"
 	GTK_MODULES= $BROWSER --new-window file://$WS/mapgen2/embed.html
 }
+##   release
+##     Create a release zip-file
+cmd_release() {
+	mkdir -p $tmp
+	export __open=no
+	$me build --appd=$tmp/grid $dir/grid
+	$me rdtr-build --appd=$tmp/rdtr
+	cd $tmp
+	zip -r $TEMP/hex-games.zip .
+	echo "Created [$TEMP/hex-games.zip]"
+}
 ##   build [--appd=dir] [--clean] [--open] <dir>
 ##     Build an example/project.
 ##     --clean - Delete existing appd. This is default in $TEMP
@@ -196,7 +207,7 @@ cmd_build() {
 	appdir
 	cp $src/* $__appd
 	cd $__appd
-	test -r build.sh && . ./build.sh 
+	test -r build.sh && . ./build.sh
 	esbuild --bundle --outfile=bundle.js --loader:.svg=dataurl \
 		--loader:.png=dataurl --loader:.jpg=dataurl . || die esbuild
 	# Remove everything except index.html and bundle.js
@@ -205,7 +216,12 @@ cmd_build() {
 		echo $f | grep -qE '^./(index.html|bundle.js)$' || rm $f
 	done
 	test "$__open" != "yes" && return 0
+	open_in_browser
+}
+open_in_browser() {
 	test -n "$BROWSER" || die 'Not set [$BROWSER]'
+	local page=index
+	test -n "$1" && page=$1
 	if which xdotool > /dev/null; then
 		# Try to close the old window
 		# https://askubuntu.com/questions/616738/how-do-i-close-a-new-firefox-window-from-the-terminal
@@ -214,7 +230,7 @@ cmd_build() {
 		test -n "$window" && xdotool key --window $window Ctrl+Shift+w
 	fi
 	cd $dir
-	GTK_MODULES= $BROWSER --new-window file://$__appd/index.html
+	GTK_MODULES= $BROWSER --new-window file://$__appd/$page.html
 }
 appdir() {
 	eset __appd=$WS/app
@@ -232,7 +248,23 @@ src() {
 	main=$(cat $src/package.json | jq -r .main)
 	test -r $src/$main || die "Missing [$main]"
 }
-
+##   rdtr-build [--appd=dir] [--clean] [--open] page
+##     Build and open the Rise and Decline of the Third Reich project
+cmd_rdtr_build() {
+	src=$dir/rdtr
+	eset __appd=$WS/rdtr
+	appdir
+	cp $src/*.png $src/*.html $src/*.js $__appd
+	cd $__appd
+	local sub
+	for sub in map-demo; do
+		esbuild --bundle --outfile=$sub-bundle.js --loader:.svg=dataurl \
+			$sub.js  || die esbuild
+		rm $sub.js
+	done
+	test "$__open" != "yes" && return 0
+	open_in_browser $1
+}
 
 ##
 # Get the command
