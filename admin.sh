@@ -217,21 +217,29 @@ cmd_build() {
 		echo $f | grep -qE '^./(index.html|bundle.js)$' || rm $f
 	done
 	test "$__open" != "yes" && return 0
-	open_in_browser
+	cmd_open
 }
-open_in_browser() {
+##   open [--appd=dir] [page]
+##     Opens a page in $BROWSER. The "page" must be an url relative to
+##     --appd. Example: "units.html?scenario=1"
+cmd_open() {
 	test -n "$BROWSER" || die 'Not set [$BROWSER]'
-	local page=index
-	test -n "$1" && page=$1
+	eset __appd=$WS/app
+	cd $__appd || die "Failed [cd $__appd]"
+	local page=index.html
+	test -n "$1" && page="$1"
+	local file=$(echo "$page" | cut -d'?' -f1)
+	test -r "./$file" || die "Not readable [$__appd/$file]"
 	if which xdotool > /dev/null; then
 		# Try to close the old window
 		# https://askubuntu.com/questions/616738/how-do-i-close-a-new-firefox-window-from-the-terminal
-		local title=$(grep -F '<title>' index.html | cut -d'>' -f2 | cut -d'<' -f1)
+		# TODO: examine why this works with Firefox, but not with Chrome
+		local title=$(grep -F '<title>' ./$file | cut -d'>' -f2 | cut -d'<' -f1)
 		local window=$(xdotool search --name "$title")
 		test -n "$window" && xdotool key --window $window Ctrl+Shift+w
 	fi
 	cd $dir
-	GTK_MODULES= $BROWSER --new-window file://$__appd/$page.html
+	GTK_MODULES= $BROWSER --new-window "file://$__appd/$page"
 }
 appdir() {
 	eset __appd=$WS/app
@@ -258,13 +266,13 @@ cmd_rdtr_build() {
 	cp $src/*.png $src/*.html $src/*.js $__appd
 	cd $__appd
 	local sub
-	for sub in map-demo; do
+	for sub in map-demo units; do
 		esbuild --bundle --outfile=$sub-bundle.js --loader:.svg=dataurl \
 			$sub.js  || die esbuild
 		rm $sub.js
 	done
 	test "$__open" != "yes" && return 0
-	open_in_browser $1
+	cmd_open "$1"
 }
 
 ##
