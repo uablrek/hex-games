@@ -85,15 +85,34 @@ coordinate. If you haven't already, try the `map-demo` in a
 pre-release.
 
 
-### Counters
+## Counters
 
 I use the term `unit` often since "counter" has a different meaning in
 code, and would cause confusion.
 
-Again, I *really want* vector graphics, but PNG is fine for units.
+Again, I want vector graphics, but PNG is fine for units.
 
 **Idea:** Write a program to generate an SVG-image of a unit given
   parametes like: --type=inf --stat=3-3 label="22" --color=black
 
+Same as for the map, I convert the counter [PDF-sheet](
+https://boardgamegeek.com/filepage/246780/third-reich-counters-pdf-for-scaling)
+to (many) PNG files using [Gimp](https://www.gimp.org/). The
+individual counter images are cut out from the sheet with Konva
+`clone/crop`.
 
+The counter images must be included in JavaScript objects that a
+program can handle.
 
+```javascript
+const units = [
+        {sheet:fr, pos:{x:0,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"Alp"},
+        {sheet:fr, pos:{x:1,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"Col"},
+        {sheet:fr, pos:{x:2,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"6"},
+        {sheet:fr, pos:{x:3,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"7"},
+// ...
+        {sheet:germany, pos:{x:8,y:5}, type:"ab", nat:"ge"},
+        {sheet:germany, pos:{x:8,y:5}, type:"ab", nat:"ge"},
+];
+```
+New fields, like "img" and "pos" (on map), are added later.
