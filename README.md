@@ -12,7 +12,7 @@ https://www.redblobgames.com/). An excellent site! [Konva](
 https://konvajs.org/docs/index.html) is used for most canvas
 manipulations, and [Inkscape](https://inkscape.org/) for SVG drawing.
 
-To try the grid example, Unzip the release and open `grid/index.html`
+To try the grid example, Unzip the release and open `index.html`
 in your browser. No dependencies needed!
 
 ### Dependencies

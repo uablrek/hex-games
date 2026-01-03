@@ -189,6 +189,7 @@ cmd_mapgen2_build() {
 ##     Create a release zip-file
 cmd_release() {
 	mkdir -p $tmp
+	cp $dir/lib/index.html $tmp
 	export __open=no
 	$me build --appd=$tmp/grid $dir/grid
 	$me rdtr-build --appd=$tmp/rdtr
