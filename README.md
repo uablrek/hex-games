@@ -10,18 +10,27 @@ use. This take I use HTML5/canvas, SVG and JavaScript.
 Much inspiration (and code) is taken from [Red Blob Games](
 https://www.redblobgames.com/). An excellent site! [Konva](
 https://konvajs.org/docs/index.html) is used for most canvas
-manipulations, and [Inkscape](https://inkscape.org/) for SVG drawing.
+manipulations.
 
-To try the grid example, Unzip the release and open `index.html`
+I am currently trying to get the old board game [Rise and Decline of
+the Third Reich]( rdtr/README.md) to run in a browser.
+
+#### Try a release
+
+Unzip the release-asset `hex-games.zip` and open `index.html`
 in your browser. No dependencies needed!
 
-### Dependencies
+**WARNING:** On Ubuntu Linux, Firefox may run in a "snap sandbox", so
+  you can't browse local files. If so, I suggest to use Chrome.
+
+
+## Development
+
+Dependencies:
 
 * [esbuild](https://esbuild.github.io/) - Must be in your $PATH
-* [Konva](https://konvajs.org/docs/index.html) - Scripts must be able to impot
+* [Konva](https://konvajs.org/docs/index.html) - Scripts must be able to import
 * [Inkscape](https://inkscape.org/) - for SVG drawing
-
-## admin.sh
 
 Most things can be done with the [admin.sh](admin.sh) script.
 ```
