@@ -258,7 +258,7 @@ src() {
 	test -r $src/$main || die "Missing [$main]"
 }
 ##   rdtr-build [--appd=dir] [--clean] [--open] page
-##     Build and open the Rise and Decline of the Third Reich project
+##     Build the "Rise and Decline of the Third Reich" (rdtr) project
 cmd_rdtr_build() {
 	src=$dir/rdtr
 	eset __appd=$WS/rdtr
@@ -266,7 +266,7 @@ cmd_rdtr_build() {
 	cp $src/*.png $src/*.html $src/*.js $__appd
 	cd $__appd
 	local sub
-	for sub in map-demo units; do
+	for sub in map-demo units drag-demo; do
 		esbuild --bundle --outfile=$sub-bundle.js --loader:.svg=dataurl \
 			$sub.js  || die esbuild
 		rm $sub.js

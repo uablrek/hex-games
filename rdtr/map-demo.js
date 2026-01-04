@@ -1,76 +1,21 @@
+// SPDX-License-Identifier: CC0-1.0.
 import Konva from 'konva';
-
-const hsize = 58.7;				// --size to hex.py
-const hscale = 0.988;			// --scale to hex.py
-const rsize = hsize * hscale * Math.sqrt(3) / 2;  // row interval
-const grid_offset = {x:57, y:23}  // 0,0 on the map image
-
-// The functions below uses offset coordinates for "pointy" hexes, and
-// are NOT perfect. A click near the top/bottom of a hex *may* select
-// an adjacent hex. But for practical use, they are good enough for
-// me. They take --scale into account.
-function pixel_to_hex(pos) {
-	// Adjust for grid/map offset
-	pos = {x:pos.x + grid_offset.x, y:pos.y + grid_offset.y}
-	y = Math.round(pos.y / rsize - 0.42) // 0.42 ~= 5/12
-	if (y % 2 == 0) {
-		x = Math.round(pos.x / hsize)
-	} else {
-		x = Math.round(pos.x / hsize - 0.5)
-	}
-	return({x:x, y:y});
-}
-function hex_to_pixel(pos) {
-	y = Math.round(pos.y * rsize + rsize/3)
-	if (pos.y % 2 == 0) {
-		x = Math.round(pos.x * hsize)
-	} else {
-		x = Math.round(pos.x * hsize + (hsize/2))
-	}
-	// Adjust for grid/map offset
-	return({x:x - grid_offset.x, y:y - grid_offset.y});
-}
-function toAxial(pos) {
-	if (pos.y % 2 == 0) {
-		q =  pos.x - pos.y / 2
-	} else {
-		q = pos.x - (pos.y - 1) / 2
-	}
-	return {q: q, r: pos.y}
-}
-function toRdtr(pos) {
-	// pos is an Axial coordinate. RDTR uses letters A-KK for row, and
-	// a positive int for q.
-	if (pos.r < 27) {
-		r = String.fromCharCode(pos.r + 64)
-	} else {
-		let c = pos.r + 38
-		r = String.fromCharCode(c, c)
-	}
-	return {q: pos.q + 15, r: r}
-}
+import * as rdtr from './rdtr.js';
 
 const stage = new Konva.Stage({
 	container: 'container',
 	width: window.innerWidth,
 	height: window.innerHeight,
 });
-
 const board = new Konva.Layer({
 	draggable: true,
 });
 stage.add(board);
-
-const imageObj = new Image();
-imageObj.src = './rdtr-map.png'
-const map = new Konva.Image({
-    image: imageObj,
-});
-board.add(map);
+board.add(rdtr.map);
 
 // Add a "marker" that can be moved to hexes
 initMarker = {x:10,y:4}
-cc = hex_to_pixel(initMarker)
+cc = rdtr.hexToPixel(initMarker)
 marker = new Konva.Circle({
 	x: cc.x,
 	y: cc.y,
@@ -110,14 +55,12 @@ function textBox(config, label) {
 		x: box.x() + 8,
 		y: box.y() + 4,
 		text: label,
-		fontFamily: 'Calibri',
 		fontSize: 18,
 		fill: 'gold',
 	}))
 	box.add(new Konva.Text({
 		x: box.x() + 8,
 		y: box.y() + 30,
-		fontFamily: 'Calibri',
 		fontSize: 20,
 		fill: 'white',
 		name: 'txt',
@@ -135,46 +78,57 @@ infoBox.findOne('.txt').text(
 	'Click on the map to\nmove the marker\n\nGrab and move\nthe entire map')
 info.add(infoBox)
 
-axialBox = textBox({
+hexBox = textBox({
 	x: 10,
 	y: 110,
+	width: 240,
+	height: 70
+}, "Offset coordinates")
+hexText = hexBox.findOne('.txt')
+info.add(hexBox)
+hexText.text(`${initMarker.x}, ${initMarker.y}`)
+
+axialBox = textBox({
+	x: 10,
+	y: 150,
 	width: 240,
 	height: 70
 }, "Axial coordinates")
 axialText = axialBox.findOne('.txt')
 info.add(axialBox)
-axial = toAxial(initMarker)
+axial = rdtr.hexToAxial(initMarker)
 axialText.text(`${axial.q}, ${axial.r}`)
 
 rdtrBox = textBox({
 	x: 10,
-	y: 150,
+	y: 190,
 	width: 240,
 	height: 70
 }, "RDTR coordinates")
 rdtrText = rdtrBox.findOne('.txt')
 info.add(rdtrBox)
-rdtr = toRdtr(axial)
-rdtrText.text(`${rdtr.r}, ${rdtr.q}`)
+rc = rdtr.axialToRdtr(axial)
+rdtrText.text(`${rc.r}, ${rc.q}`)
 
 posBox = textBox({
 	x: 10,
-	y: 190,
+	y: 250,
 	width: 240,
 	height: 70
 }, "Last click position")
 clickText = posBox.findOne('.txt')
 info.add(posBox)
-
-map.on('click', function() {
-	pos = map.getRelativePointerPosition();
+console.log(window.innerHeight)
+rdtr.map.on('click', function() {
+	pos = rdtr.map.getRelativePointerPosition();
 	clickText.text(`${pos.x}, ${pos.y}`)
-	h = pixel_to_hex(pos)
-	axial = toAxial(h)
+	h = rdtr.pixelToHex(pos)
+	hexText.text(`${h.x}, ${h.y}`)
+	axial = rdtr.hexToAxial(h)
 	axialText.text(`${axial.q}, ${axial.r}`)
-	rdtr = toRdtr(axial)
-	rdtrText.text(`${rdtr.r}, ${rdtr.q}`)
-	ph = hex_to_pixel(h)
+	rc = rdtr.axialToRdtr(axial)
+	rdtrText.text(`${rc.r}, ${rc.q}`)
+	ph = rdtr.hexToPixel(h)
 	marker.x(ph.x)
 	marker.y(ph.y)
 });
