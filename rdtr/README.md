@@ -56,8 +56,11 @@ https://www.google.com/search?q=convert+pdf+to+svg), but the ones I
 have tries produces *absolutely huge* SVG-files with every single item
 defined as a shape (including individual characters).
 
-**Abandoned idea:** A SVG converted from a very-complex PDF is
+<img style="float: left;" src="../figures/light-bulb-broken.svg" width="30"/>
+
+**Bad Idea:** An SVG image converted from a very-complex PDF is
 unusable. None of the good stuff in SVG is available.
+<br/><br/>
 
 So, fallback to PNG. I still use the PDF-map, import it to
 [Gimp](https://www.gimp.org/), resize it to 3000x2050, and export as
@@ -84,6 +87,15 @@ This helps when we convert a mouse-position on the map to a hex
 coordinate. If you haven't already, try the `map-demo` in a
 pre-release.
 
+### Coordinates
+
+Internally in code I use [Offset coordinates](
+https://www.redblobgames.com/grids/hexagons/#coordinates-offset) since
+it's simplest. RDTR uses a variation of [Axial coodinates](
+https://www.redblobgames.com/grids/hexagons/#coordinates-axial), where
+the row specifies with letters `A-Z,AA-NN`. These coordinates are used
+on interactions with users.
+
 
 ## Counters
 
@@ -92,8 +104,11 @@ code, and would cause confusion.
 
 Again, I want vector graphics, but PNG is fine for units.
 
+<img style="float: left;" src="../figures/light-bulb-on.svg" width="30"/>
+
 **Idea:** Write a program to generate an SVG-image of a unit given
-  parametes like: --type=inf --stat=3-3 label="22" --color=black
+  parametes like: `--type=inf --stat=3-3 label="22" --color=black`
+<br/><br/>
 
 Same as for the map, I convert the counter [PDF-sheet](
 https://boardgamegeek.com/filepage/246780/third-reich-counters-pdf-for-scaling)
@@ -115,4 +130,30 @@ const units = [
         {sheet:germany, pos:{x:8,y:5}, type:"ab", nat:"ge"},
 ];
 ```
-New fields, like "img" and "pos" (on map), are added later.
+New fields, like "img" and "hex" (on map), are added later.
+
+The index in the `units` array is the identifier of the unit. The unit
+image has the unique id "rdtru#", where `#` is the index. This makes
+it possible to find the unit object from the unit image, for instance
+in drag/click event callbacks.
+
+Users do however normally not know the index of a counter, so some
+form of human readable form is needed, like `fr,inf,2-3,Alp` or
+`uk,nav,9` or `su,air,5-4`. Here are the nation and type codes:
+
+```
+	fr: France                     inf: Infantery
+	us: USA                        pz:  Panzer
+	it: Italy                      air: Air
+	ge: Germany                    nav: Navy
+	uk: UK                         res: Reserve
+	su: USSR                       par: Paratrooper
+	tu: Turkey                     ab:  Air base
+	sp: Spain                      mec: Mechanized
+	nu: Neutrals (incl white bh)   bh:  Bridge head
+	bu: Bulgaria                   esc: Escort (white navy)
+	ru: Rumania                    bmb: Bomber
+	hu: Hungary                    sub: Submarine
+	fi: Finland                    int: Interceptor
+	iq: Iraq
+```

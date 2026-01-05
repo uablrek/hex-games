@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="72.282806mm"
+   height="101.15337mm"
+   viewBox="0 0 274 384"
+   version="1.1"
+   id="SVGRoot"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs3737" />
+  <metadata
+     id="metadata3740">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     transform="translate(-60.751214,-325.63793)">
+    <g
+       id="g724">
+      <rect
+         style="fill:#b3b3b3;stroke:#000000;stroke-width:1.7;stop-color:#000000"
+         id="rect553"
+         width="97.761353"
+         height="15.114075"
+         x="187.33482"
+         y="591.64301"
+         ry="7.5570374"
+         transform="rotate(3.6725965)" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#rect553"
+         id="use555"
+         transform="translate(2.8840996e-7,23)" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use555"
+         id="use557"
+         transform="translate(0,23)" />
+      <path
+         id="path611"
+         style="fill:#ffe680;stroke:#000000;stroke-width:1.7;stop-color:#000000"
+         d="m 197.34961,364.2832 a 97.952545,97.952545 0 0 0 -97.953126,97.95118 97.952545,97.952545 0 0 0 46.158206,83.03906 v 44.82031 c 0,4.18659 3.37004,7.55664 7.55664,7.55664 h 88.47461 c 4.18659,0 7.55664,-3.37005 7.55664,-7.55664 v -44.82031 a 97.952545,97.952545 0 0 0 46.1582,-83.03906 97.952545,97.952545 0 0 0 -97.95117,-97.95118 z" />
+    </g>
+  </g>
+</svg>
