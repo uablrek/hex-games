@@ -56,11 +56,8 @@ https://www.google.com/search?q=convert+pdf+to+svg), but the ones I
 have tries produces *absolutely huge* SVG-files with every single item
 defined as a shape (including individual characters).
 
-<img style="float: left;" src="../figures/light-bulb-broken.svg" width="30"/>
-
 **Bad Idea:** An SVG image converted from a very-complex PDF is
 unusable. None of the good stuff in SVG is available.
-<br/><br/>
 
 So, fallback to PNG. I still use the PDF-map, import it to
 [Gimp](https://www.gimp.org/), resize it to 3000x2050, and export as
@@ -104,11 +101,8 @@ code, and would cause confusion.
 
 Again, I want vector graphics, but PNG is fine for units.
 
-<img style="float: left;" src="../figures/light-bulb-on.svg" width="30"/>
-
 **Idea:** Write a program to generate an SVG-image of a unit given
   parametes like: `--type=inf --stat=3-3 label="22" --color=black`
-<br/><br/>
 
 Same as for the map, I convert the counter [PDF-sheet](
 https://boardgamegeek.com/filepage/246780/third-reich-counters-pdf-for-scaling)
