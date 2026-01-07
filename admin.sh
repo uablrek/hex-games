@@ -266,7 +266,7 @@ cmd_rdtr_build() {
 	cp $src/*.png $src/*.html $src/*.js $src/*.json $__appd
 	cd $__appd
 	local sub
-	for sub in map-demo units drag-demo deployment-demo restore-demo; do
+	for sub in map-demo units-demo drag-demo deployment-demo restore-demo; do
 		esbuild --bundle --outfile=$sub-bundle.js --loader:.svg=dataurl \
 			$sub.js  || die esbuild
 		rm $sub.js
