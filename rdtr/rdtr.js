@@ -6,6 +6,28 @@
 
 import Konva from 'konva';
 
+// Enable testing with node.js
+var newImage = function() { return new Image() }
+if (localStorage.getItem("nodejsTest") == "yes") {
+	newImage = function() { return {} }
+}
+
+// Set the stage
+export var stage;
+export var board;
+export function setStage(container) {
+	stage = new Konva.Stage({
+		container: container,
+		width: window.innerWidth,
+		height: window.innerHeight,
+	});
+	board = new Konva.Layer({
+		draggable: true,
+	});
+	stage.add(board);
+	board.add(map);
+}
+
 // ----------------------------------------------------------------------
 // Units (counters)
 
@@ -33,7 +55,7 @@ class UnitSheet {
 				this[prop] = obj[prop];
 			}
 		}
-		let imgObj = new Image();
+		let imgObj = newImage();
 		imgObj.src = this.imgData;
 		this.sheet = new Konva.Image({
 			image: imgObj,
@@ -445,6 +467,7 @@ export const units = [
 	{sheet:sheet.va, pos:{x:3,y:3}, type:"nav", nat:"sp", s:2},
 	{sheet:sheet.va, pos:{x:3,y:3}, type:"nav", nat:"sp", s:2},
 	{sheet:sheet.va, pos:{x:0,y:4}, type:"pz", nat:"sp", s:2, m:5, lbl:"Madrid"},
+	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3}, // 13 x 1-3
 	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
 	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
 	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
@@ -457,22 +480,21 @@ export const units = [
 	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
 	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
 	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
+	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3}, // 14 x 2-3
 	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
 	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
 	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
 	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
 	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:3,y:4}, type:"air", nat:"nu", s:2, m:4},
-	{sheet:sheet.va, pos:{x:3,y:4}, type:"air", nat:"nu", s:2, m:4},
-	{sheet:sheet.va, pos:{x:3,y:4}, type:"air", nat:"nu", s:2, m:4},
-	{sheet:sheet.va, pos:{x:3,y:4}, type:"air", nat:"nu", s:2, m:4},
-	{sheet:sheet.va, pos:{x:3,y:4}, type:"air", nat:"nu", s:2, m:4},
-	{sheet:sheet.va, pos:{x:3,y:4}, type:"air", nat:"nu", s:2, m:4},
-	{sheet:sheet.va, pos:{x:3,y:4}, type:"air", nat:"nu", s:2, m:4},
-	{sheet:sheet.va, pos:{x:3,y:4}, type:"air", nat:"nu", s:2, m:4},
-	{sheet:sheet.va, pos:{x:3,y:4}, type:"air", nat:"nu", s:2, m:4},
-	{sheet:sheet.va, pos:{x:4,y:4}, type:"air", nat:"nu", s:1, m:4},
+	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
+	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
+	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
+	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
+	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
+	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
+	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
+	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
+	{sheet:sheet.va, pos:{x:4,y:4}, type:"air", nat:"nu", s:1, m:4}, // 7 x 1-4
 	{sheet:sheet.va, pos:{x:4,y:4}, type:"air", nat:"nu", s:1, m:4},
 	{sheet:sheet.va, pos:{x:4,y:4}, type:"air", nat:"nu", s:1, m:4},
 	{sheet:sheet.va, pos:{x:4,y:4}, type:"air", nat:"nu", s:1, m:4},
@@ -820,16 +842,25 @@ export const nat = {
 	iq: [],
 };
 
+export function moveToTop(e) {
+	e.target.moveToTop()
+}
 for (const [i, u] of units.entries()) {
 	u.img = u.sheet.image(u.pos.x, u.pos.y, `rdtru${i}`)
-	u.img.on('dragstart', function () {
-		this.moveToTop()
-	})
-	u.img.on('dragend', function () {
-		unitSnapToHex(this)
-	})
+	u.img.on('dragstart', moveToTop)
 	nat[u.nat].push(i);
 }
+
+// ----------------------------------------------------------------------
+// Deployment
+// A deployment is a set of unit-types and the number to deploy. Example:
+// [{type:"ge,inf,3-3",cnt:10}, {type:"uk,pz,4-5",cnt:1}]
+
+export function deploymentBox(deployment) {
+	for (t of deployment) {
+	}
+}
+
 
 // ----------------------------------------------------------------------
 // Map
@@ -850,7 +881,7 @@ export function pixelToHex(pos) {
 
 	// Adjust for grid/map offset
 	pos = {x:pos.x + grid_offset.x, y:pos.y + grid_offset.y}
-	y = Math.round(pos.y / rsize - 0.42) // 0.42 ~= 5/12
+	let x, y = Math.round(pos.y / rsize - 0.42) // 0.42 ~= 5/12
 	if (y % 2 == 0) {
 		x = Math.round(pos.x / hsize)
 	} else {
@@ -859,7 +890,7 @@ export function pixelToHex(pos) {
 	return({x:x, y:y});
 }
 export function hexToPixel(hex) {
-	y = Math.round(hex.y * rsize + rsize/3)
+	let x, y = Math.round(hex.y * rsize + rsize/3)
 	if (hex.y % 2 == 0) {
 		x = Math.round(hex.x * hsize)
 	} else {
@@ -869,6 +900,7 @@ export function hexToPixel(hex) {
 	return({x:x - grid_offset.x, y:y - grid_offset.y});
 }
 export function hexToAxial(hex) {
+	let q
 	if (hex.y % 2 == 0) {
 		q =  hex.x - hex.y / 2
 	} else {
@@ -877,6 +909,7 @@ export function hexToAxial(hex) {
 	return {q: q, r: hex.y}
 }
 export function axialToHex(ax) {
+	let x
 	if (ax.r % 2 == 0) {
 		x = ax.q + ax.r / 2
 	} else {
@@ -913,19 +946,22 @@ export function unitPixelPos(hex) {
 	let h = hexToPixel(hex)
 	return {x: h.x - unitOffset, y: h.y - unitOffset}
 }
-export function unitPlace(u, hex, parent) {
+export function unitPlace(u, hex, parent = board) {
 	u.hex = hex
 	px = unitPixelPos(hex)
+	if (unitStack(hex)) px = stackAdjust(px)
 	u.img.x(px.x)
 	u.img.y(px.y)
+	u.img.on('dragend', unitSnapToHex)
 	parent.add(u.img)
 }
-export function unitPlaceRdtr(u, rc, parent) {
+export function unitPlaceRdtr(u, rc, parent = board) {
 	unitPlace(u, rdtrToHex(rc), parent)
 }
 // This function should be called after the user has placed a unit,
 // for instance from 'dragend'.
-export function unitSnapToHex(img, parent) {
+export function unitSnapToHex(e) {
+	img = e.target
 	// Get the unit object from the image id, which is `rdtru${i}`
 	i = Number(img.id().substring(5))
 	u = units[i]
@@ -933,19 +969,154 @@ export function unitSnapToHex(img, parent) {
 	pos = {x:img.x() + unitOffset, y:img.y() + unitOffset}
 	// Get the hex, and update the unit object
 	hex = pixelToHex(pos)
-	u.pos = hex
+	u.hex = hex
 	// Snap!
 	pos = unitPixelPos(hex)		// adjusted pos
+	if (unitStack(hex)) pos = stackAdjust(pos)
 	img.position(pos)
 }
-export function unitDeploy(deployment, parent) {
-	for (d of deployment) {
-		u = units[d.i]
-		unitPlaceRdtr(u, d.rc, parent)
+function posEqual(a, b) {
+	if (a.x != b.x) return false
+	if (a.y != b.y) return false
+	return true
+}
+function unitStack(hex) {
+	let unitCount = 0
+	for (u of units) {
+		if (u.hex && posEqual(u.hex, hex)) {
+			unitCount++
+			if (unitCount > 1) return true
+		}
 	}
+	return false
+}
+function stackAdjust(pos) {
+	let offset = 4
+	return {x:pos.x - offset, y:pos.y - offset}
 }
 
-const imageObj = new Image();
+// Unit find and user-friendly representation
+export function unitUnselectAll() {
+	for (const u of units) {
+		delete u.selected
+	}
+}
+export function unitFromStr(str, offmap=true) {
+	// return the first found unit that matches str
+	let v, nat, type, s, m, lbl, unit
+	v = str.split(',')
+	// The first 2 fields nat,type are mandatory
+	nat = v[0]
+	type = v[1]
+	if (v.length > 2) {
+		// This may be a single number, or something like "3-3"
+		let stat = v[2].split('-')
+		s = stat[0]
+		if (stat.length > 1) m = stat[1]
+	}
+	if (v.length > 2) lbl = v[3]
+	// TODO: optimize by using the "nat" object
+	for (const [i, u] of units.entries()) {
+		if (u.selected) continue
+		if (offmap && u.hex) continue
+		if (nat != u.nat) continue
+		if (type != u.type) continue
+		if (!s) {
+			unit = {i:i, u:u}
+			break
+		}		if (s != u.s) continue
+		if (!m) {
+			unit = {i:i, u:u}
+			break
+		}
+		if (m != u.m) continue
+		if (!lbl) {
+			unit = {i:i, u:u}
+			break
+		}
+		if (lbl != u.lbl) continue
+		// Perfect match
+		unit = {i:i, u:u}
+		break
+	}
+	if (unit) unit.u.selected = true
+	return unit
+}
+export function unitToStr(u) {
+	switch (u.type) {
+	case "inf":
+	case "pz":
+	case "air":
+	case "par":
+	case "mec":
+		if (u.lbl) {
+			return `${u.nat},${u.type},${u.s}-${u.m},${u.lbl}`
+		} else {
+			return `${u.nat},${u.type},${u.s}-${u.m}`
+		}
+	case "res":
+	case "nav":
+	case "esc":
+	case "bmb":
+	case "sub":
+	case "int":
+		return `${u.nat},${u.type},${u.s}`
+	case "ab":
+	case "bh":
+		return `${u.nat},${u.type}`
+	}
+	return "unknown-unit"
+}
+
+// Saving the game
+export function gameData() {
+	return {
+		version: 1,
+		deployment: {
+			units: []
+		}
+	}
+}
+export function save(data, name = "rdtr.json") {
+	const blob = new Blob([JSON.stringify(data)], { type: 'text/json' });
+	const fileURL = URL.createObjectURL(blob);
+	const downloadLink = document.createElement('a');
+	downloadLink.href = fileURL;
+	downloadLink.download = name;
+	document.body.appendChild(downloadLink);
+	downloadLink.click();
+	URL.revokeObjectURL(fileURL);
+}
+export function getDeplyment() {
+	let dep = { units: [] }
+	for (const u of units) {
+		if (!u.hex) continue
+		dep.units.push({
+			u: unitToStr(u), hex: hexToRdtr(u.hex)
+		})
+	}
+	return dep
+}
+export function saveGame(name = "rdtr.json") {
+	let d = gameData()
+	d.deployment = getDeplyment()
+	save(d, name)
+}
+export function deploy(_units) {
+	let notFound = []
+	for (const ud of _units) {
+		let u = unitFromStr(ud.u)
+		if (!u) {
+			notFound.push(ud.u)
+		} else {
+			unitPlaceRdtr(u.u, ud.hex)
+		}
+	}
+	if (notFound.length) alert(`Not found: ${notFound}`)
+}
+
+// The Map
+const imageObj = newImage();
 imageObj.src = './rdtr-map.png'
 export const map = new Konva.Image({
     image: imageObj,

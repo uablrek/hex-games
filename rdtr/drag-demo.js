@@ -1,4 +1,8 @@
 // SPDX-License-Identifier: CC0-1.0.
+/*
+  Basic drag-and-drop demo. The counters will snap to the hearest hex
+  when dropped.
+ */
 import Konva from 'konva';
 import * as rdtr from './rdtr.js';
 
@@ -39,4 +43,7 @@ deployment = [
 	{i:394, rc: {r:"K", q:23}},
 	{i:430, rc: {r:"L", q:22}},	
 ]
-rdtr.unitDeploy(deployment, board)
+for (d of deployment) {
+	u = rdtr.units[d.i]
+	rdtr.unitPlaceRdtr(u, d.rc, board)
+}

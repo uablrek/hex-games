@@ -5,14 +5,15 @@ import * as rdtr from './rdtr.js';
 const scale = 0.4
 
 const stage = new Konva.Stage({
-		container: 'container',
-		width: 3000 * scale,
-		height: 3200 * scale,
+	container: 'container',
+	width: window.innerWidth,
+	height: window.innerHeight,	
 });
 
-const layer = new Konva.Layer();
+const layer = new Konva.Layer()
 stage.add(layer);
 
+// Get the scenario given by "?scenario=0" in the url
 var href = new URL(location.href);
 var scenario = 0;
 let sc = href.searchParams.get("scenario");
@@ -31,7 +32,6 @@ if (scenario == 0) {
 		}))
 	}
 	stage.height(6000 * scale)
-	stage.width(4000 * scale)
 	side = 120
 	document.body.style.background = 'gray'
 	let row = 0, col = 0, offsetX = 80;

@@ -24,15 +24,15 @@ https://boardgamegeek.com/profile/John_AHfan). Here are his conditions:
 > purposes, except to charge reasonable fees for services such as
 > printing.
 
-I will use JavaScript and the [Konva](https://konvajs.org/docs/index.html)
+I am using JavaScript and the [Konva](https://konvajs.org/docs/index.html)
 framework. Bundles are created with [esbuild](https://esbuild.github.io/).
 
-As you might have noticed, this is a Work In Progress (WIP). I will
-document the development process for myself, and others. I will
-include dead-ends, abandoned ideas, new ideas, mess-up's, etc. I am
-new at JavaScript, so there may be many of them. I will create
-pre-relases on [github](https://github.com/uablrek/hex-games/releases)
-when I feel I have some significant to present. To test a release:
+This is a Work In Progress (WIP). I will document the development
+process for myself, and others. I will include dead-ends, abandoned
+ideas, new ideas, mess-up's, etc. I am new at JavaScript, so there may
+be many of them. I will create pre-relases on
+[github](https://github.com/uablrek/hex-games/releases) when I feel I
+have some significant to present. To test a release:
 
 1. Download `hex-games.zip` release Asset
 2. Unpack it locally (you *must* unpack on Windows. Not just dive into the zip archive)
@@ -42,6 +42,30 @@ when I feel I have some significant to present. To test a release:
   with a larger JavaScript (or associates) project, I don't know the
   best practices.
 
+## Unit test
+
+We want to run unit tests with `node.js`:
+```
+nmp link konva   # (once)
+node --localstorage-file=lstore test-rdtr.js
+```
+
+However, `node.js` is not the same as a browser. Fortunately only
+"new Image()" doesn't work. So a "trick" is used, in [rdtr.js](rdtr.js):
+
+```javascript
+// Enable testing with node.js
+var newImage = function() { return new Image() }
+if (localStorage.getItem("nodejsTest") == "yes") {
+	newImage = function() { return {} }
+}
+```
+
+The `lstore` file is filled *before* unit test with:
+
+```javascript
+localStorage.setItem("nodejsTest", "yes")
+```
 
 ## The map
 
@@ -53,7 +77,7 @@ https://boardgamegeek.com/filepage/243176/scalable-pdf-3rd-reich-map-vector-grap
 [Inkscape](https://inkscape.org/) can import PDF, but crashes when
 importing the map. There are also several [online tools](
 https://www.google.com/search?q=convert+pdf+to+svg), but the ones I
-have tries produces *absolutely huge* SVG-files with every single item
+have tried produces *absolutely huge* SVG-files with every single item
 defined as a shape (including individual characters).
 
 **Bad Idea:** An SVG image converted from a very-complex PDF is
@@ -69,9 +93,9 @@ generate a grid. The both the map and grid is then imported to
 
 1. Create grid; `hex emit-grid ...`
 2. Open the grid `inkscape rdtr-grid.svg`
-3. Import "rdtr-map.png" in incscape
-4. Mode the grid rect on top
-5. Align the grid with the map-hexes
+3. Import `rdtr-map.png` in incscape
+4. Move the grid rect on top
+5. Try to align the grid with the map-hexes
 6. Adjust the grid parameters, and repeat
 
 I got an almost perfect fit with:
@@ -90,7 +114,7 @@ Internally in code I use [Offset coordinates](
 https://www.redblobgames.com/grids/hexagons/#coordinates-offset) since
 it's simplest. RDTR uses a variation of [Axial coodinates](
 https://www.redblobgames.com/grids/hexagons/#coordinates-axial), where
-the row specifies with letters `A-Z,AA-NN`. These coordinates are used
+the row is specified with letters `A-Z,AA-NN`. These coordinates are used
 on interactions with users.
 
 
@@ -110,7 +134,7 @@ to (many) PNG files using [Gimp](https://www.gimp.org/). The
 individual counter images are cut out from the sheet with Konva
 `clone/crop`.
 
-The counter images must be included in JavaScript objects that a
+The counter images must be included in JavaScript as objects that a
 program can handle.
 
 ```javascript
@@ -131,9 +155,9 @@ image has the unique id "rdtru#", where `#` is the index. This makes
 it possible to find the unit object from the unit image, for instance
 in drag/click event callbacks.
 
-Users do however normally not know the index of a counter, so some
-form of human readable form is needed, like `fr,inf,2-3,Alp` or
-`uk,nav,9` or `su,air,5-4`. Here are the nation and type codes:
+Users do however not know the index of a counter, so some form of
+human readable form is needed, like `fr,inf,2-3,Alp` or `uk,nav,9` or
+`su,air,5-4`. Here are the nation and type codes:
 
 ```
 	fr: France                     inf: Infantery
@@ -151,3 +175,30 @@ form of human readable form is needed, like `fr,inf,2-3,Alp` or
 	fi: Finland                    int: Interceptor
 	iq: Iraq
 ```
+
+
+## Save and Restore
+
+Since this is a client-only application (a "frontend" if you like),
+save/restore is tricky. If there was a server (backend) available, it
+would be natural to let it handle save/restore. But that's in the future.
+
+Saves are in [JSON](https://en.wikipedia.org/wiki/JSON) format.
+
+On save a browser download window pops up and the user may select a
+file-name for the save. The save-key is usually `Shift-S`.
+
+Restore is harder. I have not found a way to initiate an upload for a
+local file in JavaScript. There are possibilities, like the [Fetch
+API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), but
+they seem to require a server, local files are blocked, which seems
+appropriate for security reasons.
+
+So, the save must be copied manually to the application directory,
+*then* it can be loaded, either on first load, or with a page reload
+(F5).
+
+**WARNING: a page reload (F5) will discard any changes you have made!**
+
+
+
