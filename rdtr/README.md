@@ -38,9 +38,42 @@ have some significant to present. To test a release:
 2. Unpack it locally (you *must* unpack on Windows. Not just dive into the zip archive)
 3. Open `rdtr/index.html` in your browser
 
-**TODO:** Create some kind of code structure. Since I haven't worked
-  with a larger JavaScript (or associates) project, I don't know the
-  best practices.
+## The game
+
+I now have something that resembles a game. The screen-shot below
+shows the initial deployment phase for the 1939 scenario. The gray box
+is called a `UnitBox`. You can drag counters from the UnitBox and
+place them anywhere on the board. The UnitBox itself can also be
+dragged to a convenient place.
+
+<img src="../figures/1939-initial-phase.png" width="70%" />
+
+Included:
+
+* Draggable map with draggable counters
+* Initial deployment from a draggable `UnitBox`
+* Save game. `Shift-S`
+* Restore game... sort of. You must manually copy the save file to "rdtrSaveData.js" in the app-dir
+* Remove units `Shift-click`
+* My own 1939 deployment save ("save-1939-initial.js") 
+* Likely a bunch of bugs
+
+Missing:
+
+* Allowable builds `UnitBox` (you can't buy new units)
+* Minor allies and neutrals `UnitBox` (nope, not these either)
+* Exchange `UnitBox`. To break up air and naval units
+* Turn tracking (this is needed to make new allowable builds available)
+* Peek a stack
+* BRP book keeping
+* <a href="#the-map-in-programs">Map awareness</a>. No restrictions on placements and moves
+
+As you can see it's pretty useless for now, but I want to make a
+release to test on `Windows` and on slower laptops. The `UnitBox`
+problems and turn tracking shoudn't be too hard. Then it can actually
+be used for gaming, at least solitaire or hot-seat. Moving counters to
+peek a stack is annoying though, but then again, it's the same as the
+board game.
 
 ## Unit test
 
@@ -67,9 +100,13 @@ The `lstore` file is filled *before* unit test with:
 localStorage.setItem("nodejsTest", "yes")
 ```
 
+**TODO:** Improve code structure. Since I haven't worked with a larger
+  JavaScript (or associates) project, I don't know the best practices.
+
+
 ## The map
 
-I *really want* vector graphics, and in HTML5 that means [SVG](
+I would prefer vector graphics, and in HTML5 that means [SVG](
 https://en.wikipedia.org/wiki/SVG). There is no SVG-map on BGG, but
 there are [PDF-maps](
 https://boardgamegeek.com/filepage/243176/scalable-pdf-3rd-reich-map-vector-graphics).
@@ -80,8 +117,14 @@ https://www.google.com/search?q=convert+pdf+to+svg), but the ones I
 have tried produces *absolutely huge* SVG-files with every single item
 defined as a shape (including individual characters).
 
-**Bad Idea:** An SVG image converted from a very-complex PDF is
-unusable. None of the good stuff in SVG is available.
+**Update:** I asked [John_AHfan](https://boardgamegeek.com/profile/John_AHfan)
+  if he could export an SVG from LibreOffice and upload (please see the
+  comments in the map page), but it turns out that it's just as bad as
+  the online tools
+
+**Bad Idea:** An SVG image converted (or exported from LibreOffice)
+from a very-complex PDF is unusable. None of the good stuff in SVG is
+available.
 
 So, fallback to PNG. I still use the PDF-map, import it to
 [Gimp](https://www.gimp.org/), resize it to 3000x2050, and export as
@@ -105,7 +148,7 @@ hex emit-grid --size 58.7 --scale 0.988 --rect 3000x2050 > rdtr-grid.svg
 ```
 
 This helps when we convert a mouse-position on the map to a hex
-coordinate. If you haven't already, try the `map-demo` in a
+coordinate. If you haven't already, please check the `map-demo` in a
 pre-release.
 
 ### Coordinates
@@ -117,13 +160,21 @@ https://www.redblobgames.com/grids/hexagons/#coordinates-axial), where
 the row is specified with letters `A-Z,AA-NN`. These coordinates are used
 on interactions with users.
 
+### The map in programs
+
+The program is unaware of the map. The only thing it knows is the hex
+positions. So, things like check legal moves, or compute battle odds
+are not possible. To make such things possible one must define things
+like terrain, cities, ports, rivers, front, etc *for every hex*. While
+this is not especially complicated, it's *a lot* of work. I probably
+will do it eventually, but not as long as there are funnier things to do.
 
 ## Counters
 
 I use the term `unit` often since "counter" has a different meaning in
 code, and would cause confusion.
 
-Again, I want vector graphics, but PNG is fine for units.
+Again, I would prefer vector graphics, but PNG is fine.
 
 **Idea:** Write a program to generate an SVG-image of a unit given
   parametes like: `--type=inf --stat=3-3 label="22" --color=black`
@@ -151,7 +202,7 @@ const units = [
 New fields, like "img" and "hex" (on map), are added later.
 
 The index in the `units` array is the identifier of the unit. The unit
-image has the unique id "rdtru#", where `#` is the index. This makes
+images have a unique id "rdtru#", where `#` is the index. This makes
 it possible to find the unit object from the unit image, for instance
 in drag/click event callbacks.
 
@@ -183,22 +234,27 @@ Since this is a client-only application (a "frontend" if you like),
 save/restore is tricky. If there was a server (backend) available, it
 would be natural to let it handle save/restore. But that's in the future.
 
-Saves are in [JSON](https://en.wikipedia.org/wiki/JSON) format.
-
-On save a browser download window pops up and the user may select a
-file-name for the save. The save-key is usually `Shift-S`.
+The save-key is `Shift-S`. On save a browser download window pops up
+and the user may select a file-name for the save.
 
 Restore is harder. I have not found a way to initiate an upload for a
-local file in JavaScript. There are possibilities, like the [Fetch
+local file in JavaScript. So:
+
+*The save file must be manually copied to `rdtrSaveData.js` in the app
+directory, then the page must be reloaded (F5)*
+
+**WARNING: a page reload (F5) will discard any changes you have made
+after the save!**
+
+If you want to play around with the browser window size (including
+full screen) and/or zooming, this is the way:
+
+1. Save!
+2. Copy the save file to "rdtrSaveData.js" in the app directory
+3. Resize, zoom and reload to your heart's content!
+
+
+If you have a server here are possibilities, like the [Fetch
 API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), but
-they seem to require a server, local files are blocked, which seems
-appropriate for security reasons.
-
-So, the save must be copied manually to the application directory,
-*then* it can be loaded, either on first load, or with a page reload
-(F5).
-
-**WARNING: a page reload (F5) will discard any changes you have made!**
-
-
-
+local files are blocked (`file://` url's), which seems appropriate for
+security reasons.

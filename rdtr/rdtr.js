@@ -5,6 +5,7 @@
 */
 
 import Konva from 'konva';
+import * as unit from './units.js';
 
 // Enable testing with node.js
 var newImage = function() { return new Image() }
@@ -13,6 +14,7 @@ if (localStorage.getItem("nodejsTest") == "yes") {
 }
 
 // Set the stage
+var shift = false
 export var stage;
 export var board;
 export function setStage(container) {
@@ -26,841 +28,36 @@ export function setStage(container) {
 	});
 	stage.add(board);
 	board.add(map);
-}
 
-// ----------------------------------------------------------------------
-// Units (counters)
-
-// The UnitSheet class is made complicated by the "layout" element. It
-// is necessary since the unit-sheets (PNG files) does not have the
-// unit images in a perfect grid. They are offset in unpredictable
-// ways, so we must compensate.
-export const unit_side = 150
-class UnitSheet {
-	side = 150					// Side of a unit on the unit-sheet PNG
-	scale = 0.32				// Adjust so it can fit into a map hex
-	rows = 8;
-	cols = 14;
-	// The "layout" has x,y elements which consists of an array of
-	// 3-tuples [row/col, offset, gap].
-	layout;
-	// The "imgData" may be an imported URL if the unit-sheet is
-	// packed into the bundle, otherwise it's a file name.
-	imgData;
-	sheet;
-
-	constructor(obj) {
-		for (var prop in obj) {
-			if (obj.hasOwnProperty(prop)) {
-				this[prop] = obj[prop];
-			}
-		}
-		let imgObj = newImage();
-		imgObj.src = this.imgData;
-		this.sheet = new Konva.Image({
-			image: imgObj,
-		});
-	}
-	// Compute the top-left corner of a unit within the unit-sheet.
-	// The "layout" plays a vital role.
-	#topLeft(x, y) {
-		var y0, x0, gapX, gapY;
-		for (let i = 0; i < this.layout.y.length; i++) {
-			if (y < this.layout.y[i][0])
-				break;
-			y0 = this.layout.y[i][1];
-			gapY = this.layout.y[i][2];
-		}
-		for (let i = 0; i < this.layout.x.length; i++) {
-			if (x < this.layout.x[i][0])
-				break;
-			x0 = this.layout.x[i][1];
-			gapX = this.layout.x[i][2];
-		}
-		return {x: x0 + (this.side + gapX) * x, y: y0 + (this.side + gapY) * y};
-	}
-	// Return 
-	image(x, y, id) {
-		var tl = this.#topLeft(x, y);
-		return this.sheet.clone({
-			id: id,
-			width: this.side,
-			height: this.side,
-			crop: { x: tl.x, y: tl.y, width: this.side, height: this.side },
-			scale: { x: this.scale, y: this.scale},
-			cornerRadius: 16,
-			draggable: true
-		});
-	}
-}
-
-// If the unit-sheet file is packed into the bundle use:
-//import suSheetData from './tr-counters-ussr.png'
-// If the unit-sheet file is loaded (from s server or local file):
-const suSheetData = './tr-counters-ussr.png'
-const geSheetData = './tr-counters-germany.png'
-const frSheetData = './tr-counters-fr-usa.png'
-const itSheetData = './tr-counters-italy.png'
-const ukSheetData = './tr-counters-uk.png'
-const vaSheetData = './tr-counters-variant.png'
-// TODO: find a way to select this
-
-const sheet = {
-	su: new UnitSheet({
-		imgData: suSheetData,
-		layout: {
-			x: [
-				[0, 114, 13],
-				[7, 164, 12],
-				[11, 158, 13]
-			],
-			y: [
-				[0, 158, 10],
-				[2, 158, 13],
-				[4, 162, 13],
-				[6, 176, 13],
-			]
-		},
-	}),
-	ge: new UnitSheet({
-		imgData: geSheetData,
-		layout: {
-			x: [
-				[0, 126, 11],
-				[7, 174, 11],
-				[13, 180, 11],
-			],
-			y: [
-				[0, 190, 16],
-				[2, 196, 16],
-				[4, 200, 16],
-				[6, 186, 20],
-			]
-		},
-	}),
-	fr: new UnitSheet({
-		imgData: frSheetData,
-		layout: {
-			x: [
-				[0, 118, 14],
-				[5, 120, 14],
-				[7, 135, 15],
-			],
-			y: [
-				[0, 83, 12],
-				[3, 82, 15],
-				[6, 84, 15],
-				[7, 88, 15],
-			]
-		},
-	}),
-	it: new UnitSheet({
-		imgData: itSheetData,
-		layout: {
-			x: [
-				[0, 122, 14],
-				[4, 124, 15],
-				[7, 146, 14],
-			],
-			y: [
-				[0, 184, 16],
-				[2, 192, 16],
-				[4, 200, 16],
-				[6, 220, 16],
-			]
-		},
-	}),
-	uk: new UnitSheet({
-		imgData: ukSheetData,
-		layout: {
-			x: [
-				[0, 118, 15],
-				[7, 140, 15],
-				[11, 158, 13]
-			],
-			y: [
-				[0, 160, 10],
-				[2, 168, 15],
-				[4, 176, 15],
-				[6, 194, 15],
-			]
-		},
-	}),
-	va: new UnitSheet({
-		imgData: vaSheetData,
-		layout: {
-			x: [
-				[0, 130, 12],
-				[5, 134, 12],
-				[7, 202, 9]
-			],
-			y: [
-				[0, 153, 16],
-				[2, 160, 16],
-				[4, 180, 10],
-				[6, 170, 13],
-			]
-		},
+	stage.container().tabIndex = 1
+	stage.container().focus();
+	stage.container().addEventListener("keydown", (e) => {
+		if (e.key == "Shift") shift = true
+	})
+	stage.container().addEventListener("keyup", (e) => {
+		if (e.key == "Shift") shift = false
 	})
 }
 
-export function sheetImage(nat) {
-	console.log(`nat: ${nat}`)
-	return sheet[nat].sheet
-}
+var selected = null
 
-// An array of all units.
-// { sheet:fr, pos:{x:,y:}, type:"inf", nat: "fr", m:2, s:3, lbl:"8",
-//   img:Image, map:{x:,y:}}  // (added later)
-export const units = [
-	{sheet:sheet.fr, pos:{x:0,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"Alp"},
-	{sheet:sheet.fr, pos:{x:1,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"Col"},
-	{sheet:sheet.fr, pos:{x:2,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"6"},
-	{sheet:sheet.fr, pos:{x:3,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"7"},
-	{sheet:sheet.fr, pos:{x:4,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"8"},
-	{sheet:sheet.fr, pos:{x:5,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"10"},
-	{sheet:sheet.fr, pos:{x:6,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"11"},
-	{sheet:sheet.fr, pos:{x:0,y:1}, type:"inf", nat: "fr", m:3, s:2, lbl:"13"},
-	{sheet:sheet.fr, pos:{x:1,y:1}, type:"inf", nat: "fr", m:3, s:2, lbl:"17"},
-	{sheet:sheet.fr, pos:{x:2,y:1}, type:"inf", nat: "fr", m:3, s:2, lbl:"16"},
-	{sheet:sheet.fr, pos:{x:3,y:1}, type:"inf", nat: "fr", m:3, s:2, lbl:"18"},
-	{sheet:sheet.fr, pos:{x:4,y:1}, type:"inf", nat: "fr", m:3, s:2, lbl:"24"},
-	{sheet:sheet.fr, pos:{x:5,y:1}, type:"inf", nat: "fr", m:3, s:2, lbl:"25"},
-	{sheet:sheet.fr, pos:{x:6,y:1}, type:"inf", nat: "fr", m:3, s:2, lbl:"42"},
-	{sheet:sheet.fr, pos:{x:0,y:2}, type:"inf", nat: "fr", m:3, s:2, lbl:"44"},
-	{sheet:sheet.fr, pos:{x:1,y:2}, type:"inf", nat: "fr", m:3, s:2, lbl:"45"},
-	{sheet:sheet.fr, pos:{x:2,y:2}, type:"pz",  nat: "fr", m:5, s:3, lbl:"1"},
-	{sheet:sheet.fr, pos:{x:3,y:2}, type:"pz",  nat: "fr", m:5, s:3, lbl:"2GCM"},
-	{sheet:sheet.fr, pos:{x:4,y:2}, type:"pz",  nat: "fr", m:5, s:3, lbl:"5GCM"},
-	{sheet:sheet.fr, pos:{x:6,y:2}, type:"air", nat: "fr", m:4, s:5},
-	{sheet:sheet.fr, pos:{x:5,y:2}, type:"air", nat: "fr", m:4, s:5},
-	{sheet:sheet.fr, pos:{x:5,y:2}, type:"air", nat: "fr", m:4, s:5},
-	{sheet:sheet.fr, pos:{x:0,y:4}, type:"air", nat: "fr", s:3, m:4},
-	{sheet:sheet.fr, pos:{x:1,y:4}, type:"air", nat: "fr", s:3, m:4},
-	{sheet:sheet.fr, pos:{x:2,y:4}, type:"air", nat: "fr", s:2, m:4},
-	{sheet:sheet.fr, pos:{x:3,y:4}, type:"air", nat: "fr", s:1, m:4},
-	{sheet:sheet.fr, pos:{x:4,y:4}, type:"air", nat: "fr", s:1, m:4},
-	{sheet:sheet.fr, pos:{x:4,y:6}, type:"ab", nat: "fr"},
-	{sheet:sheet.fr, pos:{x:5,y:6}, type:"ab", nat: "fr"},
-	{sheet:sheet.fr, pos:{x:6,y:6}, type:"ab", nat: "fr"},
-	{sheet:sheet.fr, pos:{x:3,y:3}, type:"res", nat: "fr", s:1},
-	{sheet:sheet.fr, pos:{x:4,y:3}, type:"res", nat: "fr", s:1},
-	{sheet:sheet.fr, pos:{x:5,y:3}, type:"res", nat: "fr", s:1},
-	{sheet:sheet.fr, pos:{x:6,y:3}, type:"res", nat: "fr", s:1},
-	{sheet:sheet.fr, pos:{x:0,y:3}, type:"nav", nat: "fr", s:9},
-	{sheet:sheet.fr, pos:{x:1,y:3}, type:"nav", nat: "fr", s:9},
-	{sheet:sheet.fr, pos:{x:2,y:3}, type:"nav", nat: "fr", s:9},
-	{sheet:sheet.fr, pos:{x:5,y:4}, type:"nav", nat: "fr", s:8},
-	{sheet:sheet.fr, pos:{x:6,y:4}, type:"nav", nat: "fr", s:8},
-	{sheet:sheet.fr, pos:{x:0,y:5}, type:"nav", nat: "fr", s:6},
-	{sheet:sheet.fr, pos:{x:1,y:5}, type:"nav", nat: "fr", s:6},
-	{sheet:sheet.fr, pos:{x:2,y:5}, type:"nav", nat: "fr", s:4},
-	{sheet:sheet.fr, pos:{x:3,y:5}, type:"nav", nat: "fr", s:4},
-	{sheet:sheet.fr, pos:{x:4,y:5}, type:"nav", nat: "fr", s:2},
-	{sheet:sheet.fr, pos:{x:5,y:5}, type:"nav", nat: "fr", s:2},
-	{sheet:sheet.fr, pos:{x:6,y:5}, type:"nav", nat: "fr", s:1},
-	{sheet:sheet.fr, pos:{x:0,y:6}, type:"nav", nat: "fr", s:1},
-	{sheet:sheet.va, pos:{x:7,y:4}, type:"inf", nat:"fr", s:1, m:3, lbl:"1 Alg"},
-	{sheet:sheet.va, pos:{x:8,y:4}, type:"inf", nat:"fr", s:1, m:3, lbl:"2 Alg"},
-	{sheet:sheet.va, pos:{x:9,y:4}, type:"inf", nat:"fr", s:1, m:3, lbl:"3 Alg"},
-	{sheet:sheet.va, pos:{x:10,y:4}, type:"inf", nat:"fr", s:1, m:3, lbl:"1 Mor"},
-	{sheet:sheet.va, pos:{x:11,y:4}, type:"inf", nat:"fr", s:1, m:3, lbl:"2 Mor"},
-	{sheet:sheet.va, pos:{x:12,y:4}, type:"inf", nat:"fr", s:1, m:3, lbl:"1 Tun"},
-	{sheet:sheet.va, pos:{x:13,y:4}, type:"pz", nat:"fr", s:3, m:5, lbl:"1 GCM"},
-	{sheet:sheet.va, pos:{x:7,y:5}, type:"pz", nat:"fr", s:3, m:5, lbl:"3 GCM"},
-	{sheet:sheet.va, pos:{x:8,y:5}, type:"pz", nat:"fr", s:3, m:5, lbl:"4 GCM"},
-	{sheet:sheet.fr, pos:{x:7,y:0}, type:"inf", nat: "us", s:3, m:4, lbl:"2"},
-	{sheet:sheet.fr, pos:{x:8,y:0}, type:"inf", nat: "us", s:3, m:4, lbl:"3"},
-	{sheet:sheet.fr, pos:{x:9,y:0}, type:"inf", nat: "us", s:3, m:4, lbl:"4"},
-	{sheet:sheet.fr, pos:{x:10,y:0}, type:"inf", nat: "us", s:3, m:4, lbl:"5"},
-	{sheet:sheet.fr, pos:{x:11,y:0}, type:"inf", nat: "us", s:3, m:4, lbl:"6"},
-	{sheet:sheet.fr, pos:{x:12,y:0}, type:"inf", nat: "us", s:3, m:4, lbl:"8"},
-	{sheet:sheet.fr, pos:{x:13,y:0}, type:"inf", nat: "us", s:3, m:4, lbl:"10"},
-	{sheet:sheet.fr, pos:{x:7,y:1}, type:"inf", nat: "us", s:3, m:4, lbl:"12"},
-	{sheet:sheet.fr, pos:{x:8,y:1}, type:"inf", nat: "us", s:3, m:4, lbl:"19"},
-	{sheet:sheet.fr, pos:{x:9,y:1}, type:"inf", nat: "us", s:3, m:4, lbl:"21"},
-	{sheet:sheet.fr, pos:{x:10,y:1}, type:"inf", nat: "us", s:3, m:4, lbl:"22"},
-	{sheet:sheet.fr, pos:{x:11,y:1}, type:"inf", nat: "us", s:3, m:4, lbl:"23"},
-	{sheet:sheet.fr, pos:{x:12,y:1}, type:"inf", nat: "us", s:3, m:4, lbl:"25b"},
-	{sheet:sheet.fr, pos:{x:13,y:1}, type:"inf", nat: "us", s:3, m:4, lbl:"26b"},
-	{sheet:sheet.fr, pos:{x:7,y:2}, type:"inf", nat: "us", s:3, m:4, lbl:"27b"},
-	{sheet:sheet.fr, pos:{x:8,y:2}, type:"par", nat: "us", s:3, m:3, lbl:"18AB"},
-	{sheet:sheet.fr, pos:{x:9,y:2}, type:"pz", nat: "us", s:5, m:6, lbl:"1"},
-	{sheet:sheet.fr, pos:{x:10,y:2}, type:"pz", nat: "us", s:5, m:6, lbl:"7"},
-	{sheet:sheet.fr, pos:{x:11,y:2}, type:"pz", nat: "us", s:5, m:6, lbl:"13"},
-	{sheet:sheet.fr, pos:{x:12,y:2}, type:"pz", nat: "us", s:5, m:6, lbl:"16"},
-	{sheet:sheet.fr, pos:{x:13,y:2}, type:"pz", nat: "us", s:5, m:6, lbl:"20"},
-	{sheet:sheet.fr, pos:{x:7,y:3}, type:"res", nat: "us", s:1},
-	{sheet:sheet.fr, pos:{x:7,y:3}, type:"res", nat: "us", s:1},
-	{sheet:sheet.fr, pos:{x:7,y:3}, type:"res", nat: "us", s:1},
-	{sheet:sheet.fr, pos:{x:7,y:3}, type:"res", nat: "us", s:1},
-	{sheet:sheet.fr, pos:{x:7,y:3}, type:"res", nat: "us", s:1},
-	{sheet:sheet.fr, pos:{x:7,y:3}, type:"res", nat: "us", s:1},
-	{sheet:sheet.fr, pos:{x:7,y:3}, type:"res", nat: "us", s:1},
-	{sheet:sheet.fr, pos:{x:9,y:6}, type:"air", nat: "us", s:5, m:4},
-	{sheet:sheet.fr, pos:{x:10,y:6}, type:"air", nat: "us", s:5, m:4},
-	{sheet:sheet.fr, pos:{x:11,y:6}, type:"air", nat: "us", s:5, m:4},
-	{sheet:sheet.fr, pos:{x:12,y:6}, type:"air", nat: "us", s:5, m:4},
-	{sheet:sheet.fr, pos:{x:13,y:6}, type:"air", nat: "us", s:5, m:4},
-	{sheet:sheet.fr, pos:{x:10,y:7}, type:"air", nat: "us", s:3, m:4},
-	{sheet:sheet.fr, pos:{x:11,y:7}, type:"air", nat: "us", s:3, m:4},
-	{sheet:sheet.fr, pos:{x:12,y:7}, type:"air", nat: "us", s:2, m:4},
-	{sheet:sheet.fr, pos:{x:13,y:7}, type:"air", nat: "us", s:2, m:4},
-	{sheet:sheet.fr, pos:{x:0,y:7}, type:"air", nat: "us", s:1, m:4},
-	{sheet:sheet.fr, pos:{x:0,y:7}, type:"air", nat: "us", s:1, m:4},
-	{sheet:sheet.fr, pos:{x:0,y:7}, type:"air", nat: "us", s:1, m:4},
-	{sheet:sheet.fr, pos:{x:3,y:7}, type:"ab", nat: "us"},
-	{sheet:sheet.fr, pos:{x:4,y:7}, type:"ab", nat: "us"},
-	{sheet:sheet.fr, pos:{x:5,y:7}, type:"ab", nat: "us"},
-	{sheet:sheet.fr, pos:{x:7,y:4}, type:"nav", nat: "us", s:9},
-	{sheet:sheet.fr, pos:{x:8,y:4}, type:"nav", nat: "us", s:9},
-	{sheet:sheet.fr, pos:{x:9,y:4}, type:"nav", nat: "us", s:9},
-	{sheet:sheet.fr, pos:{x:10,y:4}, type:"nav", nat: "us", s:9},
-	{sheet:sheet.fr, pos:{x:11,y:4}, type:"nav", nat: "us", s:9},
-	{sheet:sheet.fr, pos:{x:12,y:4}, type:"nav", nat: "us", s:9},
-	{sheet:sheet.fr, pos:{x:13,y:4}, type:"nav", nat: "us", s:9},
-	{sheet:sheet.fr, pos:{x:7,y:5}, type:"nav", nat: "us", s:9},
-	{sheet:sheet.fr, pos:{x:8,y:5}, type:"nav", nat: "us", s:9},
-	{sheet:sheet.fr, pos:{x:8,y:5}, type:"nav", nat: "us", s:9},
-	{sheet:sheet.fr, pos:{x:8,y:5}, type:"nav", nat: "us", s:9},
-	{sheet:sheet.fr, pos:{x:7,y:6}, type:"nav", nat: "us", s:8},
-	{sheet:sheet.fr, pos:{x:8,y:6}, type:"nav", nat: "us", s:8},
-	{sheet:sheet.fr, pos:{x:9,y:5}, type:"nav", nat: "us", s:6},
-	{sheet:sheet.fr, pos:{x:10,y:5}, type:"nav", nat: "us", s:6},
-	{sheet:sheet.fr, pos:{x:11,y:5}, type:"nav", nat: "us", s:4},
-	{sheet:sheet.fr, pos:{x:12,y:5}, type:"nav", nat: "us", s:4},
-	{sheet:sheet.fr, pos:{x:13,y:5}, type:"nav", nat: "us", s:2},
-	{sheet:sheet.fr, pos:{x:7,y:7}, type:"nav", nat: "us", s:2},
-	{sheet:sheet.fr, pos:{x:8,y:7}, type:"nav", nat: "us", s:1},
-	{sheet:sheet.fr, pos:{x:9,y:7}, type:"nav", nat: "us", s:1},
-	{sheet:sheet.su, pos:{x:0,y:0}, type:"inf", nat: "su", s:3, m:3, lbl:"2 Gds"},
-	{sheet:sheet.su, pos:{x:1,y:0}, type:"inf", nat: "su", s:3, m:3, lbl:"3 Gds"},
-	{sheet:sheet.su, pos:{x:2,y:0}, type:"inf", nat: "su", s:3, m:3, lbl:"5 Gds"},
-	{sheet:sheet.su, pos:{x:3,y:0}, type:"inf", nat: "su", s:3, m:3, lbl:"6 Gds"},
-	{sheet:sheet.su, pos:{x:4,y:0}, type:"inf", nat: "su", s:3, m:3, lbl:"7 Gds"},
-	{sheet:sheet.su, pos:{x:5,y:0}, type:"inf", nat: "su", s:3, m:3, lbl:"8 Gds"},
-	{sheet:sheet.su, pos:{x:6,y:0}, type:"inf", nat: "su", s:3, m:3, lbl:"11 Gds"},
-	{sheet:sheet.su, pos:{x:0,y:1}, type:"inf", nat: "su", s:3, m:3, lbl:"1 Shk"},
-	{sheet:sheet.su, pos:{x:1,y:1}, type:"inf", nat: "su", s:3, m:3, lbl:"2 Shk"},
-	{sheet:sheet.su, pos:{x:2,y:1}, type:"inf", nat: "su", s:3, m:3, lbl:"3 Shk"},
-	{sheet:sheet.su, pos:{x:3,y:1}, type:"inf", nat: "su", s:3, m:3, lbl:"5 Shk"},
-	{sheet:sheet.su, pos:{x:4,y:1}, type:"inf", nat: "su", s:3, m:3, lbl:"Nav"},
-	{sheet:sheet.su, pos:{x:5,y:1}, type:"inf", nat: "su", s:3, m:3, lbl:"53"},
-	{sheet:sheet.su, pos:{x:6,y:1}, type:"inf", nat: "su", s:3, m:3, lbl:"57"},
-	{sheet:sheet.su, pos:{x:0,y:2}, type:"inf", nat: "su", s:3, m:3, lbl:"60"},
-	{sheet:sheet.su, pos:{x:1,y:2}, type:"inf", nat: "su", s:3, m:3, lbl:"61"},
-	{sheet:sheet.su, pos:{x:2,y:2}, type:"inf", nat: "su", s:3, m:3, lbl:"62"},
-	{sheet:sheet.su, pos:{x:3,y:2}, type:"inf", nat: "su", s:3, m:3, lbl:"63"},
-	{sheet:sheet.su, pos:{x:4,y:2}, type:"inf", nat: "su", s:3, m:3, lbl:"64"},
-	{sheet:sheet.su, pos:{x:5,y:2}, type:"inf", nat: "su", s:3, m:3, lbl:"70"},
-	{sheet:sheet.su, pos:{x:6,y:2}, type:"par", nat: "su", s:2, m:3, lbl:"1 Pr"},
-	{sheet:sheet.su, pos:{x:0,y:3}, type:"par", nat: "su", s:2, m:3, lbl:"2 Pr"},
-	{sheet:sheet.su, pos:{x:1,y:3}, type:"inf", nat: "su", s:2, m:3, lbl:"3"},
-	{sheet:sheet.su, pos:{x:2,y:3}, type:"inf", nat: "su", s:2, m:3, lbl:"4"},
-	{sheet:sheet.su, pos:{x:3,y:3}, type:"inf", nat: "su", s:2, m:3, lbl:"5"},
-	{sheet:sheet.su, pos:{x:4,y:3}, type:"inf", nat: "su", s:2, m:3, lbl:"6"},
-	{sheet:sheet.su, pos:{x:5,y:3}, type:"inf", nat: "su", s:2, m:3, lbl:"7"},
-	{sheet:sheet.su, pos:{x:6,y:3}, type:"inf", nat: "su", s:2, m:3, lbl:"8"},
-	{sheet:sheet.su, pos:{x:0,y:4}, type:"inf", nat: "su", s:2, m:3, lbl:"9"},
-	{sheet:sheet.su, pos:{x:1,y:4}, type:"inf", nat: "su", s:2, m:3, lbl:"10"},
-	{sheet:sheet.su, pos:{x:2,y:4}, type:"inf", nat: "su", s:2, m:3, lbl:"11"},
-	{sheet:sheet.su, pos:{x:3,y:4}, type:"inf", nat: "su", s:2, m:3, lbl:"12"},
-	{sheet:sheet.su, pos:{x:4,y:4}, type:"inf", nat: "su", s:1, m:3, lbl:"13"},
-	{sheet:sheet.su, pos:{x:5,y:4}, type:"inf", nat: "su", s:1, m:3, lbl:"14"},
-	{sheet:sheet.su, pos:{x:6,y:4}, type:"inf", nat: "su", s:1, m:3, lbl:"16"},
-	{sheet:sheet.su, pos:{x:0,y:5}, type:"inf", nat: "su", s:1, m:3, lbl:"18"},
-	{sheet:sheet.su, pos:{x:1,y:5}, type:"inf", nat: "su", s:1, m:3, lbl:"19"},
-	{sheet:sheet.su, pos:{x:2,y:5}, type:"inf", nat: "su", s:1, m:3, lbl:"20"},
-	{sheet:sheet.su, pos:{x:3,y:5}, type:"inf", nat: "su", s:1, m:3, lbl:"21"},
-	{sheet:sheet.su, pos:{x:4,y:5}, type:"inf", nat: "su", s:1, m:3, lbl:"22"},
-	{sheet:sheet.su, pos:{x:5,y:5}, type:"inf", nat: "su", s:1, m:3, lbl:"23"},
-	{sheet:sheet.su, pos:{x:6,y:5}, type:"inf", nat: "su", s:1, m:3, lbl:"24"},
-	{sheet:sheet.su, pos:{x:0,y:6}, type:"inf", nat: "su", s:1, m:3, lbl:"26"},
-	{sheet:sheet.su, pos:{x:1,y:6}, type:"inf", nat: "su", s:1, m:3, lbl:"27"},
-	{sheet:sheet.su, pos:{x:2,y:6}, type:"inf", nat: "su", s:1, m:3, lbl:"28"},
-	{sheet:sheet.su, pos:{x:3,y:6}, type:"inf", nat: "su", s:1, m:3, lbl:"29"},
-	{sheet:sheet.su, pos:{x:4,y:6}, type:"inf", nat: "su", s:1, m:3, lbl:"30"},
-	{sheet:sheet.su, pos:{x:5,y:6}, type:"pz", nat: "su", s:3, m:5, lbl:"3 Me"},
-	{sheet:sheet.su, pos:{x:6,y:6}, type:"pz", nat: "su", s:3, m:5, lbl:"11 Tk"},
-	{sheet:sheet.su, pos:{x:0,y:7}, type:"pz", nat: "su", s:3, m:5, lbl:"13 Me"},
-	{sheet:sheet.su, pos:{x:1,y:7}, type:"pz", nat: "su", s:3, m:5, lbl:"15 Me"},
-	{sheet:sheet.su, pos:{x:2,y:7}, type:"pz", nat: "su", s:3, m:5, lbl:"19 Me"},
-	{sheet:sheet.su, pos:{x:3,y:7}, type:"pz", nat: "su", s:3, m:5, lbl:"22 Me"},
-	{sheet:sheet.su, pos:{x:7,y:0}, type:"pz", nat: "su", s:4, m:5, lbl:"1 Tk"},
-	{sheet:sheet.su, pos:{x:8,y:0}, type:"pz", nat: "su", s:4, m:5, lbl:"2 Tk"},
-	{sheet:sheet.su, pos:{x:9,y:0}, type:"pz", nat: "su", s:4, m:5, lbl:"3 Tk"},
-	{sheet:sheet.su, pos:{x:10,y:0}, type:"pz", nat: "su", s:4, m:5, lbl:"5 Tk"},
-	{sheet:sheet.su, pos:{x:4,y:7}, type:"air", nat: "su", s:5, m:4},
-	{sheet:sheet.su, pos:{x:4,y:7}, type:"air", nat: "su", s:5, m:4},
-	{sheet:sheet.su, pos:{x:4,y:7}, type:"air", nat: "su", s:5, m:4},
-	{sheet:sheet.su, pos:{x:9,y:2}, type:"air", nat: "su", s:3, m:4},
-	{sheet:sheet.su, pos:{x:9,y:2}, type:"air", nat: "su", s:3, m:4},
-	{sheet:sheet.su, pos:{x:11,y:2}, type:"air", nat: "su", s:2, m:4},
-	{sheet:sheet.su, pos:{x:11,y:2}, type:"air", nat: "su", s:2, m:4},
-	{sheet:sheet.su, pos:{x:7,y:3}, type:"air", nat: "su", s:1, m:4},
-	{sheet:sheet.su, pos:{x:7,y:3}, type:"air", nat: "su", s:1, m:4},
-	{sheet:sheet.su, pos:{x:12,y:3}, type:"ab", nat: "su"},
-	{sheet:sheet.su, pos:{x:12,y:3}, type:"ab", nat: "su"},
-	{sheet:sheet.su, pos:{x:12,y:3}, type:"ab", nat: "su"},
-	{sheet:sheet.su, pos:{x:11,y:0}, type:"nav", nat: "su", s:9},
-	{sheet:sheet.su, pos:{x:12,y:0}, type:"nav", nat: "su", s:9},
-	{sheet:sheet.su, pos:{x:13,y:0}, type:"nav", nat: "su", s:9},
-	{sheet:sheet.su, pos:{x:7,y:1}, type:"nav", nat: "su", s:8},
-	{sheet:sheet.su, pos:{x:7,y:1}, type:"nav", nat: "su", s:8},
-	{sheet:sheet.su, pos:{x:9,y:1}, type:"nav", nat: "su", s:6},
-	{sheet:sheet.su, pos:{x:9,y:1}, type:"nav", nat: "su", s:6},
-	{sheet:sheet.su, pos:{x:11,y:1}, type:"nav", nat: "su", s:4},
-	{sheet:sheet.su, pos:{x:12,y:1}, type:"nav", nat: "su", s:2},
-	{sheet:sheet.su, pos:{x:12,y:1}, type:"nav", nat: "su", s:2},
-	{sheet:sheet.su, pos:{x:7,y:2}, type:"nav", nat: "su", s:1},
-	{sheet:sheet.su, pos:{x:7,y:2}, type:"nav", nat: "su", s:1},
-	{sheet:sheet.su, pos:{x:7,y:4}, type:"mec", nat: "su", s:2, m:5, lbl:"3"},
-	{sheet:sheet.su, pos:{x:8,y:4}, type:"mec", nat: "su", s:2, m:5, lbl:"4"},
-	{sheet:sheet.su, pos:{x:9,y:4}, type:"mec", nat: "su", s:2, m:5, lbl:"5"},
-	{sheet:sheet.su, pos:{x:10,y:4}, type:"mec", nat: "su", s:2, m:5, lbl:"6"},
-	{sheet:sheet.su, pos:{x:11,y:4}, type:"mec", nat: "su", s:2, m:5, lbl:"7"},
-	{sheet:sheet.su, pos:{x:12,y:4}, type:"inf", nat: "su", s:2, m:4, lbl:"13"},
-	{sheet:sheet.su, pos:{x:13,y:4}, type:"inf", nat: "su", s:2, m:4, lbl:"14"},
-	{sheet:sheet.su, pos:{x:7,y:5}, type:"inf", nat: "su", s:2, m:4, lbl:"16"},
-	{sheet:sheet.su, pos:{x:8,y:5}, type:"inf", nat: "su", s:2, m:4, lbl:"18"},
-	{sheet:sheet.su, pos:{x:9,y:5}, type:"inf", nat: "su", s:2, m:4, lbl:"19"},
-	{sheet:sheet.su, pos:{x:10,y:5}, type:"inf", nat: "su", s:2, m:4, lbl:"20"},
-	{sheet:sheet.su, pos:{x:11,y:5}, type:"inf", nat: "su", s:2, m:4, lbl:"21"},
-	{sheet:sheet.su, pos:{x:12,y:5}, type:"inf", nat: "su", s:2, m:4, lbl:"22"},
-	{sheet:sheet.su, pos:{x:13,y:5}, type:"inf", nat: "su", s:2, m:4, lbl:"23"},
-	{sheet:sheet.su, pos:{x:7,y:6}, type:"inf", nat: "su", s:2, m:4, lbl:"24"},
-	{sheet:sheet.su, pos:{x:8,y:6}, type:"inf", nat: "su", s:2, m:4, lbl:"26"},
-	{sheet:sheet.su, pos:{x:9,y:6}, type:"inf", nat: "su", s:2, m:4, lbl:"27"},
-	{sheet:sheet.su, pos:{x:10,y:6}, type:"inf", nat: "su", s:2, m:4, lbl:"28"},
-	{sheet:sheet.su, pos:{x:11,y:6}, type:"inf", nat: "su", s:2, m:4, lbl:"29"},
-	{sheet:sheet.su, pos:{x:12,y:6}, type:"inf", nat: "su", s:2, m:4, lbl:"30"},
-	{sheet:sheet.su, pos:{x:7,y:7}, type:"pz", nat: "su", s:4, m:6, lbl:"1 Tk"},
-	{sheet:sheet.su, pos:{x:8,y:7}, type:"pz", nat: "su", s:4, m:6, lbl:"2 Tk"},
-	{sheet:sheet.su, pos:{x:9,y:7}, type:"pz", nat: "su", s:4, m:6, lbl:"3 Tk"},
-	{sheet:sheet.su, pos:{x:10,y:7}, type:"pz", nat: "su", s:4, m:6, lbl:"5 Tk"},
-	{sheet:sheet.va, pos:{x:0,y:0}, type:"inf", nat:"tu", s:2, m:3, lbl:"1"},
-	{sheet:sheet.va, pos:{x:1,y:0}, type:"inf", nat:"tu", s:2, m:3, lbl:"2"},
-	{sheet:sheet.va, pos:{x:2,y:0}, type:"inf", nat:"tu", s:2, m:3, lbl:"3"},
-	{sheet:sheet.va, pos:{x:3,y:0}, type:"inf", nat:"tu", s:2, m:3, lbl:"4"},
-	{sheet:sheet.va, pos:{x:4,y:0}, type:"inf", nat:"tu", s:2, m:3, lbl:"5"},
-	{sheet:sheet.va, pos:{x:5,y:0}, type:"inf", nat:"tu", s:2, m:3, lbl:"6"},
-	{sheet:sheet.va, pos:{x:6,y:0}, type:"inf", nat:"tu", s:2, m:3, lbl:"7"},	
-	{sheet:sheet.va, pos:{x:0,y:1}, type:"pz", nat:"tu", s:2, m:5, lbl:"1"},
-	{sheet:sheet.va, pos:{x:1,y:1}, type:"pz", nat:"tu", s:2, m:5, lbl:"2"},
-	{sheet:sheet.va, pos:{x:2,y:1}, type:"air", nat:"tu", s:2, m:4, lbl:"Turk"},
-	{sheet:sheet.va, pos:{x:3,y:1}, type:"air", nat:"tu", s:2, m:4, lbl:"Turk"},
-	{sheet:sheet.va, pos:{x:4,y:1}, type:"nav", nat:"tu", s:2},
-	{sheet:sheet.va, pos:{x:5,y:1}, type:"nav", nat:"tu", s:2},
-	{sheet:sheet.va, pos:{x:6,y:1}, type:"nav", nat:"tu", s:2},
-	{sheet:sheet.va, pos:{x:0,y:2}, type:"inf", nat:"sp", s:2, m:3, lbl:"Galicia"},
-	{sheet:sheet.va, pos:{x:1,y:2}, type:"inf", nat:"sp", s:2, m:3, lbl:"Castilla"},
-	{sheet:sheet.va, pos:{x:2,y:2}, type:"inf", nat:"sp", s:2, m:3, lbl:"Aragon"},
-	{sheet:sheet.va, pos:{x:3,y:2}, type:"inf", nat:"sp", s:2, m:3, lbl:"Navarr"},
-	{sheet:sheet.va, pos:{x:4,y:2}, type:"inf", nat:"sp", s:2, m:3, lbl:"Granad"},
-	{sheet:sheet.va, pos:{x:5,y:2}, type:"inf", nat:"sp", s:2, m:3, lbl:"Cordob"},
-	{sheet:sheet.va, pos:{x:6,y:2}, type:"inf", nat:"sp", s:2, m:3, lbl:"Andalu"},
-	{sheet:sheet.va, pos:{x:0,y:3}, type:"air", nat:"sp", s:2, m:4, lbl:"Sp"},
-	{sheet:sheet.va, pos:{x:0,y:3}, type:"air", nat:"sp", s:2, m:4, lbl:"Sp"},
-	{sheet:sheet.va, pos:{x:0,y:3}, type:"air", nat:"sp", s:2, m:4, lbl:"Sp"},
-	{sheet:sheet.va, pos:{x:3,y:3}, type:"nav", nat:"sp", s:2},
-	{sheet:sheet.va, pos:{x:3,y:3}, type:"nav", nat:"sp", s:2},
-	{sheet:sheet.va, pos:{x:3,y:3}, type:"nav", nat:"sp", s:2},
-	{sheet:sheet.va, pos:{x:3,y:3}, type:"nav", nat:"sp", s:2},
-	{sheet:sheet.va, pos:{x:0,y:4}, type:"pz", nat:"sp", s:2, m:5, lbl:"Madrid"},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3}, // 13 x 1-3
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:5}, type:"inf", nat:"nu", s:1, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3}, // 14 x 2-3
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:0,y:6}, type:"inf", nat:"nu", s:2, m:3},
-	{sheet:sheet.va, pos:{x:4,y:4}, type:"air", nat:"nu", s:1, m:4}, // 7 x 1-4
-	{sheet:sheet.va, pos:{x:4,y:4}, type:"air", nat:"nu", s:1, m:4},
-	{sheet:sheet.va, pos:{x:4,y:4}, type:"air", nat:"nu", s:1, m:4},
-	{sheet:sheet.va, pos:{x:4,y:4}, type:"air", nat:"nu", s:1, m:4},
-	{sheet:sheet.va, pos:{x:4,y:4}, type:"air", nat:"nu", s:1, m:4},
-	{sheet:sheet.va, pos:{x:4,y:4}, type:"air", nat:"nu", s:1, m:4},
-	{sheet:sheet.va, pos:{x:4,y:4}, type:"air", nat:"nu", s:1, m:4},
-	{sheet:sheet.va, pos:{x:1,y:4}, type:"nav", nat:"nu", s:2},
-	{sheet:sheet.va, pos:{x:1,y:4}, type:"nav", nat:"nu", s:2},
-	{sheet:sheet.uk, pos:{x:8,y:7}, type:"bh", nat:"nu"},
-	{sheet:sheet.uk, pos:{x:8,y:7}, type:"bh", nat:"nu"},
-	{sheet:sheet.uk, pos:{x:8,y:7}, type:"bh", nat:"nu"},
-	{sheet:sheet.uk, pos:{x:8,y:7}, type:"bh", nat:"nu"},
-	{sheet:sheet.uk, pos:{x:8,y:7}, type:"bh", nat:"nu"},
-	{sheet:sheet.va, pos:{x:7,y:1}, type:"inf", nat:"iq", s:1, m:3, lbl:"1 Iraq"},
-	{sheet:sheet.va, pos:{x:8,y:1}, type:"inf", nat:"iq", s:1, m:3, lbl:"2 Iraq"},
-	{sheet:sheet.va, pos:{x:9,y:1}, type:"inf", nat:"iq", s:1, m:3, lbl:"3 Iraq"},
-	{sheet:sheet.va, pos:{x:11,y:1}, type:"inf", nat:"iq", s:1, m:3, lbl:"4 Iraq"},
-	{sheet:sheet.va, pos:{x:12,y:1}, type:"inf", nat:"iq", s:1, m:3, lbl:"5 Iraq"},
-	{sheet:sheet.va, pos:{x:11,y:1}, type:"air", nat:"iq", s:2, m:4, lbl:"5 Iraq"},
-	{sheet:sheet.it, pos:{x:7,y:3}, type:"inf", nat:"bu", s:1, m:3, lbl:"Bulg"},
-	{sheet:sheet.it, pos:{x:7,y:3}, type:"inf", nat:"bu", s:1, m:3, lbl:"Bulg"},
-	{sheet:sheet.it, pos:{x:7,y:3}, type:"inf", nat:"bu", s:1, m:3, lbl:"Bulg"},
-	{sheet:sheet.it, pos:{x:7,y:3}, type:"inf", nat:"bu", s:1, m:3, lbl:"Bulg"},
-	{sheet:sheet.it, pos:{x:11,y:3}, type:"air", nat:"bu", s:1, m:4, lbl:"Bulg"},
-	{sheet:sheet.it, pos:{x:12,y:3}, type:"inf", nat:"ru", s:2, m:3, lbl:"Rum"},
-	{sheet:sheet.it, pos:{x:12,y:3}, type:"inf", nat:"ru", s:2, m:3, lbl:"Rum"},
-	{sheet:sheet.it, pos:{x:7,y:4}, type:"inf", nat:"ru", s:1, m:3, lbl:"Rum"},
-	{sheet:sheet.it, pos:{x:7,y:4}, type:"inf", nat:"ru", s:1, m:3, lbl:"Rum"},
-	{sheet:sheet.it, pos:{x:7,y:4}, type:"inf", nat:"ru", s:1, m:3, lbl:"Rum"},
-	{sheet:sheet.it, pos:{x:7,y:4}, type:"inf", nat:"ru", s:1, m:3, lbl:"Rum"},
-	{sheet:sheet.it, pos:{x:7,y:4}, type:"inf", nat:"ru", s:1, m:3, lbl:"Rum"},
-	{sheet:sheet.it, pos:{x:7,y:4}, type:"inf", nat:"ru", s:1, m:3, lbl:"Rum"},
-	{sheet:sheet.it, pos:{x:13,y:4}, type:"air", nat:"ru", s:1, m:4, lbl:"Rum"},
-	{sheet:sheet.it, pos:{x:7,y:5}, type:"inf", nat:"hu", s:2, m:3, lbl:"Hun"},
-	{sheet:sheet.it, pos:{x:8,y:5}, type:"inf", nat:"hu", s:1, m:3, lbl:"Hun"},
-	{sheet:sheet.it, pos:{x:8,y:5}, type:"inf", nat:"hu", s:1, m:3, lbl:"Hun"},
-	{sheet:sheet.it, pos:{x:8,y:5}, type:"inf", nat:"hu", s:1, m:3, lbl:"Hun"},
-	{sheet:sheet.it, pos:{x:8,y:5}, type:"inf", nat:"hu", s:1, m:3, lbl:"Hun"},
-	{sheet:sheet.it, pos:{x:8,y:5}, type:"inf", nat:"hu", s:1, m:3, lbl:"Hun"},
-	{sheet:sheet.it, pos:{x:8,y:5}, type:"inf", nat:"hu", s:1, m:3, lbl:"Hun"},
-	{sheet:sheet.it, pos:{x:7,y:6}, type:"air", nat:"hu", s:1, m:4, lbl:"Hun"},
-	{sheet:sheet.it, pos:{x:8,y:6}, type:"air", nat:"fi", s:1, m:4, lbl:"Finn"},
-	{sheet:sheet.it, pos:{x:9,y:6}, type:"inf", nat:"fi", s:2, m:3, lbl:"Finn"},
-	{sheet:sheet.it, pos:{x:9,y:6}, type:"inf", nat:"fi", s:2, m:3, lbl:"Finn"},
-	{sheet:sheet.it, pos:{x:9,y:6}, type:"inf", nat:"fi", s:2, m:3, lbl:"Finn"},
-	{sheet:sheet.it, pos:{x:9,y:6}, type:"inf", nat:"fi", s:2, m:3, lbl:"Finn"},
-	{sheet:sheet.it, pos:{x:9,y:6}, type:"inf", nat:"fi", s:2, m:3, lbl:"Finn"},
-	{sheet:sheet.it, pos:{x:0,y:0}, type:"inf", nat:"it", s:2, m:3, lbl:"5"},
-	{sheet:sheet.it, pos:{x:1,y:0}, type:"inf", nat:"it", s:2, m:3, lbl:"8"},
-	{sheet:sheet.it, pos:{x:2,y:0}, type:"inf", nat:"it", s:2, m:3, lbl:"10"},
-	{sheet:sheet.it, pos:{x:3,y:0}, type:"inf", nat:"it", s:2, m:3, lbl:"12"},
-	{sheet:sheet.it, pos:{x:4,y:0}, type:"inf", nat:"it", s:2, m:3, lbl:"11"},
-	{sheet:sheet.it, pos:{x:5,y:0}, type:"inf", nat:"it", s:2, m:3, lbl:"CN"},
-	{sheet:sheet.it, pos:{x:6,y:0}, type:"inf", nat:"it", s:3, m:3, lbl:"Celere"},
-	{sheet:sheet.it, pos:{x:0,y:1}, type:"inf", nat:"it", s:1, m:3, lbl:"Libya"},
-	{sheet:sheet.it, pos:{x:1,y:1}, type:"inf", nat:"it", s:1, m:3, lbl:"14"},
-	{sheet:sheet.it, pos:{x:2,y:1}, type:"inf", nat:"it", s:1, m:3, lbl:"16"},
-	{sheet:sheet.it, pos:{x:3,y:1}, type:"inf", nat:"it", s:1, m:3, lbl:"17"},
-	{sheet:sheet.it, pos:{x:4,y:1}, type:"inf", nat:"it", s:1, m:3, lbl:"20"},
-	{sheet:sheet.it, pos:{x:5,y:1}, type:"inf", nat:"it", s:1, m:3, lbl:"35"},
-	{sheet:sheet.it, pos:{x:6,y:1}, type:"inf", nat:"it", s:3, m:3, lbl:"Alpini"},
-	{sheet:sheet.it, pos:{x:0,y:2}, type:"par", nat:"it", s:2, m:3, lbl:"Fologre"},
-	{sheet:sheet.it, pos:{x:1,y:2}, type:"res", nat:"it", s:1},
-	{sheet:sheet.it, pos:{x:1,y:2}, type:"res", nat:"it", s:1},
-	{sheet:sheet.it, pos:{x:1,y:2}, type:"res", nat:"it", s:1},
-	{sheet:sheet.it, pos:{x:1,y:2}, type:"res", nat:"it", s:1},
-	{sheet:sheet.it, pos:{x:1,y:2}, type:"res", nat:"it", s:1},
-	{sheet:sheet.it, pos:{x:1,y:2}, type:"res", nat:"it", s:1},
-	{sheet:sheet.it, pos:{x:0,y:3}, type:"pz", nat:"it", s:2, m:5, lbl:"1"},
-	{sheet:sheet.it, pos:{x:1,y:3}, type:"pz", nat:"it", s:2, m:5, lbl:"2"},
-	{sheet:sheet.it, pos:{x:2,y:3}, type:"pz", nat:"it", s:2, m:5, lbl:"21"},
-	{sheet:sheet.it, pos:{x:3,y:3}, type:"pz", nat:"it", s:2, m:5, lbl:"Celere"},
-	{sheet:sheet.it, pos:{x:3,y:4}, type:"air", nat:"it", s:5, m:4},
-	{sheet:sheet.it, pos:{x:3,y:4}, type:"air", nat:"it", s:5, m:4},
-	{sheet:sheet.it, pos:{x:3,y:4}, type:"air", nat:"it", s:5, m:4},
-	{sheet:sheet.it, pos:{x:0,y:7}, type:"air", nat:"it", s:3, m:4},
-	{sheet:sheet.it, pos:{x:0,y:7}, type:"air", nat:"it", s:3, m:4},
-	{sheet:sheet.it, pos:{x:2,y:7}, type:"air", nat:"it", s:2, m:4},
-	{sheet:sheet.it, pos:{x:2,y:7}, type:"air", nat:"it", s:2, m:4},
-	{sheet:sheet.it, pos:{x:4,y:7}, type:"air", nat:"it", s:1, m:4},
-	{sheet:sheet.it, pos:{x:0,y:5}, type:"ab", nat:"it"},
-	{sheet:sheet.it, pos:{x:0,y:5}, type:"ab", nat:"it"},
-	{sheet:sheet.it, pos:{x:0,y:5}, type:"ab", nat:"it"},
-	{sheet:sheet.it, pos:{x:4,y:3}, type:"nav", nat:"it", s:9},
-	{sheet:sheet.it, pos:{x:4,y:3}, type:"nav", nat:"it", s:9},
-	{sheet:sheet.it, pos:{x:4,y:3}, type:"nav", nat:"it", s:9},
-	{sheet:sheet.it, pos:{x:4,y:3}, type:"nav", nat:"it", s:9},
-	{sheet:sheet.it, pos:{x:4,y:3}, type:"nav", nat:"it", s:9},
-	{sheet:sheet.it, pos:{x:4,y:3}, type:"nav", nat:"it", s:9},
-	{sheet:sheet.it, pos:{x:4,y:5}, type:"nav", nat:"it", s:8},
-	{sheet:sheet.it, pos:{x:4,y:5}, type:"nav", nat:"it", s:8},
-	{sheet:sheet.it, pos:{x:6,y:5}, type:"nav", nat:"it", s:6},
-	{sheet:sheet.it, pos:{x:6,y:5}, type:"nav", nat:"it", s:6},
-	{sheet:sheet.it, pos:{x:1,y:6}, type:"nav", nat:"it", s:4},
-	{sheet:sheet.it, pos:{x:1,y:6}, type:"nav", nat:"it", s:4},
-	{sheet:sheet.it, pos:{x:3,y:6}, type:"nav", nat:"it", s:2},
-	{sheet:sheet.it, pos:{x:3,y:6}, type:"nav", nat:"it", s:2},
-	{sheet:sheet.it, pos:{x:5,y:6}, type:"nav", nat:"it", s:1},
-	{sheet:sheet.it, pos:{x:5,y:6}, type:"nav", nat:"it", s:1},
-	{sheet:sheet.va, pos:{x:7,y:0}, type:"pz", nat:"it", s:2, m:5, lbl:"Maletti"},
-	{sheet:sheet.va, pos:{x:9,y:0}, type:"inf", nat:"it", s:3, m:3, lbl:"Centauro"},
-	{sheet:sheet.va, pos:{x:10,y:0}, type:"inf", nat:"it", s:3, m:3, lbl:"Freccia"},
-	{sheet:sheet.uk, pos:{x:0,y:0}, type:"inf", nat:"uk", s:3, m:4, lbl:"1 BEF"},
-	{sheet:sheet.uk, pos:{x:1,y:0}, type:"inf", nat:"uk", s:3, m:4, lbl:"2 BEF"},
-	{sheet:sheet.uk, pos:{x:2,y:0}, type:"inf", nat:"uk", s:3, m:4, lbl:"5"},
-	{sheet:sheet.uk, pos:{x:3,y:0}, type:"inf", nat:"uk", s:3, m:4, lbl:"8"},
-	{sheet:sheet.uk, pos:{x:4,y:0}, type:"inf", nat:"uk", s:3, m:4, lbl:"9"},
-	{sheet:sheet.uk, pos:{x:5,y:0}, type:"inf", nat:"uk", s:3, m:4, lbl:"12"},
-	{sheet:sheet.uk, pos:{x:6,y:0}, type:"inf", nat:"uk", s:3, m:4, lbl:"2 Can"},
-	{sheet:sheet.uk, pos:{x:0,y:1}, type:"inf", nat:"uk", s:1, m:3, lbl:"Egypt"},
-	{sheet:sheet.uk, pos:{x:1,y:1}, type:"inf", nat:"uk", s:1, m:3, lbl:"Palest"},
-	{sheet:sheet.uk, pos:{x:2,y:1}, type:"inf", nat:"uk", s:1, m:3, lbl:"Malta"},
-	{sheet:sheet.uk, pos:{x:3,y:1}, type:"pz", nat:"uk", s:4, m:5, lbl:"13"},
-	{sheet:sheet.uk, pos:{x:4,y:1}, type:"pz", nat:"uk", s:4, m:5, lbl:"30"},
-	{sheet:sheet.uk, pos:{x:5,y:1}, type:"pz", nat:"uk", s:4, m:5, lbl:"1 Can"},
-	{sheet:sheet.uk, pos:{x:6,y:1}, type:"pz", nat:"uk", s:4, m:5, lbl:"Polish"},
-	{sheet:sheet.uk, pos:{x:0,y:2}, type:"res", nat:"uk", s:1},
-	{sheet:sheet.uk, pos:{x:0,y:2}, type:"res", nat:"uk", s:1},
-	{sheet:sheet.uk, pos:{x:0,y:2}, type:"res", nat:"uk", s:1},
-	{sheet:sheet.uk, pos:{x:0,y:2}, type:"res", nat:"uk", s:1},
-	{sheet:sheet.uk, pos:{x:0,y:2}, type:"res", nat:"uk", s:1},
-	{sheet:sheet.uk, pos:{x:0,y:2}, type:"res", nat:"uk", s:1},
-	{sheet:sheet.uk, pos:{x:6,y:2}, type:"par", nat:"uk", s:3, m:3, lbl:"1 AB"},
-	{sheet:sheet.uk, pos:{x:0,y:3}, type:"pz", nat:"uk", s:2, m:5, lbl:"WDF"},
-	{sheet:sheet.uk, pos:{x:1,y:3}, type:"air", nat:"uk", s:5, m:4},
-	{sheet:sheet.uk, pos:{x:1,y:3}, type:"air", nat:"uk", s:5, m:4},
-	{sheet:sheet.uk, pos:{x:1,y:3}, type:"air", nat:"uk", s:5, m:4},
-	{sheet:sheet.uk, pos:{x:1,y:3}, type:"air", nat:"uk", s:5, m:4},
-	{sheet:sheet.uk, pos:{x:7,y:4}, type:"air", nat:"uk", s:3, m:4},
-	{sheet:sheet.uk, pos:{x:7,y:4}, type:"air", nat:"uk", s:3, m:4},
-	{sheet:sheet.uk, pos:{x:7,y:4}, type:"air", nat:"uk", s:3, m:4},
-	{sheet:sheet.uk, pos:{x:10,y:4}, type:"air", nat:"uk", s:2, m:4},
-	{sheet:sheet.uk, pos:{x:10,y:4}, type:"air", nat:"uk", s:2, m:4},
-	{sheet:sheet.uk, pos:{x:10,y:4}, type:"air", nat:"uk", s:2, m:4},
-	{sheet:sheet.uk, pos:{x:8,y:5}, type:"air", nat:"uk", s:1, m:4},
-	{sheet:sheet.uk, pos:{x:8,y:5}, type:"air", nat:"uk", s:1, m:4},
-	{sheet:sheet.uk, pos:{x:8,y:5}, type:"air", nat:"uk", s:1, m:4},
-	{sheet:sheet.uk, pos:{x:8,y:5}, type:"air", nat:"uk", s:1, m:4},
-	{sheet:sheet.uk, pos:{x:1,y:5}, type:"ab", nat:"uk"},
-	{sheet:sheet.uk, pos:{x:1,y:5}, type:"ab", nat:"uk"},
-	{sheet:sheet.uk, pos:{x:1,y:5}, type:"ab", nat:"uk"},
-	{sheet:sheet.uk, pos:{x:0,y:4}, type:"nav", nat:"uk", s:9},
-	{sheet:sheet.uk, pos:{x:0,y:4}, type:"nav", nat:"uk", s:9},
-	{sheet:sheet.uk, pos:{x:0,y:4}, type:"nav", nat:"uk", s:9},
-	{sheet:sheet.uk, pos:{x:0,y:4}, type:"nav", nat:"uk", s:9},
-	{sheet:sheet.uk, pos:{x:0,y:4}, type:"nav", nat:"uk", s:9},
-	{sheet:sheet.uk, pos:{x:0,y:4}, type:"nav", nat:"uk", s:9},
-	{sheet:sheet.uk, pos:{x:0,y:4}, type:"nav", nat:"uk", s:9},
-	{sheet:sheet.uk, pos:{x:0,y:4}, type:"nav", nat:"uk", s:9},
-	{sheet:sheet.uk, pos:{x:0,y:4}, type:"nav", nat:"uk", s:9},
-	{sheet:sheet.uk, pos:{x:0,y:4}, type:"nav", nat:"uk", s:9},
-	{sheet:sheet.uk, pos:{x:11,y:1}, type:"nav", nat:"uk", s:8},
-	{sheet:sheet.uk, pos:{x:11,y:1}, type:"nav", nat:"uk", s:8},
-	{sheet:sheet.uk, pos:{x:11,y:1}, type:"nav", nat:"uk", s:8},
-	{sheet:sheet.uk, pos:{x:11,y:1}, type:"nav", nat:"uk", s:8},
-	{sheet:sheet.uk, pos:{x:7,y:2}, type:"nav", nat:"uk", s:6},
-	{sheet:sheet.uk, pos:{x:7,y:2}, type:"nav", nat:"uk", s:6},
-	{sheet:sheet.uk, pos:{x:7,y:2}, type:"nav", nat:"uk", s:6},
-	{sheet:sheet.uk, pos:{x:10,y:2}, type:"nav", nat:"uk", s:4},
-	{sheet:sheet.uk, pos:{x:10,y:2}, type:"nav", nat:"uk", s:4},
-	{sheet:sheet.uk, pos:{x:10,y:2}, type:"nav", nat:"uk", s:4},
-	{sheet:sheet.uk, pos:{x:7,y:3}, type:"nav", nat:"uk", s:2},
-	{sheet:sheet.uk, pos:{x:7,y:3}, type:"nav", nat:"uk", s:2},
-	{sheet:sheet.uk, pos:{x:7,y:3}, type:"nav", nat:"uk", s:2},
-	{sheet:sheet.uk, pos:{x:10,y:3}, type:"nav", nat:"uk", s:1},
-	{sheet:sheet.uk, pos:{x:10,y:3}, type:"nav", nat:"uk", s:1},
-	{sheet:sheet.uk, pos:{x:10,y:3}, type:"nav", nat:"uk", s:1},
-	{sheet:sheet.uk, pos:{x:10,y:3}, type:"nav", nat:"uk", s:1},
-	{sheet:sheet.uk, pos:{x:0,y:6}, type:"esc", nat:"uk", s:1},
-	{sheet:sheet.uk, pos:{x:1,y:6}, type:"esc", nat:"uk", s:2},
-	{sheet:sheet.uk, pos:{x:2,y:6}, type:"esc", nat:"uk", s:3},
-	{sheet:sheet.uk, pos:{x:3,y:6}, type:"esc", nat:"uk", s:4},
-	{sheet:sheet.uk, pos:{x:4,y:6}, type:"esc", nat:"uk", s:5},
-	{sheet:sheet.uk, pos:{x:5,y:6}, type:"esc", nat:"uk", s:6},
-	{sheet:sheet.uk, pos:{x:6,y:6}, type:"esc", nat:"uk", s:7},
-	{sheet:sheet.uk, pos:{x:0,y:7}, type:"esc", nat:"uk", s:8},
-	{sheet:sheet.uk, pos:{x:1,y:7}, type:"esc", nat:"uk", s:9},
-	{sheet:sheet.uk, pos:{x:2,y:7}, type:"esc", nat:"uk", s:10},
-	{sheet:sheet.uk, pos:{x:3,y:7}, type:"esc", nat:"uk", s:20},
-	{sheet:sheet.uk, pos:{x:7,y:0}, type:"bmb", nat:"uk", s:1},
-	{sheet:sheet.uk, pos:{x:8,y:0}, type:"bmb", nat:"uk", s:2},
-	{sheet:sheet.uk, pos:{x:9,y:0}, type:"bmb", nat:"uk", s:3},
-	{sheet:sheet.uk, pos:{x:10,y:0}, type:"bmb", nat:"uk", s:4},
-	{sheet:sheet.uk, pos:{x:11,y:0}, type:"bmb", nat:"uk", s:5},
-	{sheet:sheet.uk, pos:{x:12,y:0}, type:"bmb", nat:"uk", s:6},
-	{sheet:sheet.uk, pos:{x:13,y:0}, type:"bmb", nat:"uk", s:7},
-	{sheet:sheet.uk, pos:{x:7,y:1}, type:"bmb", nat:"uk", s:8},
-	{sheet:sheet.uk, pos:{x:8,y:1}, type:"bmb", nat:"uk", s:9},
-	{sheet:sheet.uk, pos:{x:9,y:1}, type:"bmb", nat:"uk", s:10},
-	{sheet:sheet.uk, pos:{x:10,y:1}, type:"bmb", nat:"uk", s:20},
-	{sheet:sheet.va, pos:{x:7,y:6}, type:"mec", nat:"uk", s:2, m:5, lbl:"Egypt"},
-	{sheet:sheet.va, pos:{x:8,y:6}, type:"mec", nat:"uk", s:2, m:5, lbl:"Palest"},
-	{sheet:sheet.va, pos:{x:9,y:6}, type:"mec", nat:"uk", s:2, m:5, lbl:"Malta"},
-	{sheet:sheet.va, pos:{x:10,y:6}, type:"inf", nat:"uk", s:2, m:3, lbl:"Egypt"},
-	{sheet:sheet.va, pos:{x:11,y:6}, type:"inf", nat:"uk", s:2, m:3, lbl:"Palest"},
-	{sheet:sheet.va, pos:{x:12,y:6}, type:"inf", nat:"uk", s:2, m:3, lbl:"Malta"},
-	{sheet:sheet.ge, pos:{x:0,y:0}, type:"inf", nat:"ge", s:3, m:3, lbl:"1"},
-	{sheet:sheet.ge, pos:{x:1,y:0}, type:"inf", nat:"ge", s:3, m:3, lbl:"2"},
-	{sheet:sheet.ge, pos:{x:2,y:0}, type:"inf", nat:"ge", s:3, m:3, lbl:"3"},
-	{sheet:sheet.ge, pos:{x:3,y:0}, type:"inf", nat:"ge", s:3, m:3, lbl:"4"},
-	{sheet:sheet.ge, pos:{x:4,y:0}, type:"inf", nat:"ge", s:3, m:3, lbl:"6"},
-	{sheet:sheet.ge, pos:{x:5,y:0}, type:"inf", nat:"ge", s:3, m:3, lbl:"7"},
-	{sheet:sheet.ge, pos:{x:6,y:0}, type:"inf", nat:"ge", s:3, m:3, lbl:"8"},
-	{sheet:sheet.ge, pos:{x:0,y:1}, type:"inf", nat:"ge", s:3, m:3, lbl:"9"},
-	{sheet:sheet.ge, pos:{x:1,y:1}, type:"inf", nat:"ge", s:3, m:3, lbl:"10"},
-	{sheet:sheet.ge, pos:{x:2,y:1}, type:"inf", nat:"ge", s:3, m:3, lbl:"5 SS"},
-	{sheet:sheet.ge, pos:{x:3,y:1}, type:"inf", nat:"ge", s:3, m:3, lbl:"13 SS"},
-	{sheet:sheet.ge, pos:{x:4,y:1}, type:"inf", nat:"ge", s:3, m:3, lbl:"15"},
-	{sheet:sheet.ge, pos:{x:5,y:1}, type:"inf", nat:"ge", s:3, m:3, lbl:"18"},
-	{sheet:sheet.ge, pos:{x:6,y:1}, type:"inf", nat:"ge", s:3, m:3, lbl:"20"},
-	{sheet:sheet.ge, pos:{x:0,y:2}, type:"inf", nat:"ge", s:3, m:3, lbl:"23"},
-	{sheet:sheet.ge, pos:{x:1,y:2}, type:"inf", nat:"ge", s:3, m:3, lbl:"25"},
-	{sheet:sheet.ge, pos:{x:2,y:2}, type:"inf", nat:"ge", s:3, m:3, lbl:"27"},
-	{sheet:sheet.ge, pos:{x:3,y:2}, type:"inf", nat:"ge", s:3, m:3, lbl:"30"},
-	{sheet:sheet.ge, pos:{x:4,y:2}, type:"inf", nat:"ge", s:3, m:3, lbl:"36"},
-	{sheet:sheet.ge, pos:{x:5,y:2}, type:"inf", nat:"ge", s:3, m:3, lbl:"39"},
-	{sheet:sheet.ge, pos:{x:6,y:2}, type:"inf", nat:"ge", s:3, m:3, lbl:"40"},
-	{sheet:sheet.ge, pos:{x:0,y:3}, type:"inf", nat:"ge", s:3, m:3, lbl:"44"},
-	{sheet:sheet.ge, pos:{x:1,y:3}, type:"inf", nat:"ge", s:3, m:3, lbl:"51"},
-	{sheet:sheet.ge, pos:{x:2,y:3}, type:"inf", nat:"ge", s:3, m:3, lbl:"67"},
-	{sheet:sheet.ge, pos:{x:3,y:3}, type:"inf", nat:"ge", s:3, m:3, lbl:"74"},
-	{sheet:sheet.ge, pos:{x:4,y:3}, type:"inf", nat:"ge", s:3, m:3, lbl:"76"},
-	{sheet:sheet.ge, pos:{x:5,y:3}, type:"inf", nat:"ge", s:3, m:3, lbl:"84"},
-	{sheet:sheet.ge, pos:{x:6,y:3}, type:"inf", nat:"ge", s:3, m:3, lbl:"11"},
-	{sheet:sheet.ge, pos:{x:0,y:4}, type:"inf", nat:"ge", s:3, m:3, lbl:"17"},
-	{sheet:sheet.ge, pos:{x:1,y:4}, type:"inf", nat:"ge", s:3, m:3, lbl:"29"},
-	{sheet:sheet.ge, pos:{x:2,y:4}, type:"inf", nat:"ge", s:3, m:3, lbl:"2 Fsjr"},
-	{sheet:sheet.ge, pos:{x:3,y:4}, type:"inf", nat:"ge", s:1, m:3, lbl:"49"},
-	{sheet:sheet.ge, pos:{x:4,y:4}, type:"inf", nat:"ge", s:1, m:3, lbl:"50"},
-	{sheet:sheet.ge, pos:{x:5,y:4}, type:"inf", nat:"ge", s:1, m:3, lbl:"56"},
-	{sheet:sheet.ge, pos:{x:6,y:4}, type:"inf", nat:"ge", s:1, m:3, lbl:"66"},
-	{sheet:sheet.ge, pos:{x:0,y:5}, type:"inf", nat:"ge", s:1, m:3, lbl:"79"},
-	{sheet:sheet.ge, pos:{x:1,y:5}, type:"inf", nat:"ge", s:1, m:3, lbl:"81"},
-	{sheet:sheet.ge, pos:{x:2,y:5}, type:"par", nat:"ge", s:3, m:3, lbl:"1 Fsjr"},
-	{sheet:sheet.ge, pos:{x:3,y:5}, type:"res", nat:"ge", s:1},
-	{sheet:sheet.ge, pos:{x:3,y:5}, type:"res", nat:"ge", s:1},
-	{sheet:sheet.ge, pos:{x:3,y:5}, type:"res", nat:"ge", s:1},
-	{sheet:sheet.ge, pos:{x:3,y:5}, type:"res", nat:"ge", s:1},
-	{sheet:sheet.ge, pos:{x:3,y:5}, type:"res", nat:"ge", s:1},
-	{sheet:sheet.ge, pos:{x:3,y:5}, type:"res", nat:"ge", s:1},
-	{sheet:sheet.ge, pos:{x:3,y:5}, type:"res", nat:"ge", s:1},
-	{sheet:sheet.ge, pos:{x:3,y:5}, type:"res", nat:"ge", s:1},
-	{sheet:sheet.ge, pos:{x:4,y:6}, type:"pz", nat:"ge", s:5, m:6, lbl:"1 SS"},
-	{sheet:sheet.ge, pos:{x:5,y:6}, type:"pz", nat:"ge", s:5, m:6, lbl:"GDS"},
-	{sheet:sheet.ge, pos:{x:6,y:6}, type:"pz", nat:"ge", s:4, m:6, lbl:"57"},
-	{sheet:sheet.ge, pos:{x:0,y:7}, type:"pz", nat:"ge", s:4, m:6, lbl:"2 SS"},
-	{sheet:sheet.ge, pos:{x:1,y:7}, type:"pz", nat:"ge", s:4, m:6, lbl:"14"},
-	{sheet:sheet.ge, pos:{x:2,y:7}, type:"pz", nat:"ge", s:4, m:6, lbl:"19"},
-	{sheet:sheet.ge, pos:{x:3,y:7}, type:"pz", nat:"ge", s:4, m:6, lbl:"24"},
-	{sheet:sheet.ge, pos:{x:4,y:7}, type:"pz", nat:"ge", s:4, m:6, lbl:"41"},
-	{sheet:sheet.ge, pos:{x:5,y:7}, type:"pz", nat:"ge", s:4, m:6, lbl:"46"},
-	{sheet:sheet.ge, pos:{x:6,y:7}, type:"pz", nat:"ge", s:4, m:6, lbl:"47"},
-	{sheet:sheet.ge, pos:{x:7,y:0}, type:"pz", nat:"ge", s:4, m:6, lbl:"48"},
-	{sheet:sheet.ge, pos:{x:8,y:0}, type:"pz", nat:"ge", s:4, m:6, lbl:"56"},
-	{sheet:sheet.ge, pos:{x:9,y:0}, type:"pz", nat:"ge", s:4, m:6, lbl:"39"},
-	{sheet:sheet.ge, pos:{x:10,y:0}, type:"pz", nat:"ge", s:4, m:6, lbl:"DAK"},
-	{sheet:sheet.ge, pos:{x:11,y:0}, type:"pz", nat:"ge", s:4, m:6, lbl:"9"},
-	{sheet:sheet.ge, pos:{x:7,y:1}, type:"air", nat:"ge", s:5, m:4},
-	{sheet:sheet.ge, pos:{x:7,y:1}, type:"air", nat:"ge", s:5, m:4},
-	{sheet:sheet.ge, pos:{x:7,y:1}, type:"air", nat:"ge", s:5, m:4},
-	{sheet:sheet.ge, pos:{x:7,y:1}, type:"air", nat:"ge", s:5, m:4},
-	{sheet:sheet.ge, pos:{x:7,y:1}, type:"air", nat:"ge", s:5, m:4},
-	{sheet:sheet.ge, pos:{x:7,y:1}, type:"air", nat:"ge", s:5, m:4},
-	{sheet:sheet.it, pos:{x:8,y:0}, type:"air", nat:"ge", s:3, m:4},
-	{sheet:sheet.it, pos:{x:8,y:0}, type:"air", nat:"ge", s:3, m:4},
-	{sheet:sheet.it, pos:{x:8,y:0}, type:"air", nat:"ge", s:3, m:4},
-	{sheet:sheet.it, pos:{x:8,y:0}, type:"air", nat:"ge", s:3, m:4},
-	{sheet:sheet.it, pos:{x:7,y:0}, type:"air", nat:"ge", s:2, m:4},
-	{sheet:sheet.it, pos:{x:7,y:0}, type:"air", nat:"ge", s:2, m:4},
-	{sheet:sheet.it, pos:{x:7,y:0}, type:"air", nat:"ge", s:2, m:4},
-	{sheet:sheet.ge, pos:{x:10,y:7}, type:"air", nat:"ge", s:1, m:4},
-	{sheet:sheet.ge, pos:{x:10,y:7}, type:"air", nat:"ge", s:1, m:4},
-	{sheet:sheet.ge, pos:{x:10,y:7}, type:"air", nat:"ge", s:1, m:4},
-	{sheet:sheet.ge, pos:{x:10,y:7}, type:"air", nat:"ge", s:1, m:4},
-	{sheet:sheet.ge, pos:{x:8,y:5}, type:"ab", nat:"ge"},
-	{sheet:sheet.ge, pos:{x:8,y:5}, type:"ab", nat:"ge"},
-	{sheet:sheet.ge, pos:{x:8,y:5}, type:"ab", nat:"ge"},
-	{sheet:sheet.ge, pos:{x:13,y:0}, type:"nav", nat:"ge", s:9},
-	{sheet:sheet.ge, pos:{x:13,y:0}, type:"nav", nat:"ge", s:9},
-	{sheet:sheet.ge, pos:{x:13,y:0}, type:"nav", nat:"ge", s:9},
-	{sheet:sheet.ge, pos:{x:13,y:0}, type:"nav", nat:"ge", s:9},
-	{sheet:sheet.ge, pos:{x:13,y:0}, type:"nav", nat:"ge", s:9},
-	{sheet:sheet.ge, pos:{x:13,y:0}, type:"nav", nat:"ge", s:9},
-	{sheet:sheet.ge, pos:{x:13,y:0}, type:"nav", nat:"ge", s:9},
-	{sheet:sheet.ge, pos:{x:8,y:6}, type:"nav", nat:"ge", s:8},
-	{sheet:sheet.ge, pos:{x:9,y:6}, type:"nav", nat:"ge", s:6},
-	{sheet:sheet.ge, pos:{x:9,y:6}, type:"nav", nat:"ge", s:6},
-	{sheet:sheet.ge, pos:{x:11,y:6}, type:"nav", nat:"ge", s:4},
-	{sheet:sheet.ge, pos:{x:11,y:6}, type:"nav", nat:"ge", s:4},
-	{sheet:sheet.ge, pos:{x:7,y:7}, type:"nav", nat:"ge", s:2},
-	{sheet:sheet.ge, pos:{x:7,y:7}, type:"nav", nat:"ge", s:2},
-	{sheet:sheet.ge, pos:{x:9,y:7}, type:"nav", nat:"ge", s:1},
-	{sheet:sheet.ge, pos:{x:9,y:7}, type:"nav", nat:"ge", s:1},
-	{sheet:sheet.ge, pos:{x:7,y:2}, type:"sub", nat:"ge", s:1},
-	{sheet:sheet.ge, pos:{x:8,y:2}, type:"sub", nat:"ge", s:2},
-	{sheet:sheet.ge, pos:{x:9,y:2}, type:"sub", nat:"ge", s:3},
-	{sheet:sheet.ge, pos:{x:10,y:2}, type:"sub", nat:"ge", s:4},
-	{sheet:sheet.ge, pos:{x:11,y:2}, type:"sub", nat:"ge", s:5},
-	{sheet:sheet.ge, pos:{x:12,y:2}, type:"sub", nat:"ge", s:6},
-	{sheet:sheet.ge, pos:{x:13,y:2}, type:"sub", nat:"ge", s:7},
-	{sheet:sheet.ge, pos:{x:7,y:3}, type:"sub", nat:"ge", s:8},
-	{sheet:sheet.ge, pos:{x:8,y:3}, type:"sub", nat:"ge", s:9},
-	{sheet:sheet.ge, pos:{x:9,y:3}, type:"sub", nat:"ge", s:10},
-	{sheet:sheet.ge, pos:{x:10,y:3}, type:"sub", nat:"ge", s:20},
-	{sheet:sheet.ge, pos:{x:11,y:3}, type:"int", nat:"ge", s:1},
-	{sheet:sheet.ge, pos:{x:12,y:3}, type:"int", nat:"ge", s:2},
-	{sheet:sheet.ge, pos:{x:13,y:3}, type:"int", nat:"ge", s:3},
-	{sheet:sheet.ge, pos:{x:7,y:4}, type:"int", nat:"ge", s:4},
-	{sheet:sheet.ge, pos:{x:8,y:4}, type:"int", nat:"ge", s:5},
-	{sheet:sheet.ge, pos:{x:9,y:4}, type:"int", nat:"ge", s:6},
-	{sheet:sheet.ge, pos:{x:10,y:4}, type:"int", nat:"ge", s:7},
-	{sheet:sheet.ge, pos:{x:11,y:4}, type:"int", nat:"ge", s:8},
-	{sheet:sheet.ge, pos:{x:12,y:4}, type:"int", nat:"ge", s:9},
-	{sheet:sheet.ge, pos:{x:13,y:4}, type:"int", nat:"ge", s:10},
-	{sheet:sheet.ge, pos:{x:7,y:5}, type:"int", nat:"ge", s:20},
-	{sheet:sheet.va, pos:{x:7,y:2}, type:"mec", nat:"ge", s:2, m:6, lbl:"49"},
-	{sheet:sheet.va, pos:{x:8,y:2}, type:"mec", nat:"ge", s:2, m:6, lbl:"50"},
-	{sheet:sheet.va, pos:{x:9,y:2}, type:"mec", nat:"ge", s:2, m:6, lbl:"56"},
-	{sheet:sheet.va, pos:{x:10,y:2}, type:"mec", nat:"ge", s:2, m:6, lbl:"66"},
-	{sheet:sheet.va, pos:{x:11,y:2}, type:"mec", nat:"ge", s:2, m:6, lbl:"79"},
-	{sheet:sheet.va, pos:{x:12,y:2}, type:"mec", nat:"ge", s:2, m:6, lbl:"81"},
-	{sheet:sheet.va, pos:{x:7,y:3}, type:"par", nat:"ge", s:3, m:3, lbl:"2 Fsjr"},
-	{sheet:sheet.va, pos:{x:8,y:3}, type:"inf", nat:"ge", s:3, m:3, lbl:"Sp SS"},
-	{sheet:sheet.va, pos:{x:9,y:3}, type:"inf", nat:"ge", s:3, m:3, lbl:"Tu SS"},
-	{sheet:sheet.va, pos:{x:10,y:3}, type:"inf", nat:"ge", s:1, m:3, lbl:"1 Fr SS"},
-	{sheet:sheet.va, pos:{x:11,y:3}, type:"inf", nat:"ge", s:1, m:3, lbl:"2 Fr SS"},
-	{sheet:sheet.va, pos:{x:12,y:3}, type:"inf", nat:"ge", s:1, m:3, lbl:"Croat SS"},
-];
-
-// This object will contain *indexes* of units sorted by nation
-export const nat = {
-	fr: [],
-	us: [],
-	it: [],
-	ge: [],
-	uk: [],
-	su: [],
-	tu: [],
-	sp: [],
-	nu: [],
-	bu: [],
-	ru: [],
-	hu: [],
-	fi: [],
-	iq: [],
-};
-
+// Set moveToTop as dragstart by default
 export function moveToTop(e) {
 	e.target.moveToTop()
 }
-for (const [i, u] of units.entries()) {
-	u.img = u.sheet.image(u.pos.x, u.pos.y, `rdtru${i}`)
-	u.img.on('dragstart', moveToTop)
-	nat[u.nat].push(i);
-}
-
-// ----------------------------------------------------------------------
-// Deployment
-// A deployment is a set of unit-types and the number to deploy. Example:
-// [{type:"ge,inf,3-3",cnt:10}, {type:"uk,pz,4-5",cnt:1}]
-
-export function deploymentBox(deployment) {
-	for (t of deployment) {
+function selectOrDelete(e) {
+	let u = unit.fromImage(e.target)
+	if (shift) {
+		unit.removeFromMap(u)
+		if (selected == u) selected = null
+	} else {
+		selected = u
 	}
 }
-
+for (const [i, u] of unit.units.entries()) {
+	u.img.on('dragstart', moveToTop)
+	u.img.on('click', selectOrDelete)
+}
 
 // ----------------------------------------------------------------------
 // Map
@@ -870,6 +67,13 @@ const hscale = 0.988;			// --scale to hex.py
 const rsize = hsize * hscale * Math.sqrt(3) / 2;  // row interval
 const grid_offset = {x:57, y:23}  // 0,0 on the map image
 const unitOffset = 23			  // To adjust the unit image on a hex
+
+// The Map image
+const imageObj = newImage();
+imageObj.src = './rdtr-map.png'
+export const map = new Konva.Image({
+    image: imageObj,
+});
 
 // Hex Coordinate Functions:
 // The pixel functions uses offset coordinates (hex) for "pointy"
@@ -961,12 +165,11 @@ export function unitPlaceRdtr(u, rc, parent = board) {
 // This function should be called after the user has placed a unit,
 // for instance from 'dragend'.
 export function unitSnapToHex(e) {
-	img = e.target
-	// Get the unit object from the image id, which is `rdtru${i}`
-	i = Number(img.id().substring(5))
-	u = units[i]
+	let img = e.target
+	// Get the unit object from the image
+	let u = unit.fromImage(img)
 	// The unit img coordinate is top-left, adjust to center
-	pos = {x:img.x() + unitOffset, y:img.y() + unitOffset}
+	let pos = {x:img.x() + unitOffset, y:img.y() + unitOffset}
 	// Get the hex, and update the unit object
 	hex = pixelToHex(pos)
 	u.hex = hex
@@ -982,7 +185,7 @@ function posEqual(a, b) {
 }
 function unitStack(hex) {
 	let unitCount = 0
-	for (u of units) {
+	for (u of unit.units) {
 		if (u.hex && posEqual(u.hex, hex)) {
 			unitCount++
 			if (unitCount > 1) return true
@@ -995,90 +198,96 @@ function stackAdjust(pos) {
 	return {x:pos.x - offset, y:pos.y - offset}
 }
 
-// Unit find and user-friendly representation
-export function unitUnselectAll() {
-	for (const u of units) {
-		delete u.selected
+// ----------------------------------------------------------------------
+// Save & Restore related
+
+/*
+  
+
+  
+  Save data is in JSON, and MUST have a "version" element with a
+  number (no semantic versioning, just an int).
+
+  This describes version: 2
+
+  The "type" element can be scenario|save
+
+  The first file to load should be a "scenario". It shows an empty map
+  and an initialDeployment UnitBox.
+
+  Once the Initial Deployment is done you can (and should) save.
+
+  The current "allowableBuilds" MUST be the first,
+  i.e. game.allowableBuilds[0].
+
+  A type "save" has no "initialDeployment", but they have a
+  "deployment" with all units on the map. The current
+  "allowableBuilds" contains individual units (cnt=1) with labels
+  (lbl) where they exist.
+
+  The future "allowableBuilds" (with a "turn" elemnt) are kept as-is
+  from the "scenario" save. When the turn matches, they are added to
+  the current "allowableBuilds".
+ */
+export const version = 2
+var game;
+
+
+// This should only be called if no save exist
+export function loadScenario(gameObject) {
+	game = gameObject
+	if (game.version != 2) {
+		alert(`Unsupported version ${game.version}`)
+		return
+	}
+	if (game.type != "scenario") {
+		alert(`Not a scenario, but ${game.type}`)
+		return
+	}
+	for (const d of game.initialDeployment) {
+		for (let i = 0; i < d.cnt; i++) {
+			let u = unit.fromStr(d.type)
+			u.allowable = true
+		}
+	}
+	delete game.initialDeployment // not included in sub-sequent saves
+
+	let unitBox = new UnitBoxMajor({
+		x: 400,
+		y: 100,
+		board: board,
+		neutrals: true,
+		text: game.scenario + " Initial Deployment",
+	})
+
+	// Mark units from default allowableBuilds (index==0)
+	for (const d of game.allowableBuilds[0].units) {
+		for (let i = 0; i < d.cnt; i++) {
+			let u = unit.fromStr(d.type)
+			if (!u) alert(`No unit for ${d.type}`)
+			u.allowable = true
+		}
 	}
 }
-export function unitFromStr(str, offmap=true) {
-	// return the first found unit that matches str
-	let v, nat, type, s, m, lbl, unit
-	v = str.split(',')
-	// The first 2 fields nat,type are mandatory
-	nat = v[0]
-	type = v[1]
-	if (v.length > 2) {
-		// This may be a single number, or something like "3-3"
-		let stat = v[2].split('-')
-		s = stat[0]
-		if (stat.length > 1) m = stat[1]
-	}
-	if (v.length > 2) lbl = v[3]
-	// TODO: optimize by using the "nat" object
-	for (const [i, u] of units.entries()) {
-		if (u.selected) continue
-		if (offmap && u.hex) continue
-		if (nat != u.nat) continue
-		if (type != u.type) continue
-		if (!s) {
-			unit = {i:i, u:u}
-			break
-		}		if (s != u.s) continue
-		if (!m) {
-			unit = {i:i, u:u}
-			break
+export function loadSave() {
+	game = JSON.parse(rdtrSaveData)
+	console.log(game)
+	deploy(game.deployment.units)
+	// Mark units from default allowableBuilds (index==0)
+	unit.unselectAll()
+	for (const d of game.allowableBuilds[0].units) {
+		// (cnt should always be 1 here)
+		for (let i = 0; i < d.cnt; i++) {
+			// include units on-map
+			let u = unit.fromStr(d.type, offmap=false)
+			if (!u) alert(`No unit for ${d.type}`)
+			u.allowable = true
 		}
-		if (m != u.m) continue
-		if (!lbl) {
-			unit = {i:i, u:u}
-			break
-		}
-		if (lbl != u.lbl) continue
-		// Perfect match
-		unit = {i:i, u:u}
-		break
 	}
-	if (unit) unit.u.selected = true
-	return unit
-}
-export function unitToStr(u) {
-	switch (u.type) {
-	case "inf":
-	case "pz":
-	case "air":
-	case "par":
-	case "mec":
-		if (u.lbl) {
-			return `${u.nat},${u.type},${u.s}-${u.m},${u.lbl}`
-		} else {
-			return `${u.nat},${u.type},${u.s}-${u.m}`
-		}
-	case "res":
-	case "nav":
-	case "esc":
-	case "bmb":
-	case "sub":
-	case "int":
-		return `${u.nat},${u.type},${u.s}`
-	case "ab":
-	case "bh":
-		return `${u.nat},${u.type}`
-	}
-	return "unknown-unit"
 }
 
-// Saving the game
-export function gameData() {
-	return {
-		version: 1,
-		deployment: {
-			units: []
-		}
-	}
-}
-export function save(data, name = "rdtr.json") {
-	const blob = new Blob([JSON.stringify(data)], { type: 'text/json' });
+// Initiate a download
+export function download(blob, name) {
 	const fileURL = URL.createObjectURL(blob);
 	const downloadLink = document.createElement('a');
 	downloadLink.href = fileURL;
@@ -1087,37 +296,298 @@ export function save(data, name = "rdtr.json") {
 	downloadLink.click();
 	URL.revokeObjectURL(fileURL);
 }
+
+
+export function saveGame(name = "rdtrSaveData.js") {
+	if (!game) {
+		game = {
+			version: version,
+			allowableBuilds: [null],
+		}
+	}
+	game.type = "save"
+	game.deployment = getDeplyment()
+	// Replace the current "allowableBuilds"
+	let abuilds = {units: []}
+	for (let u of unit.units) {
+		if (!u.allowable) continue
+		abuilds.units.push({cnt:1, type:unit.toStr(u)})
+	}
+	game.allowableBuilds[0] = abuilds
+	const json = JSON.stringify(game)
+	const js = `const rdtrSaveData = '${json}'`
+	const blob = new Blob([js], { type: 'text/javascript' });
+	download(blob, name)
+}
+// Returns an array of all units on the map
 export function getDeplyment() {
 	let dep = { units: [] }
-	for (const u of units) {
+	for (const u of unit.units) {
 		if (!u.hex) continue
 		dep.units.push({
-			u: unitToStr(u), hex: hexToRdtr(u.hex)
+			u: unit.toStr(u), hex: hexToRdtr(u.hex)
 		})
 	}
 	return dep
 }
-export function saveGame(name = "rdtr.json") {
-	let d = gameData()
-	d.deployment = getDeplyment()
-	save(d, name)
-}
-export function deploy(_units) {
+export function deploy(units) {
 	let notFound = []
-	for (const ud of _units) {
-		let u = unitFromStr(ud.u)
+	for (const ud of units) {
+		let u = unit.fromStr(ud.u)
 		if (!u) {
 			notFound.push(ud.u)
 		} else {
-			unitPlaceRdtr(u.u, ud.hex)
+			unitPlaceRdtr(u, ud.hex)
 		}
 	}
 	if (notFound.length) alert(`Not found: ${notFound}`)
 }
 
-// The Map
-const imageObj = newImage();
-imageObj.src = './rdtr-map.png'
-export const map = new Konva.Image({
-    image: imageObj,
-});
+// ----------------------------------------------------------------------
+// Unit Box
+// A draggable shaded box with units (prototype in "deployment-demo.js")
+// TODO: move UnitBox to "units.js"?
+
+// A traditional "close" button
+let X = newImage()
+X.src = "data:image\/svg+xml,<svg width=\"80\" height=\"80\" viewBox=\"0 0 80 80\" xmlns=\"http://www.w3.org/2000/svg\"> <rect x=\"2\" y=\"2\" width=\"76\" height=\"76\" fill=\"none\" stroke=\"white\" stroke-width=\"4\"/> <path d=\"M 15 15 L 65 65 M 15 65 L 65 15\" stroke=\"white\" stroke-width=\"10\" fill=\"none\"/> </svg>"
+
+// Singelton for now
+let theUnitBox
+
+export class UnitBox {
+	rows = 1
+	cols = 4
+	x = 200
+	y = 200
+	text = "Units"
+	board			// "this" and dragged units are placed on this layer
+	#sizeC = 60
+	#sizeR = 70
+	#offsetX = 20
+	#offsetY = 50
+	#box
+	#units = new Set()
+	#X							// the "destroy" image
+	constructor(obj) {
+		for (var prop in obj) {
+			if (obj.hasOwnProperty(prop)) {
+				this[prop] = obj[prop];
+			}
+		}
+		if (theUnitBox) {
+			alert("Multiple UnitBox'es NOT allowed")
+			return
+		}
+		theUnitBox = this
+		this.#box = new Konva.Group({
+			x: this.x,
+			y: this.y,
+			draggable: true,
+		})
+		this.#box.on('dragstart', moveToTop)
+		let width = this.cols * this.#sizeC + this.#offsetX
+		this.#box.add(new Konva.Rect({
+			x: 0,
+			y: 0,
+			width: width,
+			height: this.rows * this.#sizeR + this.#offsetY,
+			fill: 'gray',
+			opacity: 0.75,
+			cornerRadius: 20,
+		}))
+		this.#X = new Konva.Image({
+			x: width - 40,
+			y: 15,
+			image: X,
+			scale: {x:0.3,y:0.3},
+		})
+		this.#box.add(this.#X)
+		this.#X.on('click', UnitBox.#destroy)
+		this.#box.add(new Konva.Text({
+			x: 25,
+			y: 15,
+			fontSize: 22,
+			fill: 'white',
+			text: this.text
+		}))
+		board.add(this.#box)
+	}
+	destroy() {
+		// Clear the singleton reference
+		theUnitBox = null
+		// Hide the group object
+		this.#box.hide()
+		// remove all remaining unit images from the group
+		for (const u of this.#units) {
+			u.img.remove()
+		}
+		this.#units.clear()	  // (prevent memory leak)
+		// then destroy the group (and all remaining childs)
+		this.#box.destroy()
+	}
+	// This is a 'click' event callback
+	static #destroy(e) {
+		theUnitBox.destroy()
+	}
+	static #dragstart(e) {
+		theUnitBox.#place(e)
+	}
+	#place(e) {
+		e.target.moveTo(this.board)
+		e.target.moveToTop()
+		e.target.on('dragend', unitSnapToHex)
+		// replace myself! NOTE: you *must* 'off' the old callback!!
+		e.target.off('dragstart')
+		e.target.on('dragstart', moveToTop)
+		let u = unit.fromImage(e.target)
+		this.#units.delete(u)
+	}
+	addUnit(u, col, row) {
+		if (u.hex) {
+			let str = unit.toStr(u)
+			return
+		}
+		if (this.#units.has(u)) return // already added
+		this.#units.add(u)
+		u.img.on('dragstart', UnitBox.#dragstart)
+		let x = col * this.#sizeC + this.#offsetX
+		let y = row * this.#sizeR + this.#offsetY
+		u.img.x(x)
+		u.img.y(y)
+		this.#box.add(u.img)
+	}
+}
+
+// Shows all "allowable" units for all major powers + neutrals
+// Intended for initial deployment and later buys
+export class UnitBoxMajor extends UnitBox {
+	constructor(obj) {
+		// ge,it,uk,su,fr,us,nu*
+		obj.rows = 6
+		if (obj.neutrals) obj.rows = 7
+		// inf,inf,inf,pz,pz,pz,res,par,air,air,nav,mec
+		obj.cols = 12
+		super(obj)
+
+		for (const u of unit.units) {
+			if (u.allowable) {
+				let rc = UnitBoxMajor.getRowCol(u)
+				super.addUnit(u, rc.col, rc.row)
+			}
+			if (obj.neutrals) {
+				if (u.nat == 'nu' && u.type != 'bh') {
+					let rc = UnitBoxMajor.getRowCol(u)
+					super.addUnit(u, rc.col, rc.row)
+				}
+			}
+		}
+	}
+	static #layout = {
+		ge: {
+			row: 0,
+			col: [
+				{type: 'inf', s:3},
+				{type: 'pz', s:4},
+				{type: 'res'},
+				{type: 'air'},
+				{type: 'nav'},
+				{type: 'par'},
+				{type: 'pz'},
+				{type: 'inf'},
+				{type: 'mec'},
+			]
+		},
+		it: {
+			row: 1,
+			col: [
+				{type: 'inf', s:3},
+				{type: 'inf', s:2},
+				{type: 'inf'},
+				{type: 'pz'},
+				{type: 'res'},
+				{type: 'air'},
+				{type: 'nav'},
+				{type: 'par'},
+			]
+		},
+		uk: {
+			row: 2,
+			col: [
+				{type: 'inf', s:3},
+				{type: 'inf', s:1},
+				{type: 'inf'},
+				{type: 'pz', s:4},
+				{type: 'pz'},
+				{type: 'res'},
+				{type: 'air', s:5},
+				{type: 'air'},
+				{type: 'nav'},
+				{type: 'par'},
+				{type: 'mec'},
+			]
+		},
+		su: {
+			row: 3,
+			col: [
+				{type: 'inf', s:3},
+				{type: 'inf', s:1},
+				{type: 'inf'},
+				{type: 'pz', s:4, m:5},
+				{type: 'pz',s:3},
+				{type: 'res'},
+				{type: 'air'},
+				{type: 'nav'},
+				{type: 'par'},
+				{type: 'mec'},
+				{type: 'pz'},
+			]
+		},
+		fr: {
+			row: 4,
+			col: [
+				{type: 'inf', s:2},
+				{type: 'inf'},
+				{type: 'pz'},
+				{type: 'res'},
+				{type: 'par'},
+				{type: 'air'},
+				{type: 'nav'},
+			]
+		},
+		us: {
+			row: 5,
+			col: [
+				{type: 'inf'},
+				{type: 'pz'},
+				{type: 'res'},
+				{type: 'air'},
+				{type: 'nav'},
+				{type: 'par'},
+			]
+		},
+		nu: {
+			row: 6,
+			col: [
+				{type: 'inf', s:2},
+				{type: 'inf'},
+				{type: 'air'},
+			]
+		},
+	}
+	// (to make this static allows unit-test)
+	static getRowCol(u) {
+		let l = UnitBoxMajor.#layout[u.nat]
+		let col
+		for (col = 0; col < l.col.length; col++) {
+			let t = l.col[col]
+			if (u.type != t.type) continue
+			if (!t.s) break
+			if (u.s != t.s) continue
+			if (!t.m) break
+			if (u.m != t.m) continue
+			break
+		}
+		return {col:col, row:l.row}
+	}
+}

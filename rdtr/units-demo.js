@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CC0-1.0.
 import Konva from 'konva';
 import * as rdtr from './rdtr.js';
+import * as unit from './units.js';
 
 const scale = 0.4
 
@@ -35,8 +36,8 @@ if (scenario == 0) {
 	side = 120
 	document.body.style.background = 'gray'
 	let row = 0, col = 0, offsetX = 80;
-	let maxRow = Math.round(rdtr.units.length / 20)
-	for (const [i, u] of rdtr.units.entries()) {
+	let maxRow = Math.round(unit.units.length / 20)
+	for (const [i, u] of unit.units.entries()) {
 		x = (col * (side+10) * scale) + offsetX
 		y = (row * (side+10) * scale) + 40
 		if ((i % 10) == 0) {
@@ -62,10 +63,16 @@ if (scenario == 1) {
 	stage.height(6000 * scale)
 	side = 120
 	document.body.style.background = 'gray'
+	// Sort units on nationality
+	var nat = {}
+	for (let u of unit.units) {
+		if (!nat[u.nat]) nat[u.nat] = []
+		nat[u.nat].push(u);
+	}
+	// Display them by nation
 	let row = 0, col = 0;
-	for (let n of Object.values(rdtr.nat)) {
-		for (let i of n) {
-			let u = rdtr.units[i];
+	for (const n in nat) {
+		for (u of nat[n]) {
 			u.img.x((col * (side+10) * scale + 40));
 			u.img.y((row * (side+10) * scale + 40));
 			layer.add(u.img);

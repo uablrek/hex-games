@@ -266,11 +266,13 @@ cmd_rdtr_build() {
 	cp $src/*.png $src/*.html $src/*.js $src/*.json $__appd
 	cd $__appd
 	local sub
-	for sub in map-demo units-demo drag-demo deployment-demo restore-demo; do
+	for sub in map-demo units-demo drag-demo deployment-demo restore-demo\
+		game-1939-demo; do
 		esbuild --bundle --outfile=$sub-bundle.js --loader:.svg=dataurl \
-			$sub.js  || die esbuild
+			--minify $sub.js  || die esbuild
 		rm $sub.js
 	done
+	rm rdtr.js test-rdtr.js units.js package.json
 	test "$__open" != "yes" && return 0
 	cmd_open "$1"
 }

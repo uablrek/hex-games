@@ -5,6 +5,7 @@
  */
 import Konva from 'konva';
 import * as rdtr from './rdtr.js';
+import { units } from './units.js';
 
 const stage = new Konva.Stage({
 	container: 'container',
@@ -44,6 +45,6 @@ deployment = [
 	{i:430, rc: {r:"L", q:22}},	
 ]
 for (d of deployment) {
-	u = rdtr.units[d.i]
+	u = units[d.i]
 	rdtr.unitPlaceRdtr(u, d.rc, board)
 }

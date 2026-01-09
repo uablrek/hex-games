@@ -7,6 +7,7 @@
  */
 import Konva from 'konva';
 import * as rdtr from './rdtr.js';
+import * as unit from './units.js';
 
 rdtr.setStage('container')
 const board = rdtr.board
@@ -16,11 +17,20 @@ rdtr.stage.container().focus();
 rdtr.stage.container().addEventListener("keydown", (e) => {
 	if (!e.repeat) {
 		if (e.key == "S") {
-			rdtr.saveGame()
+			saveGame()
 		}
 	}
 });
 
+// This is a prototype version. Later use: rdtr.saveGame()
+function saveGame() {
+	let save = { version: 1 }	// version==1 will never be used again
+	save.deployment = rdtr.getDeplyment()
+	const blob = new Blob([JSON.stringify(save)], { type: 'application/json' })
+	rdtr.download(blob, "rdtr.json")
+}
+
+// deploymentBox is a prototype. Later use: rdtr.UnitBox
 deploymentBox = new Konva.Group({
 	x: 400,
 	y: 400,
@@ -42,9 +52,12 @@ function place(e) {
 	e.target.on('dragend', rdtr.unitSnapToHex)
 	e.target.on('dragstart', rdtr.moveToTop)  // rplace myself!
 }
-for (i of rdtr.nat.nu) {
-	u = rdtr.units[i]
-	if (u.type == "bh") continue
+// Sort out neutral units (nu) *except* white bridge-heads
+var neutrals = []
+for (let u of unit.units) {
+	if (u.nat == "nu" && u.type != "bh") neutrals.push(u)
+}
+for (let u of neutrals) {
 	u.img.on('dragstart', place)
 	deploymentBox.add(u.img)
 	let pos, x, y=20, o=60

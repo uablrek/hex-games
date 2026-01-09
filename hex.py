@@ -130,7 +130,7 @@ def cmd_svg_data(args):
     """
     parser = arg_parser()
     parser.add_argument(
-        '--file', default="", help="File to read (default stdin")
+        '--file', default="", help="File to read (default stdin)")
     args = parser.parse_args(args[1:])
     if args.file:
         with open(args.file, 'r') as file:

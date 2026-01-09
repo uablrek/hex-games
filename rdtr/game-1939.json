@@ -1,0 +1,106 @@
+{
+	"version": 2,
+	"type": "scenario",
+	"scenario": "1939/Campaign",
+	"turn": { "year": 1939, "season": "fall"},
+	"initialDeployment": [
+		{"cnt": 8, "type": "ge,inf,3-3"},
+		{"cnt": 4, "type": "ge,pz,4-6"},
+		{"cnt": 4, "type": "ge,air,5-4"},
+		{"cnt": 2, "type": "ge,nav,9"},
+		{"cnt": 3, "type": "uk,inf,3-4"},
+		{"cnt": 3, "type": "uk,inf,1-3"},
+		{"cnt": 1, "type": "uk,pz,4-5"},
+		{"cnt": 1, "type": "uk,pz,2-5"},
+		{"cnt": 2, "type": "uk,air,5-4"},
+		{"cnt": 4, "type": "uk,air,1-4"},
+		{"cnt": 6, "type": "uk,nav,9"},
+		{"cnt": 12, "type": "fr,inf,2-3"},
+		{"cnt": 1, "type": "fr,pz,3-5"},
+		{"cnt": 2, "type": "fr,res,1"},
+		{"cnt": 2, "type": "fr,air,5-4"},
+		{"cnt": 3, "type": "fr,nav,9"},
+		{"cnt": 12, "type": "su,inf,1-3"},
+		{"cnt": 5, "type": "su,inf,2-3"},
+		{"cnt": 3, "type": "su,pz,3-5"},
+		{"cnt": 3, "type": "su,nav,9"},
+		{"cnt": 2, "type": "su,air,5-4"},
+		{"cnt": 2, "type": "it,inf,3-3"},
+		{"cnt": 6, "type": "it,inf,1-3"},
+		{"cnt": 1, "type": "it,pz,2-5"},
+		{"cnt": 4, "type": "it,nav,9"},
+		{"cnt": 2, "type": "it,air,5-4"}
+	],
+	"allowableBuilds": [
+		{
+			"units": [
+				{"cnt": 20, "type": "ge,inf,3-3"},
+				{"cnt": 8, "type": "ge,pz,4-6"},
+				{"cnt": 2, "type": "ge,nav,9"},
+				{"cnt": 2, "type": "ge,air,5-4"},
+				{"cnt": 1, "type": "ge,par,3-3"},
+				{"cnt": 8, "type": "ge,res,1"},
+				{"cnt": 3, "type": "uk,inf,3-4"},
+				{"cnt": 2, "type": "uk,pz,4-5"},
+				{"cnt": 6, "type": "uk,res,1"},
+				{"cnt": 3, "type": "uk,nav,9"},
+				{"cnt": 1, "type": "uk,air,5-4"},
+				{"cnt": 4, "type": "fr,inf,2-3"},
+				{"cnt": 2, "type": "fr,pz,3-5"},
+				{"cnt": 2, "type": "fr,res,1"},
+				{"cnt": 5, "type": "su,inf,3-3"},
+				{"cnt": 5, "type": "su,inf,2-3"},
+				{"cnt": 3, "type": "su,inf,1-3"},
+				{"cnt": 3, "type": "su,pz,3-5"},
+				{"cnt": 1, "type": "su,air,5-4"},
+				{"cnt": 4, "type": "it,inf,2-3"},
+				{"cnt": 1, "type": "it,pz,2-5"},
+				{"cnt": 1, "type": "it,nav,9"},
+				{"cnt": 6, "type": "it,res,1"}
+			]
+		},
+		{
+			"turn": { "year": 1942, "season": "spring"},
+			"units": [
+				{"cnt": 1, "type": "it,par,2-4"},
+				{"cnt": 1, "type": "it,nav,9"},
+				{"cnt": 15, "type": "su,inf,3-3"},
+				{"cnt": 4, "type": "su,pz,4-5"},
+				{"cnt": 4, "type": "su,par,2-3"},
+				{"cnt": 10, "type": "us,inf,3-4"},
+				{"cnt": 1, "type": "us,pz,5-6"},
+				{"cnt": 4, "type": "us,nav,9"},
+				{"cnt": 2, "type": "us,air,5-4"}
+			]
+		},
+		{
+			"turn": { "year": 1942, "season": "summer"},
+			"units": [
+				{"cnt": 1, "type": "uk,inf,3-4"},
+				{"cnt": 1, "type": "uk,pz,4-5"},
+				{"cnt": 1, "type": "uk,par,3-3"},
+				{"cnt": 1, "type": "uk,nav,9"},
+				{"cnt": 5, "type": "us,inf,3-4"},
+				{"cnt": 4, "type": "us,pz,5-6"},
+				{"cnt": 3, "type": "us,nav,9"},
+				{"cnt": 3, "type": "us,air,5-4"},
+				{"cnt": 1, "type": "us,par,3-3"},
+				{"cnt": 7, "type": "us,res,1"}
+			]
+		},
+		{
+			"turn": { "year": 1943, "season": "spring"},
+			"units": [
+				{"cnt": 2, "type": "ge,pz,5-6"}
+			]
+		},
+		{
+			"turn": { "year": 1944, "season": "spring"},
+			"units": [
+				{"cnt": 1, "type": "ge,pz,4-6"},
+				{"cnt": 3, "type": "ge,inf,3-3"},
+				{"cnt": 6, "type": "ge,inf,1-3"}
+			]
+		}
+	]
+}
