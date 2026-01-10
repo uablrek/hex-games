@@ -62,11 +62,11 @@
 		{
 			"turn": { "year": 1942, "season": "spring"},
 			"units": [
-				{"cnt": 1, "type": "it,par,2-4"},
+				{"cnt": 1, "type": "it,par"},
 				{"cnt": 1, "type": "it,nav,9"},
 				{"cnt": 15, "type": "su,inf,3-3"},
 				{"cnt": 4, "type": "su,pz,4-5"},
-				{"cnt": 4, "type": "su,par,2-3"},
+				{"cnt": 2, "type": "su,par"},
 				{"cnt": 10, "type": "us,inf,3-4"},
 				{"cnt": 1, "type": "us,pz,5-6"},
 				{"cnt": 4, "type": "us,nav,9"},

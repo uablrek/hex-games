@@ -16,6 +16,7 @@ if (localStorage.getItem("nodejsTest") == "yes") {
 // Set the stage
 var shift = false
 var selected = null
+var turn = { year: 0, season: "none" }
 export var stage;
 export var board;
 export function setStage(container) {
@@ -44,7 +45,9 @@ let help =
 	"b - Buy counters\n" +
 	"a - Air exchange counters\n" +
 	"f - Fleet exchange counters\n" +
-	"n - Deploy neutrals and minor allies"
+	"n - Deploy neutrals and minor allies\n" +
+	"t - Show current turn\n" +
+	"T - Next turn"
 
 function keydown(e) {
 	if (e.key == "Shift") {
@@ -105,6 +108,31 @@ function keydown(e) {
 		})
 		return
 	}
+	if (e.key == "t") {
+		if (e.repeat) return
+		new InfoBox({
+			x: 300,
+			y: 300,
+			label: "Current turn",
+			text: `Year: ${turn.year}, Season: ${turn.season}`,
+			board: board,
+		})
+		return
+	}
+	if (e.key == "T") {
+		if (e.repeat) return
+		let newAB = stepTurn()
+		let txt = `Year: ${turn.year}, Season: ${turn.season}`
+		if (newAB) txt += "\nNew AllowabeBuilds"
+		new InfoBox({
+			x: 300,
+			y: 300,
+			label: "Current turn",
+			text: txt,
+			board: board,
+		})
+		return
+	}
 }
 
 // Set moveToTop as dragstart by default for unit images
@@ -123,6 +151,49 @@ function selectOrDelete(e) {
 for (const [i, u] of unit.units.entries()) {
 	u.img.on('dragstart', moveToTop)
 	u.img.on('click', selectOrDelete)
+}
+
+function stepTurn() {
+	switch (turn.season) {
+	case "spring":
+		turn.season = "summer"
+		break
+	case "summer":
+		turn.season = "fall"
+		break
+	case "fall":
+		turn.season = "winter"
+		break
+	case "winter":
+		turn.season = "spring"
+		turn.year = turn.year + 1
+		break
+	}
+	// When the turn is stepped, we must check is new allowableBuilds
+	// become available. If so, we add them to allowableBuilds[0].
+	// (the "consumed" entry is kept since it does no harm)
+	for (let i = 1; i < game.allowableBuilds.length; i++) {
+		if (turnEq(turn, game.allowableBuilds[i].turn)) {
+			let units = game.allowableBuilds[i].units
+			for (const d of units) {
+				for (let i = 0; i < d.cnt; i++) {
+					let u = unit.fromStr(d.type)
+					if (!u) {
+						console.log(`Unknown unit ${d.type}`)
+					} else {
+						u.allowable = true
+					}
+				}
+			}
+			return true
+		}
+	}
+	return false	
+}
+function turnEq(t1, t2) {
+	if (t1.year != t2.year) return false
+	if (t1.season != t2.season) return false
+	return true
 }
 
 // ----------------------------------------------------------------------
@@ -268,9 +339,6 @@ function stackAdjust(pos) {
 // Save & Restore related
 
 /*
-  
-
-  
   Save data is in JSON, and MUST have a "version" element with a
   number (no semantic versioning, just an int).
 
@@ -278,8 +346,8 @@ function stackAdjust(pos) {
 
   The "type" element can be scenario|save
 
-  The first file to load should be a "scenario". It shows an empty map
-  and an initialDeployment UnitBox.
+  A "scenario" type shows an empty map and an initialDeployment
+  UnitBox.
 
   Once the Initial Deployment is done you can (and should) save.
 
@@ -295,7 +363,10 @@ function stackAdjust(pos) {
   from the "scenario" save. When the turn matches, they are added to
   the current "allowableBuilds".
  */
+
+// The version of scenario/save files
 export const version = 2
+// Game data from load scenario/save
 var game;
 
 
@@ -306,6 +377,7 @@ export function loadScenario(gameObject) {
 		alert(`Unsupported version ${game.version}`)
 		return
 	}
+	turn = game.turn
 	if (game.type != "scenario") {
 		alert(`Not a scenario, but ${game.type}`)
 		return
@@ -337,7 +409,7 @@ export function loadScenario(gameObject) {
 }
 export function loadSave() {
 	game = JSON.parse(rdtrSaveData)
-	console.log(game)
+	turn = game.turn
 	deploy(game.deployment.units)
 	// Mark units from default allowableBuilds (index==0)
 	unit.unselectAll()
@@ -372,6 +444,7 @@ export function saveGame(name = "rdtrSaveData.js") {
 		}
 	}
 	game.type = "save"
+	game.turn = turn
 	game.deployment = getDeplyment()
 	// Replace the current "allowableBuilds"
 	let abuilds = {units: []}
