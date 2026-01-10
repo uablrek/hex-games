@@ -83,7 +83,8 @@ cmd_env() {
 		ruffle=$GITHUBD/ruffle-rs/ruffle/target/release/ruffle_desktop \
 		FLEX=apache-flex-sdk-4.16.1-bin \
 		mapgen2_as=$GITHUBD/amitp/mapgen2_as \
-		mapgen2=$GITHUBD/redblobgames/mapgen2
+		mapgen2=$GITHUBD/redblobgames/mapgen2 \
+		__appd=$WS/appd
 
 	if test "$cmd" = "env"; then
 		set | grep -E "^($opts)="
@@ -224,7 +225,6 @@ cmd_build() {
 ##     --appd. Example: "units.html?scenario=1"
 cmd_open() {
 	test -n "$BROWSER" || die 'Not set [$BROWSER]'
-	eset __appd=$WS/app
 	cd $__appd || die "Failed [cd $__appd]"
 	local page=index.html
 	test -n "$1" && page="$1"
@@ -242,7 +242,6 @@ cmd_open() {
 	GTK_MODULES= $BROWSER --new-window "file://$__appd/$page"
 }
 appdir() {
-	eset __appd=$WS/app
 	echo $__appd | grep -q "^$TEMP" && eset __clean=yes
 	test "$__clean" = "yes" && rm -rf $__appd
 	mkdir -p $__appd
@@ -261,7 +260,6 @@ src() {
 ##     Build the "Rise and Decline of the Third Reich" (rdtr) project
 cmd_rdtr_build() {
 	src=$dir/rdtr
-	eset __appd=$WS/rdtr
 	appdir
 	cp $src/*.png $src/*.html $src/*.js $src/*.json $__appd
 	cd $__appd
@@ -272,7 +270,7 @@ cmd_rdtr_build() {
 			--minify $sub.js  || die esbuild
 		rm $sub.js
 	done
-	rm rdtr.js test-rdtr.js units.js package.json
+	rm rdtr.js test-rdtr.js units.js *.json
 	test "$__open" != "yes" && return 0
 	cmd_open "$1"
 }

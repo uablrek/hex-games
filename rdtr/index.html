@@ -1,9 +1,22 @@
 <!DOCTYPE html>
 <html>
   <head>
-	<title>Rise and Decline of the Third Reich - demos</title>
+	<title>Rise and Decline of the Third Reich</title>
   </head>
   <body>
+	<h2>Manually play a scenario</h2>
+	<p>No rules enforced nor help with book-keeping (e.g BRP). You
+	must do everything manually, including compute odds and rolling
+	the die, just like the board game. Loads from "rdtrSaveData.js" if
+	present in the app directory. <b>Save with Shift-S</b>. Copy the
+	downloaded save to "rdtrSaveData.js" in the app directory, and
+	reload the page (F5) to restore.
+	</p>
+	<ul>
+	  <li><a href="game-1939-demo.html">1939 scenario</a></li>
+	</ul>
+	<h2>Demos</h2>
+	<p>For developers and curious people</p>
 	<h3>Basic Map</h3>
 	<p>The Map is draggable by grab-and-drag, but not scrollable.
 	<ul>
@@ -14,28 +27,19 @@
 	<p>The counter sheets are converted to PNG. Individual counters
 	  are cut from these sheets.  The index is very central! Counters
 	  are identified by their's index. The counter images have
-	  id=`rdtr${i}`.  Counters are draggable</p>
+	  id="rdtr#", where "#" is the index.  Counters are draggable</p>
 	<ul>
 	  <li><a href="units-demo.html?scenario=0">Counters by index</a></li>
 	  <li><a href="units-demo.html?scenario=1">Counters by nation</a></li>
 	</ul>
 	<h3>Basic Save/Restore</h3>
 	<p>Save is complicated since scripts may not write to the local
-	  file system. But a browser download can be initiated. Restore is
-	  done from the json file "test-deployment.json" which must be in
-	  the app directory.
+	  file system. Instead a browser download is initiated. Restore is
+	  done from the json file "test-deployment.json" which is included at
+	  build time (please se comments in "restore-demo.js").
 	<ul>
 	  <li><a href="deployment-demo.html">Deploy Netrals from a draggable box. <b>Save with Shift-S</b></a></li>
 	  <li><a href="restore-demo.html">Restore deployment from "test-deployment.json"</a></li>
-	</ul>
-	<h3>Manually play the 1939/Campaign scenario</h3>
-	<p>No rules enforced nor help with book-keeping (e.g BRP). You
-	must do everything manually, including compute odds and rolling
-	the die, just like the board game. Loads from "rdtrSaveData.js" if
-	present in the app directory. <b>Save with Shift-S</b>, and copy
-	</p>
-	<ul>
-	  <li><a href="game-1939-demo.html">1939/Campaign scenario</a></li>
 	</ul>
   </body>
 </html>

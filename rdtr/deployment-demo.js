@@ -9,12 +9,22 @@ import Konva from 'konva';
 import * as rdtr from './rdtr.js';
 import * as unit from './units.js';
 
-rdtr.setStage('container')
-const board = rdtr.board
+stage = new Konva.Stage({
+	container: "container",
+	width: window.innerWidth,
+	height: window.innerHeight,
+});
+board = new Konva.Layer({
+	draggable: true,
+});
+stage.add(board);
+board.add(rdtr.map);
 
-rdtr.stage.container().tabIndex = 1
-rdtr.stage.container().focus();
-rdtr.stage.container().addEventListener("keydown", (e) => {
+// The "tabIndex" MUST be done. It's not intuitive, and I have no idea
+// what it does
+stage.container().tabIndex = 1
+stage.container().focus();
+stage.container().addEventListener("keydown", (e) => {
 	if (!e.repeat) {
 		if (e.key == "S") {
 			saveGame()
@@ -23,6 +33,7 @@ rdtr.stage.container().addEventListener("keydown", (e) => {
 });
 
 // This is a prototype version. Later use: rdtr.saveGame()
+// Basically, plain JSON can't be used. Please see restore-demo.js.
 function saveGame() {
 	let save = { version: 1 }	// version==1 will never be used again
 	save.deployment = rdtr.getDeplyment()
@@ -44,13 +55,16 @@ deploymentBox.add(new Konva.Rect({
 	fill: 'gray',
 	opacity: 0.5,
 }))
+function moveToTop(e) {
+	e.target.moveToTop()
+}
 
 function place(e) {
 	// (I am amazed that this works!)
 	e.target.moveTo(board)
 	e.target.moveToTop()
 	e.target.on('dragend', rdtr.unitSnapToHex)
-	e.target.on('dragstart', rdtr.moveToTop)  // rplace myself!
+	e.target.on('dragstart', moveToTop)  // rplace myself!
 }
 // Sort out neutral units (nu) *except* white bridge-heads
 var neutrals = []

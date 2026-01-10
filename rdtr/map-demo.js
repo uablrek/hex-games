@@ -2,6 +2,14 @@
 import Konva from 'konva';
 import * as rdtr from './rdtr.js';
 
+/*
+  This is a first test of the coordinate functions in "rdtr.js". They
+  are also tested in unit test in "test-rdtr.js".
+
+  It also demonstrates a static, partially transparent, status field to
+  the left in the window.
+ */
+
 const stage = new Konva.Stage({
 	container: 'container',
 	width: window.innerWidth,

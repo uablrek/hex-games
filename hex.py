@@ -6,6 +6,7 @@ import sys
 import getopt
 import argparse  # https://docs.python.org/3/library/argparse.html#module-argparse
 import math
+import random
 
 dbg = lambda *arg: 0
 
@@ -150,6 +151,32 @@ def cmd_svg_data(args):
     print("data:image\\/svg+xml," + data)
     return 0
 
+def cmd_dice(args):
+    """Roll dice.
+    Prints random numbers
+    """
+    parser = arg_parser()
+    parser.add_argument(
+        '--dice', default="1d6", help='Type of dice, e.g "2d12"')
+    args = parser.parse_args(args[1:])
+    s = args.dice.split('d')
+    n = int(s[0])
+    d = 6
+    if len(s) > 1:
+        d = int(s[1])
+    if n < 2:
+        print(random.randint(1, d))
+    else:
+        sum = 0
+        str = ''
+        for i in range(n):
+            r = random.randint(1, d)
+            sum = sum + r
+            str += f'{r} '
+        str += f'= {sum}' 
+        print(str)
+    return 0
+    
 # ----------------------------------------------------------------------
 # Parse args
 

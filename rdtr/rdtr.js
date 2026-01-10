@@ -15,6 +15,7 @@ if (localStorage.getItem("nodejsTest") == "yes") {
 
 // Set the stage
 var shift = false
+var selected = null
 export var stage;
 export var board;
 export function setStage(container) {
@@ -31,18 +32,83 @@ export function setStage(container) {
 
 	stage.container().tabIndex = 1
 	stage.container().focus();
-	stage.container().addEventListener("keydown", (e) => {
-		if (e.key == "Shift") shift = true
-	})
+	stage.container().addEventListener("keydown", keydown)
 	stage.container().addEventListener("keyup", (e) => {
 		if (e.key == "Shift") shift = false
 	})
 }
 
-var selected = null
+let help =
+	"Shift-click - Remove unit\n" +
+	"Shift-S - Save\n" +
+	"b - Buy counters\n" +
+	"a - Air exchange counters\n" +
+	"f - Fleet exchange counters\n" +
+	"n - Deploy neutrals and minor allies"
 
-// Set moveToTop as dragstart by default
-export function moveToTop(e) {
+function keydown(e) {
+	if (e.key == "Shift") {
+		shift = true
+		return
+	}
+	if (e.key == "S") {
+		if (e.repeat) return
+		saveGame()
+		return
+	}
+	if (e.key == "b") {
+		if (e.repeat) return
+		new UnitBoxMajor({
+			x: 400,
+			y: 100,
+			board: board,
+			neutrals: false,
+			text: "Allowable Builds",
+		})
+		return
+	}
+	if (e.key == "a") {
+		if (e.repeat) return
+		new UnitBoxAir({
+			x: 400,
+			y: 100,
+			board: board,
+		})
+		return
+	}
+	if (e.key == "f") {
+		if (e.repeat) return
+		new UnitBoxNav({
+			x: 400,
+			y: 100,
+			board: board,
+		})
+		return
+	}
+	if (e.key == "n") {
+		if (e.repeat) return
+		new UnitBoxNeutrals({
+			x: 400,
+			y: 100,
+			board: board,
+		})
+		return
+	}
+	if (e.key == "h") {
+		if (e.repeat) return
+		new InfoBox({
+			x: 300,
+			y: 300,
+			label: "Help",
+			text: help,
+			board: board,
+		})
+		return
+	}
+}
+
+// Set moveToTop as dragstart by default for unit images
+function moveToTop(e) {
 	e.target.moveToTop()
 }
 function selectOrDelete(e) {
@@ -80,8 +146,8 @@ export const map = new Konva.Image({
 // hexes. They take --scale into account.
 export function pixelToHex(pos) {
 	// This function is NOT perfect! A click near the top/bottom of a
-	// hex *may* select an adjacent hex. But for practical use, it
-	// is good enough for me.
+	// hex *may* select an adjacent hex. But for practical use, it's
+	// good enough.
 
 	// Adjust for grid/map offset
 	pos = {x:pos.x + grid_offset.x, y:pos.y + grid_offset.y}
@@ -252,7 +318,7 @@ export function loadScenario(gameObject) {
 	}
 	delete game.initialDeployment // not included in sub-sequent saves
 
-	let unitBox = new UnitBoxMajor({
+	new UnitBoxMajor({
 		x: 400,
 		y: 100,
 		board: board,
@@ -380,9 +446,12 @@ export class UnitBox {
 			return
 		}
 		theUnitBox = this
+		// We want the pop-up box to be visible on screen even if the
+		// board is dragged. So, compensate for the board position
+		let pos = this.board.position()
 		this.#box = new Konva.Group({
-			x: this.x,
-			y: this.y,
+			x: this.x - pos.x,
+			y: this.y - pos.y,
 			draggable: true,
 		})
 		this.#box.on('dragstart', moveToTop)
@@ -459,7 +528,7 @@ export class UnitBox {
 	}
 }
 
-// Shows all "allowable" units for all major powers + neutrals
+// Shows all "allowable" units for all major powers + neutrals (optional)
 // Intended for initial deployment and later buys
 export class UnitBoxMajor extends UnitBox {
 	constructor(obj) {
@@ -589,5 +658,288 @@ export class UnitBoxMajor extends UnitBox {
 			break
 		}
 		return {col:col, row:l.row}
+	}
+}
+
+
+export class UnitBoxNeutrals extends UnitBox {
+	constructor(obj) {
+		// nu+iq+bh, sp+tu, fin+bulg, rum+hun
+		obj.rows = 4
+		// sp+tu: inf,pz,air,nav,(blank),inf,pz,air,nav
+		obj.cols = 9
+		obj.text = "Neutrals and Minor Allies"
+		super(obj)
+
+		for (const u of unit.units) {
+			if (!Object.keys(UnitBoxNeutrals.#layout).includes(u.nat)) continue
+			if (u.hex) continue
+			let rc = UnitBoxNeutrals.getRowCol(u)
+			super.addUnit(u, rc.col, rc.row)
+		}
+	}
+	static #layout = {
+		nu: {
+			row: 0,
+			col: [
+				{type: 'inf', s:2, col: 0},
+				{type: 'inf', col: 1},
+				{type: 'air', col: 2},
+				{type: 'nav', col: 3},
+				{type: 'bh', col: 8},
+			]
+		},
+		iq: {
+			row: 0,
+			col: [
+				{type: 'inf', col: 7},
+			]
+		},
+		sp: {
+			row: 1,
+			col: [
+				{type: 'inf', col: 0},
+				{type: 'pz', col: 1},
+				{type: 'air', col: 2},
+				{type: 'nav', col: 3},
+			]
+		},
+		tu: {
+			row: 1,
+			col: [
+				{type: 'inf', col: 5},
+				{type: 'pz', col: 6},
+				{type: 'air', col: 7},
+				{type: 'nav', col: 8},
+			]
+		},
+		fi: {
+			row: 2,
+			col: [
+				{type: 'inf', col: 0},
+				{type: 'air', col: 1},
+			]
+		},
+		bu: {
+			row: 2,
+			col: [
+				{type: 'inf', col: 5},
+				{type: 'air', col: 6},
+			]
+		},
+		ru: {
+			row: 3,
+			col: [
+				{type: 'inf', s:2, col: 0},
+				{type: 'inf', col: 1},
+				{type: 'air', col: 2},
+			]
+		},
+		hu: {
+			row: 3,
+			col: [
+				{type: 'inf', s:2, col: 5},
+				{type: 'inf', col: 6},
+				{type: 'air', col: 7},
+			]
+		},
+	}
+	// (to make this static allows unit-test)
+	static getRowCol(u) {
+		let l = UnitBoxNeutrals.#layout[u.nat]
+		let t
+		for (t of l.col) {
+			if (u.type != t.type) continue
+			if (!t.s) break
+			if (u.s != t.s) continue
+			break
+		}
+		return {col:t.col, row:l.row}
+	}
+}
+
+// Shows all undployed air units for all major powers + air-bases
+// Intended for break/buildup of 5-4 airs
+export class UnitBoxAir extends UnitBox {
+	constructor(obj) {
+		// ge,it,uk,su,fr,us,nu*
+		obj.rows = 6
+		// 5-4, 3-4, 2-4, 1-4, ab
+		obj.cols = 5
+		obj.text = "Air Exchange"
+		super(obj)
+
+		for (const u of unit.units) {
+			if (!Object.keys(UnitBoxAir.#layout).includes(u.nat)) continue
+			if (u.hex) continue
+			if (u.type != "air" && u.type != "ab") continue
+			if (u.s == 5 && !u.allowable) continue
+			let rc = UnitBoxAir.getRowCol(u)
+			super.addUnit(u, rc.col, rc.row)
+		}
+	}
+	static #layout = {
+		ge: { row: 0 },
+		it: { row: 1 },
+		uk: { row: 2 },
+		su: { row: 3 },
+		fr: { row: 4 },
+		us: { row: 5 }
+	}
+	// (to make this static allows unit-test)
+	static getRowCol(u) {
+		let l = UnitBoxAir.#layout[u.nat]
+		let col
+		const colLayout = [
+			{type: 'air', s:5},
+			{type: 'air', s:3},
+			{type: 'air', s:2},
+			{type: 'air', s:1},
+			{type: 'ab'},
+		]
+		for (col = 0; col < colLayout.length; col++) {
+			let t = colLayout[col]
+			if (u.type != t.type) continue
+			if (!t.s) break
+			if (u.s != t.s) continue
+			break
+		}
+		return {col:col, row:l.row}
+	}
+}
+// Shows all undployed naval units for all major powers
+// Intended for break/buildup of 9-boats
+export class UnitBoxNav extends UnitBox {
+	constructor(obj) {
+		// ge,it,uk,su,fr,us
+		obj.rows = 6
+		// 9,8,6,4,2,1
+		obj.cols = 6
+		obj.text = "Naval Exchange"
+		super(obj)
+
+		for (const u of unit.units) {
+			if (!Object.keys(UnitBoxNav.#layout).includes(u.nat)) continue
+			if (u.hex) continue
+			if (u.type != "nav") continue
+			if (u.s == 9 && !u.allowable) continue
+			let rc = UnitBoxNav.getRowCol(u)
+			super.addUnit(u, rc.col, rc.row)
+		}
+	}
+	static #layout = {
+		ge: { row: 0 },
+		it: { row: 1 },
+		uk: { row: 2 },
+		su: { row: 3 },
+		fr: { row: 4 },
+		us: { row: 5 }
+	}
+	// (to make this static allows unit-test)
+	static getRowCol(u) {
+		let l = UnitBoxNav.#layout[u.nat]
+		let col
+		const colLayout = [
+			{type: 'nav', s:9},
+			{type: 'nav', s:8},
+			{type: 'nav', s:6},
+			{type: 'nav', s:4},
+			{type: 'nav', s:2},
+			{type: 'nav'},
+		]
+		for (col = 0; col < colLayout.length; col++) {
+			let t = colLayout[col]
+			if (u.type != t.type) continue
+			if (!t.s) break
+			if (u.s != t.s) continue
+			break
+		}
+		return {col:col, row:l.row}
+	}
+}
+
+
+// ----------------------------------------------------------------------
+// Info Box
+// A draggable box with information text
+
+// Singelton for now
+let theInfoBox
+
+export class InfoBox {
+	x = 200
+	y = 200
+	label = "Information"
+	text = "Nope, nothing"
+	board			// "this" is placed on this layer
+	#box
+	constructor(obj) {
+		for (var prop in obj) {
+			if (obj.hasOwnProperty(prop)) {
+				this[prop] = obj[prop];
+			}
+		}
+		if (theInfoBox) {
+			alert("Multiple InfoBox'es NOT allowed")
+			return
+		}
+		theInfoBox = this
+		let text = new Konva.Text({
+			x: 25,
+			y: 45,
+			fontSize: 18,
+			fill: 'white',
+			lineHeight: 1.2,
+			text: this.text
+		})
+		let width = text.width() + 100
+		let height = text.height() + 60
+		// We want the pop-up box to be visible on screen even if the
+		// board is dragged. So, compensate for the board position
+		let pos = this.board.position()
+		this.#box = new Konva.Group({
+			x: this.x - pos.x,
+			y: this.y - pos.y,
+			draggable: true,
+		})
+		this.#box.on('dragstart', moveToTop)
+		this.#box.add(new Konva.Rect({
+			x: 0,
+			y: 0,
+			width: width,
+			height: height,
+			fill: 'black',
+			stroke: 'gold',
+			strokeWidth: 4,
+			cornerRadius: 20,
+		}))
+		let close = new Konva.Image({
+			x: width - 40,
+			y: 15,
+			image: X,
+			scale: {x:0.3,y:0.3},
+		})
+		this.#box.add(close)
+		close.on('click', InfoBox.#destroy)
+		this.#box.add(new Konva.Text({
+			x: 25,
+			y: 15,
+			fontSize: 22,
+			fill: 'gold',
+			text: this.label,
+		}))
+		this.#box.add(text)
+		board.add(this.#box)
+	}
+	destroy() {
+		// Clear the singleton reference
+		theInfoBox = null
+		// destroy the group (and all remaining childs)
+		// It is assumed that all eventHandlers are deleted too
+		this.#box.destroy()
+	}
+	// This is a 'click' event callback
+	static #destroy(e) {
+		theInfoBox.destroy()
 	}
 }

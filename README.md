@@ -13,7 +13,7 @@ https://konvajs.org/docs/index.html) is used for most canvas
 manipulations.
 
 I am currently trying to get the old board game [Rise and Decline of
-the Third Reich]( rdtr/README.md) to run in a browser.
+the Third Reich](rdtr/README.md) (RDTR) to run in a browser.
 
 #### Try a release
 
@@ -43,8 +43,21 @@ admin <tab><tab>         # suggest available commands
 Set environment variables if necessary. Example:
 ```
 export GITHUBD=$HOME/go/src/github.com
-export BROWSER=/usr/bin/firefox
+export BROWSER=/opt/google/chrome/chrome
 ```
+
+### Versioning
+
+[Semantic versioning](https://semver.org/) is used in the defined way.
+
+A non-pre-relase, i.e. with a major version >0, is not guaranteed to
+be "stable" (whatever that means). What *is* guaranteed is
+compatibility. If I make an incompatible update, I will step the major
+version.
+
+For now, an incompatible update means an incompatible change of RDTR
+save/scenario file format.
+
 
 ## Manually crafted maps
 

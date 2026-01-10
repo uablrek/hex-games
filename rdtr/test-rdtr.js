@@ -90,6 +90,17 @@ function testUnitBox(tc) {
 	u = unit.fromStr("su,pz,4-6")
 	rc = rdtr.UnitBoxMajor.getRowCol(u)
 	assert.deepStrictEqual(rc, {col: 10, row: 3})
+
+	u = unit.fromStr("ge,air,5-4")
+	rc = rdtr.UnitBoxAir.getRowCol(u)
+	assert.deepStrictEqual(rc, {col: 0, row: 0})
+	u = unit.fromStr("ge,ab")
+	rc = rdtr.UnitBoxAir.getRowCol(u)
+	assert.deepStrictEqual(rc, {col: 4, row: 0})
+
+	u = unit.fromStr("nu,inf,1-3")
+	rc = rdtr.UnitBoxNeutrals.getRowCol(u)
+	assert.deepStrictEqual(rc, {col: 1, row: 0})
 }
 
 // (this is the "standard" way in golang)
