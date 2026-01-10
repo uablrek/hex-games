@@ -566,6 +566,7 @@ export class UnitBox {
 		}
 		this.#units.clear()	  // (prevent memory leak)
 		// then destroy the group (and all remaining childs)
+		// It is assumed that all eventHandlers are deleted too
 		this.#box.destroy()
 	}
 	// This is a 'click' event callback
@@ -888,7 +889,7 @@ export class UnitBoxNav extends UnitBox {
 		obj.rows = 6
 		// 9,8,6,4,2,1
 		obj.cols = 6
-		obj.text = "Naval Exchange"
+		obj.text = "Fleet Exchange"
 		super(obj)
 
 		for (const u of unit.units) {

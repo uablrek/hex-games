@@ -30,54 +30,99 @@ framework. Bundles are created with [esbuild](https://esbuild.github.io/).
 This is a Work In Progress (WIP). I will document the development
 process for myself, and others. I will include dead-ends, abandoned
 ideas, new ideas, mess-up's, etc. I am new at JavaScript, so there may
-be many of them. I will create pre-relases on
-[github](https://github.com/uablrek/hex-games/releases) when I feel I
-have some significant to present. To test a release:
+be many of them. I will create relases on
+[github](https://github.com/uablrek/hex-games/releases). To test a
+release:
 
 1. Download `hex-games.zip` release Asset
 2. Unpack it locally (you *must* unpack on Windows. Not just dive into the zip archive)
 3. Open `rdtr/index.html` in your browser
 
+
+
 ## The game
 
-I now have something that resembles a game. The screen-shot below
-shows the initial deployment phase for the 1939 scenario. The gray box
-is called a `UnitBox`. You can drag counters from the UnitBox and
-place them anywhere on the board. The UnitBox itself can also be
-dragged to a convenient place.
+to play RDTR you need [the rules](
+https://boardgamegeek.com/filepage/246525/third-reich-4th-edition-rulebook-clone)
+which are *extremly* complex. You also need the [player cards](
+https://boardgamegeek.com/filepage/246970/third-reich-player-cards-pdf)
+which describes the starting conditions. Armed with these you can try
+a solitaire game to learn the rules, or a hot-seat game if you know
+enough of the rules, and have a friend to play with. BTW, I can say I
+didn't know all rules back in the 1970's, and much less today.
+
+This is basically a replica of the board game on you browser. You must
+do (almost) everything yourself (same as the board game). When you
+start a game you will see something like this:
 
 <img src="../figures/1939-initial-phase.png" width="70%" />
 
-Included:
+The screen-shot shows the initial deployment phase for the 1939
+scenario. The gray box is called a `UnitBox`. You can drag counters
+from the UnitBox and place them anywhere on the board. The UnitBox
+itself can also be dragged to a convenient place. The player cards
+says that the order of deployment for 1939 is: Poland, Italy, France,
+Britain, Russia, Germany. But in a solitaire game, that doesn't matter of
+course.
 
-* Draggable map with draggable counters
-* Initial deployment from a draggable `UnitBox`
-* Save game. `Shift-S`
-* Restore game... sort of. You must manually copy the save file to "rdtrSaveData.js" in the app-dir
-* Remove units `Shift-click`
-* My own 1939 deployment save ("save-1939-initial.js") 
-* Likely a bunch of bugs
+Make sure to deploy *all* counters in the Initial Deployment, then
+**Save!**. In general, save often! If you reload the page, or close
+the browser, everything from the last save is lost. You don't have to
+copy the save file to the app directory each time you save, just when
+you want to restore.
 
-Missing:
+Some instructions:
 
-* Allowable builds `UnitBox` (you can't buy new units)
-* Minor allies and neutrals `UnitBox` (nope, not these either)
-* Exchange `UnitBox`. To break up air and naval units
-* Turn tracking (this is needed to make new allowable builds available)
-* Peek a stack
-* BRP book keeping
-* <a href="#the-map-in-programs">Map awareness</a>. No restrictions on placements and moves
+* **Help** - hit `h` for a key help page
+* **Move around on the map** - The map is draggable (but not scrollable)
+* **Deploy units** - Drag them from a UnitBox and drop them on the map
+* **Save game** - Hit `Shift-S`. A download dialogue will pop-up, and
+    you can select the local file
+* **Restore game** - Copy a save-file to "rdtrSaveData.js" in the
+    app directory (/path/to/hex-games/rdtr). Then reload the game page (F5).
+	([more info](#save-and-restore))
+* **Movement** - Drag any counter to any place on the map
+* **Remove a counter** - `Shift-click` on the counter
+* **Combat** - Move your counters into place, compute the odds, and
+    roll a die. Remove losers, and move succesful attackers. The game
+    will not help you with this.
+* **Buy units** - Hit `b` to bring up units allowable for
+    buying. You must keep track of BRP and players yourself. If you make a
+    misstake and remove a counter you just bought, it will *not* be
+    returned to the open UnitBox. But if you close the UnitBox and re-open, it
+    will be there
+* **Break up 5-4 air units** - Hit `a` to bring up the Air Exchane
+    box. Remove the 5-4 unit, and drag replacements from the box.
+	Air bases are also in this box
+* **Break up naval units** - Hit `f` to bring up the Fleet Exchange
+    box, and do the same as for air units
+* **Neutrals and minor allies** - Hit `n` to bring up the Neutrals
+    box. Drag counters to the map
+* **Advance the game turn** - Hit `t` to see the current turn and `T`
+    to advance to the next turn. The game doesn't care about turns,
+    *except* that new units becomes allowable at certain turns in the
+    Campaign game (please see the player cards). In non-campaign
+    games, the turn is purely informational
+* **Year Start Sequence (YSS)** - This is entirely up to you :-)
 
-As you can see it's pretty useless for now, but I want to make a
-release to test on `Windows` and on slower laptops. The `UnitBox`
-problems and turn tracking shoudn't be too hard. Then it can actually
-be used for gaming, at least solitaire or hot-seat. Moving counters to
-peek a stack is annoying though, but then again, it's the same as the
-board game.
+
+## Contributions
+
+If you find a bug, or want to make a feature request, please write an
+issue. Pull Requests (PR) are welcome, but for advanced things, please
+discuss them in an issue first. And please be aware that I am
+reluctant to bring in too many dependencies. [Konva](
+https://konvajs.org/docs/index.html) tough is *absolutely awsome!*
+
+The program logic is almost entirely in [rdtr.js](rdtr.js), which is
+~1000 lines. So, this is not a very big or very complicated program.
+
+The following sections are mostly for developers, or people who want
+to learn about the program.
 
 ## Unit test
 
-We want to run unit tests with `node.js`:
+I want to run unit tests with `node.js`:
 ```
 nmp link konva   # (once)
 node --localstorage-file=lstore test-rdtr.js
