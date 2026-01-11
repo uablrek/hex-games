@@ -79,27 +79,27 @@ function testUnitCompare(tc) {
 function testUnitBox(tc) {
 	let u, rc
 	u = unit.fromStr("ge,inf,3-3")
-	rc = rdtr.UnitBoxMajor.getRowCol(u)
+	rc = unit.UnitBoxMajor.getRowCol(u)
 	assert.deepStrictEqual(rc, {col: 0, row: 0})
 	u = unit.fromStr("ge,inf,1-3")
-	rc = rdtr.UnitBoxMajor.getRowCol(u)
+	rc = unit.UnitBoxMajor.getRowCol(u)
 	assert.deepStrictEqual(rc, {col: 7, row: 0})
 	u = unit.fromStr("su,pz,4-5")
-	rc = rdtr.UnitBoxMajor.getRowCol(u)
+	rc = unit.UnitBoxMajor.getRowCol(u)
 	assert.deepStrictEqual(rc, {col: 3, row: 3})
 	u = unit.fromStr("su,pz,4-6")
-	rc = rdtr.UnitBoxMajor.getRowCol(u)
+	rc = unit.UnitBoxMajor.getRowCol(u)
 	assert.deepStrictEqual(rc, {col: 10, row: 3})
 
 	u = unit.fromStr("ge,air,5-4")
-	rc = rdtr.UnitBoxAir.getRowCol(u)
+	rc = unit.UnitBoxAir.getRowCol(u)
 	assert.deepStrictEqual(rc, {col: 0, row: 0})
 	u = unit.fromStr("ge,ab")
-	rc = rdtr.UnitBoxAir.getRowCol(u)
+	rc = unit.UnitBoxAir.getRowCol(u)
 	assert.deepStrictEqual(rc, {col: 4, row: 0})
 
 	u = unit.fromStr("nu,inf,1-3")
-	rc = rdtr.UnitBoxNeutrals.getRowCol(u)
+	rc = unit.UnitBoxNeutrals.getRowCol(u)
 	assert.deepStrictEqual(rc, {col: 1, row: 0})
 }
 

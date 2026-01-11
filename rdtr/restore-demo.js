@@ -44,6 +44,6 @@ if (save.version > 1) {
 } else {
 	for (const ud of save.deployment.units) {
 		let u = unit.fromStr(ud.u)
-		rdtr.unitPlaceRdtr(u, ud.hex, parent=board)
+		unit.placeRdtr(u, ud.hex, parent=board)
 	}
 }

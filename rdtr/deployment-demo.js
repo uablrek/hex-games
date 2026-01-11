@@ -63,7 +63,7 @@ function place(e) {
 	// (I am amazed that this works!)
 	e.target.moveTo(board)
 	e.target.moveToTop()
-	e.target.on('dragend', rdtr.unitSnapToHex)
+	e.target.on('dragend', unit.snapToHex)
 	e.target.on('dragstart', moveToTop)  // rplace myself!
 }
 // Sort out neutral units (nu) *except* white bridge-heads

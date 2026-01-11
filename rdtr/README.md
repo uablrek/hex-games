@@ -109,8 +109,7 @@ Instructions:
     Campaign game (please see the player cards). In non-campaign
     games, the turn is purely informational
 * **Year Start Sequence (YSS)** - Is handled by you outside the game
-* **Strategic Warfare (SR)** - Including Murmansk Convoy, Lend Lease,
-    etc. Is handled by you outside the game
+* **Strategic Warfare (SR)** - Is handled by you outside the game
 
 ## Contributions
 
@@ -121,9 +120,7 @@ reluctant to bring in too many dependencies (like React). [Konva](
 https://konvajs.org/docs/index.html) though is *absolutely awsome!*
 
 The program logic is almost entirely in [rdtr.js](rdtr.js), which is
-~1000 lines. So, this is not a very big or complicated program.
-Please check the demos. They are simpler prototype versions of
-features in the game.
+~1000 lines. So, this is not a very big or very complicated program.
 
 The following sections are mostly for developers, or people who want
 to learn about the program.
@@ -303,5 +300,5 @@ If you have a server here are possibilities, like the [Fetch
 API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), but
 then the saves must be stored on the server.
 
-TODO: Investigate how save/restore can be handled with a server.
+TODO: Investigate how save/restore can be handles with a server.
 
