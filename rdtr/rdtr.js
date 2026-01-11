@@ -47,7 +47,8 @@ let help =
 	"f - Fleet exchange counters\n" +
 	"n - Deploy neutrals and minor allies\n" +
 	"t - Show current turn\n" +
-	"T - Next turn"
+	"T - Next turn\n" +
+	"c - Combat chart (with die)"
 
 function keydown(e) {
 	if (e.key == "Shift") {
@@ -120,6 +121,13 @@ function keydown(e) {
 			y: 300,
 			label: "Current turn",
 			text: txt,
+			board: board,
+		})
+		return
+	}
+	if (e.key == "c") {
+		if (e.repeat) return
+		new CombatBox({
 			board: board,
 		})
 		return
@@ -488,7 +496,7 @@ export class InfoBox {
 			text: this.label,
 		}))
 		this.#box.add(text)
-		board.add(this.#box)
+		this.board.add(this.#box)
 	}
 	destroy() {
 		// Clear the singleton reference
@@ -501,4 +509,102 @@ export class InfoBox {
 	static #destroy(e) {
 		theInfoBox.destroy()
 	}
+}
+
+// ----------------------------------------------------------------------
+// CombatBox
+// A box with the combat chart, and a die
+
+let theCombatBox
+const X = newImage()
+X.src = "data:image\/svg+xml,<svg width=\"80\" height=\"80\" viewBox=\"0 0 80 80\" xmlns=\"http://www.w3.org/2000/svg\"> <rect x=\"2\" y=\"2\" width=\"76\" height=\"76\" fill=\"none\" stroke=\"black\" stroke-width=\"4\"/> <path d=\"M 15 15 L 65 65 M 15 65 L 65 15\" stroke=\"black\" stroke-width=\"10\" fill=\"none\"/> </svg>"
+
+const combatChartData = newImage()
+combatChartData.src = './rdtr-combat-chart.png'
+const combatChartImage = new Konva.Image({
+	x: 0,
+	y: 0,
+	image: combatChartData,
+})
+
+class CombatBox {
+	x = 400
+	y = 100
+	board			// "this" is placed on this layer
+	#box
+	#text
+	#rollCnt = 0
+	#scale = 0.7
+	constructor(obj) {
+		for (var prop in obj) {
+			if (obj.hasOwnProperty(prop)) {
+				this[prop] = obj[prop];
+			}
+		}
+		if (theCombatBox) {
+			alert("Multiple CombatBox'es NOT allowed")
+			return
+		}
+		theCombatBox = this
+		// We want the pop-up box to be visible on screen even if the
+		// board is dragged. So, compensate for the board position
+		let pos = this.board.position()
+		this.#box = new Konva.Group({
+			x: this.x - pos.x,
+			y: this.y - pos.y,
+			scale: {x: this.#scale, y: this.#scale},
+			draggable: true,
+		})
+		this.#box.on('dragstart', moveToTop)
+		this.#box.add(combatChartImage)
+		let close = new Konva.Image({
+			x: combatChartImage.width() - 40,
+			y: 15,
+			image: X,
+			scale: {x:0.3,y:0.3},
+		})
+		this.#box.add(close)
+		close.on('click', CombatBox.#destroy)
+		let dieBox = new Konva.Rect({
+			x: 0,
+			y: combatChartImage.height(),
+			width: combatChartImage.width(),
+			height: 50,
+			fill: 'black',
+		})
+		this.#box.add(dieBox)
+		this.#text = new Konva.Text({
+			x: 200,
+			y: dieBox.y() + 6,
+			fontSize: 32,
+			fontStyle: 'bold',
+			fill: 'white',
+		})
+		this.#text.text("Click to roll!")
+		this.#text.on('click', CombatBox.#letsRoll)
+		this.#box.add(this.#text)
+		this.board.add(this.#box)
+	}
+	#roll() {
+		this.#rollCnt++
+		let r = Math.floor(Math.random() * 6) + 1
+		this.#text.text(`Click to roll (${this.#rollCnt}): ${r}`)
+	}
+	// This is a 'click' event callback on the die text
+	static #letsRoll() {
+		theCombatBox.#roll()
+	}
+	destroy() {
+		// Clear the singleton reference
+		theCombatBox = null
+		// Remove the combat chart image
+		combatChartImage.remove()
+		// destroy the group (and all remaining childs)
+		// It is assumed that all eventHandlers are deleted too
+		this.#box.destroy()
+	}
+	// This is a 'click' event callback
+	static #destroy(e) {
+		theCombatBox.destroy()
+	}	
 }
