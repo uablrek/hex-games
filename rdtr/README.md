@@ -88,9 +88,10 @@ Instructions:
     new setting
 * **Movement** - Drag any counter to any place on the map
 * **Remove a counter** - `Shift-click` on the counter
-* **Combat** - Move your counters into place, compute the odds, and
-    roll a die. Remove losers, and move succesful attackers. The game
-    will not help you with this.
+* **Combat** - Move your counters into place, compute the odds. Hit
+    `c` to open a box with the combat chart and die. Remove losers,
+    and move succesful attackers. The game will not help you with
+    this.
 * **Buy units** - Hit `b` to bring up units allowable for
     buying. You must keep track of BRP and players yourself. If you make a
     misstake and remove a counter you just bought, it will *not* be
@@ -109,7 +110,8 @@ Instructions:
     Campaign game (please see the player cards). In non-campaign
     games, the turn is purely informational
 * **Year Start Sequence (YSS)** - Is handled by you outside the game
-* **Strategic Warfare (SR)** - Is handled by you outside the game
+* **Strategic Warfare (SR)** - Including Murmansk Convoy, Lend Lease,
+    etc. Is handled by you outside the game
 
 ## Contributions
 
@@ -120,7 +122,9 @@ reluctant to bring in too many dependencies (like React). [Konva](
 https://konvajs.org/docs/index.html) though is *absolutely awsome!*
 
 The program logic is almost entirely in [rdtr.js](rdtr.js), which is
-~1000 lines. So, this is not a very big or very complicated program.
+~1000 lines. So, this is not a very big or complicated program.
+Please check the demos. They are simpler prototype versions of
+features in the game.
 
 The following sections are mostly for developers, or people who want
 to learn about the program.
@@ -300,5 +304,5 @@ If you have a server here are possibilities, like the [Fetch
 API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), but
 then the saves must be stored on the server.
 
-TODO: Investigate how save/restore can be handles with a server.
+TODO: Investigate how save/restore can be handled with a server.
 

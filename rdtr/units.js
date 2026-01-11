@@ -989,11 +989,11 @@ export class UnitBox {
 	y = 100
 	text = "Units"
 	board			// "this" and dragged units are placed on this layer
+	box
 	#sizeC = 60
 	#sizeR = 70
 	#offsetX = 20
 	#offsetY = 50
-	#box
 	#units = new Set()
 	constructor(obj) {
 		for (var prop in obj) {
@@ -1009,14 +1009,14 @@ export class UnitBox {
 		// We want the pop-up box to be visible on screen even if the
 		// board is dragged. So, compensate for the board position
 		let pos = this.board.position()
-		this.#box = new Konva.Group({
+		this.box = new Konva.Group({
 			x: this.x - pos.x,
 			y: this.y - pos.y,
 			draggable: true,
 		})
-		this.#box.on('dragstart', moveToTop)
+		this.box.on('dragstart', moveToTop)
 		let width = this.cols * this.#sizeC + this.#offsetX
-		this.#box.add(new Konva.Rect({
+		this.box.add(new Konva.Rect({
 			x: 0,
 			y: 0,
 			width: width,
@@ -1031,22 +1031,22 @@ export class UnitBox {
 			image: X,
 			scale: {x:0.3,y:0.3},
 		})
-		this.#box.add(close)
+		this.box.add(close)
 		close.on('click', UnitBox.#destroy)
-		this.#box.add(new Konva.Text({
+		this.box.add(new Konva.Text({
 			x: 25,
 			y: 15,
 			fontSize: 22,
 			fill: 'white',
 			text: this.text
 		}))
-		this.board.add(this.#box)
+		this.board.add(this.box)
 	}
 	destroy() {
 		// Clear the singleton reference
 		theUnitBox = null
 		// Hide the group object
-		this.#box.hide()
+		this.box.hide()
 		// remove all remaining unit images from the group
 		for (const u of this.#units) {
 			u.img.remove()
@@ -1054,16 +1054,16 @@ export class UnitBox {
 		this.#units.clear()	  // (prevent memory leak)
 		// then destroy the group (and all remaining childs)
 		// It is assumed that all eventHandlers are deleted too
-		this.#box.destroy()
+		this.box.destroy()
 	}
 	// This is a 'click' event callback
 	static #destroy(e) {
 		theUnitBox.destroy()
 	}
 	static #dragstart(e) {
-		theUnitBox.#place(e)
+		theUnitBox.place(e)
 	}
-	#place(e) {
+	place(e) {
 		e.target.moveTo(this.board)
 		e.target.moveToTop()
 		e.target.on('dragend', snapToHex)
@@ -1085,17 +1085,19 @@ export class UnitBox {
 		let y = row * this.#sizeR + this.#offsetY
 		u.img.x(x)
 		u.img.y(y)
-		this.#box.add(u.img)
+		this.box.add(u.img)
 	}
 }
 
 // Shows all "allowable" units for all major powers + neutrals (optional)
 // Intended for initial deployment and later buys
 export class UnitBoxMajor extends UnitBox {
+	#brpText
+	#brp = 0
 	constructor(obj) {
 		// ge,it,uk,su,fr,us,nu*
-		obj.rows = 6
-		if (obj.neutrals) obj.rows = 7
+		// * either: neutrals OR a "BRP Cost:" text-item
+		obj.rows = 7
 		// inf,inf,inf,pz,pz,pz,res,par,air,air,nav,mec
 		obj.cols = 12
 		super(obj)
@@ -1112,6 +1114,42 @@ export class UnitBoxMajor extends UnitBox {
 				}
 			}
 		}
+		if (!obj.neutrals) {
+			// (position hard-coded since #sizeR, etc. are private)
+			this.#brpText = new Konva.Text({
+				x: 20,
+				y: 490,
+				fontSize: 32,
+				fontStyle: 'bold',
+				fill: 'white',
+				text: "BRP cost: 0",
+			})
+			this.box.add(this.#brpText)
+		}
+	}
+	// This function overrides place() in the base class
+	place(e) {
+		if (this.#brpText) {
+			let multiplier = 0
+			let u = fromImage(e.target)
+			switch (u.type) {
+			case "inf":
+			case "res":
+				multiplier = 1
+				break
+			case "pz":
+				multiplier = 2
+				break
+			case "par":
+			case "air":
+			case "nav":
+				multiplier = 3
+				break
+			}
+			this.#brp += u.s * multiplier
+			this.#brpText.text(`BRP Cost: ${this.#brp}`)
+		}
+		super.place(e)
 	}
 	static #layout = {
 		ge: {

@@ -10,6 +10,7 @@ rdtr.setStage('container')
 
 // Since we use "require", these will be included in the bundle
 let sc1939 = require('./scenario-1939.json')
+let sc1942 = require('./scenario-1942.json')
 let sc1944 = require('./scenario-1944.json')
 
 if (typeof rdtrSaveData !== 'undefined') {
@@ -23,6 +24,9 @@ if (typeof rdtrSaveData !== 'undefined') {
 		case "1939":
 		case "Campaign":
 		case "campaign":
+			break
+		case "1942":
+			scenario = sc1942
 			break
 		case "1944":
 			scenario = sc1944

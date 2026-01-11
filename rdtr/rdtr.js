@@ -606,5 +606,5 @@ class CombatBox {
 	// This is a 'click' event callback
 	static #destroy(e) {
 		theCombatBox.destroy()
-	}	
+	}
 }
