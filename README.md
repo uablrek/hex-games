@@ -12,7 +12,7 @@ https://www.redblobgames.com/). An excellent site! [Konva](
 https://konvajs.org/docs/index.html) is used for most canvas
 manipulations.
 
-I am currently trying to get the old board game [Rise and Decline of
+I am currently trying to get the old (1974) board game [Rise and Decline of
 the Third Reich](rdtr/README.md) (RDTR) to run in a browser.
 
 #### Try a release
@@ -55,8 +55,8 @@ be "stable" (whatever that means). What *is* guaranteed is
 compatibility. If I make an incompatible update, I will step the major
 version.
 
-For now, an incompatible update means an incompatible change of RDTR
-save/scenario file format.
+For now, an incompatible update means an incompatible change of
+[RDTR](rdtr/README.md) save/scenario file format.
 
 
 ## Manually crafted maps
@@ -128,14 +128,15 @@ in the path, and call `./build.sh` in the mapgen2 directory. Then open
 `embed.html` in your browser. Or do:
 
 ```
-export BROWSER=/usr/bin/firefox
+export BROWSER=/opt/google/chrome/chrome
 admin mapgen2-build --open
 ```
 
 ## Non-regular Hexagons
 
-Initially I wanted to use non-regular Hexagons, but it becomes messy
-so I have abandoned this for now. A single *size* parameter is not
-sufficient. Instead the hexagons may be defined by *(sx, sy, h)*:
+Initially I wanted to use non-regular Hexagons (e.g. for an isometric
+view), but it becomes messy so I have abandoned this for now. A single
+*size* parameter is not sufficient. Instead the hexagons may be
+defined by *(sx, sy, h)*:
 
 <img src="figures/hex.svg" width="50%" />

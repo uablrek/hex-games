@@ -62,8 +62,6 @@ function keydown(e) {
 	if (e.key == "b") {
 		if (e.repeat) return
 		new UnitBoxMajor({
-			x: 400,
-			y: 100,
 			board: board,
 			neutrals: false,
 			text: "Allowable Builds",
@@ -73,8 +71,6 @@ function keydown(e) {
 	if (e.key == "a") {
 		if (e.repeat) return
 		new UnitBoxAir({
-			x: 400,
-			y: 100,
 			board: board,
 		})
 		return
@@ -82,8 +78,6 @@ function keydown(e) {
 	if (e.key == "f") {
 		if (e.repeat) return
 		new UnitBoxNav({
-			x: 400,
-			y: 100,
 			board: board,
 		})
 		return
@@ -435,7 +429,6 @@ export function download(blob, name) {
 	URL.revokeObjectURL(fileURL);
 }
 
-
 export function saveGame(name = "rdtrSaveData.js") {
 	if (!game) {
 		game = {
@@ -497,8 +490,8 @@ let theUnitBox
 export class UnitBox {
 	rows = 1
 	cols = 4
-	x = 200
-	y = 200
+	x = 400
+	y = 100
 	text = "Units"
 	board			// "this" and dragged units are placed on this layer
 	#sizeC = 60
@@ -507,7 +500,6 @@ export class UnitBox {
 	#offsetY = 50
 	#box
 	#units = new Set()
-	#X							// the "destroy" image
 	constructor(obj) {
 		for (var prop in obj) {
 			if (obj.hasOwnProperty(prop)) {
@@ -538,14 +530,14 @@ export class UnitBox {
 			opacity: 0.75,
 			cornerRadius: 20,
 		}))
-		this.#X = new Konva.Image({
+		let close = new Konva.Image({
 			x: width - 40,
 			y: 15,
 			image: X,
 			scale: {x:0.3,y:0.3},
 		})
-		this.#box.add(this.#X)
-		this.#X.on('click', UnitBox.#destroy)
+		this.#box.add(close)
+		close.on('click', UnitBox.#destroy)
 		this.#box.add(new Konva.Text({
 			x: 25,
 			y: 15,

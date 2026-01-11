@@ -4,13 +4,14 @@ An old dream of mine is to write a computer version of the
 [Rise and Decline of the Third Reich](
 https://en.wikipedia.org/wiki/Rise_and_Decline_of_the_Third_Reich)
 board game (RDTR from now on), which I played a lot in the late 1970's.
-There are actually several computer versions already
-written, but I want to try it myself with JavaScript and HTML5/canvas.
+There are actually several computer versions already written, e.g. on
+[Vasall](https://vassalengine.org/library/projects?q=Third+Reich),
+but I want to try it myself with JavaScript and HTML5/canvas.
 
 The [rules](http://www.wargameacademy.org/3R4/3R4-rulebook-070908.pdf)
-are *horribly* complex (55 pages!), so just make a program enforce
-them would be a daunting task. I will start with basic mecanics like
-draw the map, and moving counters (units) on it.
+are *horribly* complex, so just make a program enforce them would be a
+daunting task. I will start with basic mecanics like draw the map, and
+moving counters (units) on it.
 
 There are many resources at [BGG](
 https://boardgamegeek.com/boardgame/1563/rise-and-decline-of-the-third-reich/files?pageid=1).
@@ -51,9 +52,10 @@ a solitaire game to learn the rules, or a hot-seat game if you know
 enough of the rules, and have a friend to play with. BTW, I can say I
 didn't know all rules back in the 1970's, and much less today.
 
-This is basically a replica of the board game on you browser. You must
-do (almost) everything yourself (same as the board game). When you
-start a game you will see something like this:
+This is basically a replica of the board game on your browser. You must
+do (almost) everything yourself (same as the board game). You may use a
+[spreadsheet](https://boardgamegeek.com/filepage/128258/3r4-bookkeeping-aid-for-brps-and-other-in-game-dat)
+for book-keeping. When you start a game you will see something like this:
 
 <img src="../figures/1939-initial-phase.png" width="70%" />
 
@@ -71,7 +73,7 @@ the browser, everything from the last save is lost. You don't have to
 copy the save file to the app directory each time you save, just when
 you want to restore.
 
-Some instructions:
+Instructions:
 
 * **Help** - hit `h` for a key help page
 * **Move around on the map** - The map is draggable (but not scrollable)
@@ -81,6 +83,9 @@ Some instructions:
 * **Restore game** - Copy a save-file to "rdtrSaveData.js" in the
     app directory (/path/to/hex-games/rdtr). Then reload the game page (F5).
 	([more info](#save-and-restore))
+* **Resize and zoom the browser window** - *Save-and-Restore, then*
+    experiment to your heart's content. Reload the page (F5) to test a
+    new setting
 * **Movement** - Drag any counter to any place on the map
 * **Remove a counter** - `Shift-click` on the counter
 * **Combat** - Move your counters into place, compute the odds, and
@@ -103,19 +108,22 @@ Some instructions:
     *except* that new units becomes allowable at certain turns in the
     Campaign game (please see the player cards). In non-campaign
     games, the turn is purely informational
-* **Year Start Sequence (YSS)** - This is entirely up to you :-)
-
+* **Year Start Sequence (YSS)** - Is handled by you outside the game
+* **Strategic Warfare (SR)** - Including Murmansk Convoy, Lend Lease,
+    etc. Is handled by you outside the game
 
 ## Contributions
 
 If you find a bug, or want to make a feature request, please write an
 issue. Pull Requests (PR) are welcome, but for advanced things, please
-discuss them in an issue first. And please be aware that I am
-reluctant to bring in too many dependencies. [Konva](
-https://konvajs.org/docs/index.html) tough is *absolutely awsome!*
+discuss them in an issue first. And, please be aware that I am
+reluctant to bring in too many dependencies (like React). [Konva](
+https://konvajs.org/docs/index.html) though is *absolutely awsome!*
 
 The program logic is almost entirely in [rdtr.js](rdtr.js), which is
-~1000 lines. So, this is not a very big or very complicated program.
+~1000 lines. So, this is not a very big or complicated program.
+Please check the demos. They are simpler prototype versions of
+features in the game.
 
 The following sections are mostly for developers, or people who want
 to learn about the program.
@@ -291,15 +299,9 @@ directory, then the page must be reloaded (F5)*
 **WARNING: a page reload (F5) will discard any changes you have made
 after the save!**
 
-If you want to play around with the browser window size (including
-full screen) and/or zooming, this is the way:
-
-1. Save!
-2. Copy the save file to "rdtrSaveData.js" in the app directory
-3. Resize, zoom and reload to your heart's content!
-
-
 If you have a server here are possibilities, like the [Fetch
 API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), but
-local files are blocked (`file://` url's), which seems appropriate for
-security reasons.
+then the saves must be stored on the server.
+
+TODO: Investigate how save/restore can be handled with a server.
+
