@@ -14,8 +14,6 @@ if (localStorage.getItem("nodejsTest") == "yes") {
 }
 
 // Set the stage
-var shift = false
-var selected = null
 var turn = { year: 0, season: "none" }
 export var stage;
 export var board;
@@ -35,9 +33,12 @@ export function setStage(container) {
 	stage.container().focus();
 	stage.container().addEventListener("keydown", keydown)
 	stage.container().addEventListener("keyup", (e) => {
-		if (e.key == "Shift") shift = false
+		if (e.key == "Shift") {
+			deleteModeOff()
+		}
 	})
 }
+
 
 let help =
 	"Shift-click - Remove unit\n" +
@@ -52,12 +53,13 @@ let help =
 
 function keydown(e) {
 	if (e.key == "Shift") {
-		shift = true
+		deleteModeOn()
 		return
 	}
-	if (e.key == "S") {
+	if (e.key == "S" || e.key == "s") {
 		if (e.repeat) return
 		saveGame()
+		deleteModeOff()			// 'Shift' trigs deleteMode
 		return
 	}
 	if (e.key == "b") {
@@ -138,18 +140,27 @@ function keydown(e) {
 function moveToTop(e) {
 	e.target.moveToTop()
 }
-function selectOrDelete(e) {
+var deleteMode = false
+function deleteModeOn() {
+	deleteMode = true
+	stage.container().style.cursor = 'not-allowed'
+}
+function deleteModeOff() {
+	deleteMode = false
+	stage.container().style.cursor = 'default'
+}
+var unitHex
+function unitClicked(e) {
 	let u = unit.fromImage(e.target)
-	if (shift) {
+	if (deleteMode) {
 		unit.removeFromMap(u)
-		if (selected == u) selected = null
-	} else {
-		selected = u
+		return
 	}
+	unitHex = u.hex
 }
 for (const [i, u] of unit.units.entries()) {
 	u.img.on('dragstart', moveToTop)
-	u.img.on('click', selectOrDelete)
+	u.img.on('click', unitClicked)
 }
 
 function stepTurn() {

@@ -80,7 +80,7 @@ class UnitSheet {
 
 // If the unit-sheet file is packed into the bundle use:
 //import suSheetData from './tr-counters-ussr.png'
-// If the unit-sheet file is loaded (from s server or local file):
+// If the unit-sheet file is loaded (from server or local file):
 const suSheetData = './tr-counters-ussr.png'
 const geSheetData = './tr-counters-germany.png'
 const frSheetData = './tr-counters-fr-usa.png'
