@@ -4,14 +4,28 @@ An old dream of mine is to write a computer version of the
 [Rise and Decline of the Third Reich](
 https://en.wikipedia.org/wiki/Rise_and_Decline_of_the_Third_Reich)
 board game (RDTR from now on), which I played a lot in the late 1970's.
-There are actually several computer versions already written, e.g. on
-[Vasall](https://vassalengine.org/library/projects?q=Third+Reich),
-but I want to try it myself with JavaScript and HTML5/canvas.
 
-The [rules](http://www.wargameacademy.org/3R4/3R4-rulebook-070908.pdf)
-are *horribly* complex, so just make a program enforce them would be a
-daunting task. I will start with basic mecanics like draw the map, and
-moving counters (units) on it.
+There are several computer version available already:
+
+* The [Avalon Hill DOS version](https://en.wikipedia.org/wiki/Third_Reich_(video_game))
+  is now [abandon-ware](https://www.myabandonware.com/game/third-reich-bxg).
+  So, you can download it and play in a DOS emulator. This game has an
+  AI-opponent, which none of the others have AFAIK
+
+* [Vassal](https://vassalengine.org/library/projects?q=Third+Reich)
+  has multiple RDTR modules
+
+* On [Warplanner](https://www.warplanner.com/) you can play A World At
+  War (AWAW) online with opponents. It is built on RDTR, but it's not
+  the same
+
+However, I want to try it myself, as part of my
+[hex-games](https://github.com/uablrek/hex-games) project, to learn
+JavaScript and HTML5/canvas, and for nostalgia.
+
+The rules are *horribly* complex, so just make a program enforce them
+would be a daunting task. I will start with basic mecanics like draw
+the map, and moving counters (units).
 
 There are many resources at [BGG](
 https://boardgamegeek.com/boardgame/1563/rise-and-decline-of-the-third-reich/files?pageid=1).
@@ -78,7 +92,7 @@ Instructions:
 * **Help** - hit `h` for a key help page
 * **Move around on the map** - The map is draggable (but not scrollable)
 * **Deploy units** - Drag them from a UnitBox and drop them on the map
-* **Save game** - Hit `Shift-S`. A download dialogue will pop-up, and
+* **Save game** - Hit `s`. A download dialogue will pop-up, and
     you can select the local file
 * **Restore game** - Copy a save-file to "rdtrSaveData.js" in the
     app directory (/path/to/hex-games/rdtr). Then reload the game page (F5).
@@ -121,10 +135,9 @@ discuss them in an issue first. And, please be aware that I am
 reluctant to bring in too many dependencies (like React). [Konva](
 https://konvajs.org/docs/index.html) though is *absolutely awsome!*
 
-The program logic is almost entirely in [rdtr.js](rdtr.js), which is
-~1000 lines. So, this is not a very big or complicated program.
-Please check the demos. They are simpler prototype versions of
-features in the game.
+The game logic is almost entirely in [rdtr.js](rdtr.js). This is
+not a very big or complicated program.  Please check the demos. They
+are simpler prototype versions of features in the game.
 
 The following sections are mostly for developers, or people who want
 to learn about the program.
