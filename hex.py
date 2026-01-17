@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# SPDX-License-Identifier: CC0-1.0.
 """
 Help script for creating Haxagon game maps
 """

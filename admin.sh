@@ -215,10 +215,10 @@ cmd_build() {
 	# Remove everything except index.html and bundle.js
 	local f
 	for f in $(find . -type f); do
-		echo $f | grep -qE '^./(index.html|bundle.js)$' || rm $f
+		echo $f | grep -qE '^./(.*.html|bundle.js)$' || rm $f
 	done
 	test "$__open" != "yes" && return 0
-	cmd_open
+	cmd_open "$2"
 }
 ##   open [--appd=dir] [page]
 ##     Opens a page in $BROWSER. The "page" must be an url relative to
