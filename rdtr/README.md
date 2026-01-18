@@ -111,7 +111,7 @@ Instructions:
     misstake and remove a counter you just bought, it will *not* be
     returned to the open UnitBox. But if you close the UnitBox and re-open, it
     will be there
-* **Break up 5-4 air units** - Hit `a` to bring up the Air Exchane
+* **Break up 5-4 air units** - Hit `a` to bring up the Air Exchange
     box. Remove the 5-4 unit, and drag replacements from the box.
 	Air bases are also in this box
 * **Break up naval units** - Hit `f` to bring up the Fleet Exchange
@@ -151,7 +151,7 @@ node --localstorage-file=lstore test-rdtr.js
 ```
 
 However, `node.js` is not the same as a browser. Fortunately only
-"new Image()" doesn't work. So a "trick" is used, in [rdtr.js](rdtr.js):
+"new Image()" doesn't work. So a "trick" is used ([rdtr.js](rdtr.js)):
 
 ```javascript
 // Enable testing with node.js
@@ -301,8 +301,11 @@ Since this is a client-only application (a "frontend" if you like),
 save/restore is tricky. If there was a server (backend) available, it
 would be natural to let it handle save/restore. But that's in the future.
 
-The save-key is `Shift-S`. On save a browser download window pops up
+The save-key is `s`. On save a browser download window pops up
 and the user may select a file-name for the save.
+
+**Idea**: In the future, when a backend exist, `s` will save on the
+  server, while `Shift-S` will save locally (as now)
 
 Restore is harder. I have not found a way to initiate an upload for a
 local file in JavaScript. So:

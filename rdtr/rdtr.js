@@ -42,7 +42,7 @@ export function setStage(container) {
 
 let help =
 	"Shift-click - Remove unit\n" +
-	"Shift-S - Save\n" +
+	"s - Save\n" +
 	"b - Buy counters\n" +
 	"a - Air exchange counters\n" +
 	"f - Fleet exchange counters\n" +

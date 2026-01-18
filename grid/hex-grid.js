@@ -8,16 +8,18 @@
   We use an Image as fillPattern in a Konva.Rect. I can't see a way to
   use a Konva.Shape for instance, so I assume we *must* use an
   Image. An SVG image is used, so the dimensions can be any floating
-  point number (S=scalable). But the Image size is rounded to an
-  integer.
+  point number (S=scalable). But the Image dimensions are rounded to
+  integers.
 
   The pattern size really *must* be floats to make it possible to
   align the grid with an existing map that has it's own dimensions.
 
-  The current approach is to round the dimensions and hope that it's
-  good enough. If not, it seems to be possible to use
-  "fillPatternScale" in Konva to make a tiny adjustment to complensate
-  for the rounding error.
+  It is fortunately possible to use "fillPatternScale" in Konva to
+  make a tiny adjustment to complensate for the rounding error. For
+  example: width=86.7 would be rounded to 87, but a scaleX=0.995 would
+  bring it back. So, *always* set:
+
+  fillPatternScale: hex.patternScale(),
 */
 
 // The grid is assumed to be "compatible" with "hex.py", so --size
@@ -25,19 +27,18 @@
 var hsize = 50				// Width for pointy, height for flat (--size)
 var hscale = 1.0			// --scale to hex.py
 // The image size is rounded to nearest integer
-var osize = Math.round(hsize * hscale * Math.sqrt(3))
+var osize = hsize * hscale * Math.sqrt(3)
 var odist = osize / 2
 var gridOffset = {x:0, y:0}
 var flattop = false
 
 export function configure(
 	size, scale = 1.0, offset = {x:0, y:0}, _flattop = false) {
-	hsize = Math.round(size)
+	hsize = size
 	hscale = scale
 	gridOffset = offset
 	flattop = _flattop
-	// (use non-rounded size here)
-	osize = Math.round(size * scale * Math.sqrt(3))
+	osize = size * scale * Math.sqrt(3)
 	odist = osize / 2
 
 	if (flattop) {
@@ -162,4 +163,11 @@ export function patternSvg() {
 		p = `m ${s2} 0 l 0 ${d3} l -${s2} ${d6} l 0 ${d3} l ${s2} ${d6} l ${s2} -${d6} l 0 -${d3} l -${s2} -${d6}`
 	}
 	return `data:image\/svg+xml,<svg width="${pw}" height="${ph}" viewBox="0 0 ${pw} ${ph}" xmlns="http://www.w3.org/2000/svg"><path fill="none" stroke="black" stroke-width="1" d="${p}" /></svg>`
+}
+
+export function patternScale() {
+	let h = hsize / Math.round(hsize)
+	let o = osize / Math.round(osize)
+	if (flattop) return {x:o, y:h}
+	return {x:h, y:o}
 }

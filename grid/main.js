@@ -47,6 +47,7 @@ if (p == "svg") {
 			stroke: 'black',
 			fillPatternImage: pattern,
 			fillPatternRepeat: 'repeat',
+			fillPatternScale: hex.patternScale(),
 		})
 		board.add(grid)
 	}
