@@ -227,14 +227,34 @@ https://www.redblobgames.com/grids/hexagons/#coordinates-axial), where
 the row is specified with letters `A-Z,AA-NN`. These coordinates are used
 on interactions with users.
 
-### The map in programs
+### The map-maker
 
 The program is unaware of the map. The only thing it knows is the hex
 positions. So, things like check legal moves, or compute battle odds
 are not possible. To make such things possible one must define things
-like terrain, cities, ports, rivers, front, etc *for every hex*. While
-this is not especially complicated, it's *a lot* of work. I probably
-will do it eventually, but not as long as there are funnier things to do.
+like terrain, cities, ports, rivers, front, etc *for every hex*. For
+example the Portsmouth hex is a beach, it has 3 ports, the channel
+inhibits movement to the adjacent land-hex in France, and it has a
+river towards London.
+
+<img src="../figures/portsmouth.png "/>
+
+While this is not especially complicated, it's *a lot* of work. The
+`map-maker.js` program is a help program for this job. It is altered
+during development to what I need to define at the moment. I'll
+publish it to document the development process. The end goal is an
+array something like:
+
+```javascript
+var map = [
+  {hex: {x:13,y:12}, nat:"uk", prop:"ppB", edges:"R..X.."},
+  ...
+]
+```
+
+It is saved as JSON, and restored on start. It can be converted to any
+appropriate type, such as a hash-map, or a matrix.
+
 
 ## Counters
 
