@@ -6,34 +6,39 @@
 import Konva from 'konva';
 import * as rdtr from './rdtr.js';
 
-rdtr.setStage('container')
+// These will be included in the bundle
+import sc1939 from './scenario-1939.json'
+import sc1942 from './scenario-1942.json'
+import sc1944 from './scenario-1944.json'
 
-// Since we use "require", these will be included in the bundle
-let sc1939 = require('./scenario-1939.json')
-let sc1942 = require('./scenario-1942.json')
-let sc1944 = require('./scenario-1944.json')
+;(async () => {
+	// The "await" here ensures that the map is displayed before we
+	// continue. Otherwise the UnitBox shows up *before* the map. It
+	// isn't wrong, but looks weird
+	await rdtr.setStage('container')
 
-if (typeof rdtrSaveData !== 'undefined') {
-	rdtr.loadSave()
-} else {
-	let scenario = sc1939
-	var href = new URL(location.href)
-	let sc = href.searchParams.get("scenario");
-	if (sc) {
-		switch (sc) {
-		case "1939":
-		case "Campaign":
-		case "campaign":
-			break
-		case "1942":
-			scenario = sc1942
-			break
-		case "1944":
-			scenario = sc1944
-			break
-		default:
-			alert(`Unknown scenario: ${sc}`)
+	if (typeof rdtrSaveData !== 'undefined') {
+		rdtr.loadSave()
+	} else {
+		let scenario = sc1939
+		var href = new URL(location.href)
+		let sc = href.searchParams.get("scenario");
+		if (sc) {
+			switch (sc) {
+			case "1939":
+			case "Campaign":
+			case "campaign":
+				break
+			case "1942":
+				scenario = sc1942
+				break
+			case "1944":
+				scenario = sc1944
+				break
+			default:
+				alert(`Unknown scenario: ${sc}`)
+			}
 		}
+		rdtr.loadScenario(scenario)
 	}
-	rdtr.loadScenario(scenario)
-}
+})()

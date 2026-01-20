@@ -18,7 +18,7 @@ async function imageLoaded(img) {
 	return new Promise(resolve => img.onload = resolve)
 }
 
-(async () => {
+;(async () => {
 	const mapImg = new Image()
 	mapImg.src = wn2Data
 	await imageLoaded(mapImg)
@@ -43,7 +43,7 @@ async function imageLoaded(img) {
 	board.add(grid)
 
 	// Add a "marker" that can be moved to hexes
-	initMarker = {x:10,y:4}
+	const initMarker = {x:10,y:4}
 	marker = new Konva.Circle({
 		radius: 15,
 		fill: "red",
@@ -53,9 +53,9 @@ async function imageLoaded(img) {
 	marker.position(hex.hexToPixel(initMarker))
 	board.add(marker)
 	board.on('click', function() {
-		pos = board.getRelativePointerPosition()
+		let pos = board.getRelativePointerPosition()
 		let h = hex.pixelToHex(pos)
-		ph = hex.hexToPixel(h)
+		let ph = hex.hexToPixel(h)
 		marker.position(ph)
 	})
 })()

@@ -13,11 +13,15 @@ if (localStorage.getItem("nodejsTest") == "yes") {
 	newImage = function() { return {} }
 }
 
+async function imageLoaded(img) {
+	return new Promise(resolve => img.onload = resolve)
+}
+
 // Set the stage
 var turn = { year: 0, season: "none" }
 export var stage;
 export var board;
-export function setStage(container) {
+export async function setStage(container) {
 	stage = new Konva.Stage({
 		container: container,
 		width: window.innerWidth,
@@ -37,6 +41,9 @@ export function setStage(container) {
 			deleteModeOff()
 		}
 	})
+	// This makes it possible for the caller to block until the map is
+	// loaded
+	await imageLoaded(mapImg)
 }
 
 
@@ -215,10 +222,10 @@ const rsize = hsize * hscale * Math.sqrt(3) / 2;  // row interval
 const grid_offset = {x:57, y:23}  // 0,0 on the map image
 
 // The Map image
-const imageObj = newImage();
-imageObj.src = './rdtr-map.png'
+const mapImg = newImage();
+mapImg.src = './rdtr-map.png'
 export const map = new Konva.Image({
-    image: imageObj,
+    image: mapImg,
 });
 
 // Hex Coordinate Functions:
