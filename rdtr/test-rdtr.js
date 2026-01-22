@@ -10,25 +10,25 @@
 */
 
 import assert from 'node:assert/strict'
-import * as rdtr from './rdtr.js';
-import * as unit from './units.js';
+import * as unit from './units.js'
+import * as map from './rdtr-map.js'
 
 function testPixelHex(tc) {
 	// This function is dependent on the map size (and --scale). It
 	// will (and should) fail if the map size is changed.
 	let pixel = {x:2563, y:1434}
-	let hex = rdtr.pixelToHex(pixel)
+	let hex = map.pixelToHex(pixel)
 	assert.deepStrictEqual(hex, {x:44, y:29})
 	// When converted back the "near hex" pixel should be converted to
 	// the hex center
-	pixel = rdtr.hexToPixel(hex)
+	pixel = map.hexToPixel(hex)
 	assert.deepStrictEqual(pixel, {x:2555, y:1450})
 }
 function testHexAxial(tc) {
 	let hex = {x:44, y:29}
-	let axial = rdtr.hexToAxial(hex)
+	let axial = map.hexToAxial(hex)
 	assert.deepStrictEqual(axial, {r:29, q:30})
-	hex = rdtr.axialToHex(axial)
+	hex = map.axialToHex(axial)
 	assert.deepStrictEqual(hex, {x:44, y:29})
 }
 function testUnitFind(tc) {
@@ -102,6 +102,16 @@ function testUnitBox(tc) {
 	rc = unit.UnitBoxNeutrals.getRowCol(u)
 	assert.deepStrictEqual(rc, {col: 1, row: 0})
 }
+function testFronts(tc) {
+	assert.equal(map.front({x:21,y:9}), "west")
+	assert.equal(map.front({x:22,y:9}), "east")
+	assert.equal(map.front({x:31,y:20}), "east")
+	assert.equal(map.front({x:30,y:20}), "med")
+	assert.equal(map.front({x:11,y:20}), "west")
+	assert.equal(map.front({x:10,y:20}), "med")
+	assert.equal(map.front({x:26,y:11}), "east")
+	assert.equal(map.front({x:18,y:11}), "west")
+}
 
 // (this is the "standard" way in golang)
 const testCases = [
@@ -110,6 +120,7 @@ const testCases = [
 	{msg:"Find unit(s) from string", fn:testUnitFind},
 	{msg:"Compare unit object references", fn:testUnitCompare},
 	{msg:"UnitBox", fn:testUnitBox},
+	{msg:"Fronts", fn:testFronts},
 ];
 var failed = 0
 for (const tc of testCases) {

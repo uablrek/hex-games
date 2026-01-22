@@ -3,9 +3,8 @@
   Basic drag-and-drop demo. The counters will snap to the hearest hex
   when dropped.
  */
-import Konva from 'konva';
-import * as rdtr from './rdtr.js';
-import * as unit from './units.js';
+import Konva from 'konva'
+import * as unit from './units.js'
 
 const stage = new Konva.Stage({
 	container: 'container',
@@ -16,7 +15,12 @@ const board = new Konva.Layer({
 	draggable: true,
 });
 stage.add(board);
-board.add(rdtr.map);
+const mapImg = new Image()
+mapImg.src = './rdtr-map.png'
+export const map = new Konva.Image({
+    image: mapImg,
+})
+board.add(map);
 
 deployment = [
 	// French

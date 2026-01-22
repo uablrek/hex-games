@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CC0-1.0.
 import Konva from 'konva';
-import * as rdtr from './rdtr.js';
+import * as map from './rdtr-map.js';
 
 /*
-  This is a first test of the coordinate functions in "rdtr.js". They
+  This is a test of the coordinate functions in "rdtr-map.js". They
   are also tested in unit test in "test-rdtr.js".
 
   It also demonstrates a static, partially transparent, status field to
@@ -18,26 +18,21 @@ const stage = new Konva.Stage({
 const board = new Konva.Layer({
 	draggable: true,
 });
-stage.add(board);
-board.add(rdtr.map);
+stage.add(board)
 
 // Add a "marker" that can be moved to hexes
-initMarker = {x:10,y:4}
-cc = rdtr.hexToPixel(initMarker)
-marker = new Konva.Circle({
-	x: cc.x,
-	y: cc.y,
+const initMarker = {x:10,y:4}
+const marker = new Konva.Circle({
+	position: map.hexToPixel(initMarker),
 	radius: 15,
 	fill: "red",
 	stroke: 'black',
 	stroke_width: 1
-});
-board.add(marker)
+})
 
 // Create an "info" layer that stays in place (on top, to the left)
 // when the map is dragged.
 const info = new Konva.Layer()
-stage.add(info);
 info.add(new Konva.Rect({
 	x: 0,
 	y: 0,
@@ -76,7 +71,7 @@ function textBox(config, label) {
 	return box
 }
 
-infoBox = textBox({
+const infoBox = textBox({
 	x: 10,
 	y: 10,
 	width: 240,
@@ -86,7 +81,7 @@ infoBox.findOne('.txt').text(
 	'Click on the map to\nmove the marker\n\nGrab and move\nthe entire map')
 info.add(infoBox)
 
-hexBox = textBox({
+const hexBox = textBox({
 	x: 10,
 	y: 110,
 	width: 240,
@@ -96,7 +91,7 @@ hexText = hexBox.findOne('.txt')
 info.add(hexBox)
 hexText.text(`${initMarker.x}, ${initMarker.y}`)
 
-axialBox = textBox({
+const axialBox = textBox({
 	x: 10,
 	y: 150,
 	width: 240,
@@ -104,10 +99,10 @@ axialBox = textBox({
 }, "Axial coordinates")
 axialText = axialBox.findOne('.txt')
 info.add(axialBox)
-axial = rdtr.hexToAxial(initMarker)
+const axial = map.hexToAxial(initMarker)
 axialText.text(`${axial.q}, ${axial.r}`)
 
-rdtrBox = textBox({
+const rdtrBox = textBox({
 	x: 10,
 	y: 190,
 	width: 240,
@@ -115,28 +110,36 @@ rdtrBox = textBox({
 }, "RDTR coordinates")
 rdtrText = rdtrBox.findOne('.txt')
 info.add(rdtrBox)
-rc = rdtr.axialToRdtr(axial)
+const rc = map.axialToRdtr(axial)
 rdtrText.text(`${rc.r}, ${rc.q}`)
 
-posBox = textBox({
+const posBox = textBox({
 	x: 10,
 	y: 250,
 	width: 240,
 	height: 70
 }, "Last click position")
-clickText = posBox.findOne('.txt')
+const clickText = posBox.findOne('.txt')
 info.add(posBox)
-console.log(window.innerHeight)
-rdtr.map.on('click', function() {
-	pos = rdtr.map.getRelativePointerPosition();
+
+map.map.on('click', function() {
+	const pos = map.map.getRelativePointerPosition();
 	clickText.text(`${pos.x}, ${pos.y}`)
-	h = rdtr.pixelToHex(pos)
+	let h = map.pixelToHex(pos)
 	hexText.text(`${h.x}, ${h.y}`)
-	axial = rdtr.hexToAxial(h)
+	let axial = map.hexToAxial(h)
 	axialText.text(`${axial.q}, ${axial.r}`)
-	rc = rdtr.axialToRdtr(axial)
+	let rc = map.axialToRdtr(axial)
 	rdtrText.text(`${rc.r}, ${rc.q}`)
-	ph = rdtr.hexToPixel(h)
+	let ph = map.hexToPixel(h)
 	marker.x(ph.x)
 	marker.y(ph.y)
 });
+
+// ----------------------------------------------------------------------
+// "main"
+;(async () => {
+	await map.load(board)
+	stage.add(info)
+	board.add(marker)
+})()

@@ -233,7 +233,7 @@ The program is unaware of the map. The only thing it knows is the hex
 positions. So, things like check legal moves, or compute battle odds
 are not possible. To make such things possible one must define things
 like terrain, cities, ports, rivers, front, etc *for every hex*. For
-example the Portsmouth hex is a beach, it has 3 ports, the channel
+example the Portsmouth hex is a beach, it has 2 ports, the channel
 inhibits movement to the adjacent land-hex in France, and it has a
 river towards London.
 
@@ -247,7 +247,7 @@ array something like:
 
 ```javascript
 var map = [
-  {hex: {x:13,y:12}, nat:"uk", prop:"ppB", edges:"R..X.."},
+  {hex: {x:13,y:12}, nat:"uk", prop:"ppBs", edges:"r.xx.."},
   ...
 ]
 ```

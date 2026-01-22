@@ -5,9 +5,9 @@
   appropriate place on the map. When a unit is dragged from the Group,
   it is moved to the Board and will SnapToHex.
  */
-import Konva from 'konva';
-import * as rdtr from './rdtr.js';
-import * as unit from './units.js';
+import Konva from 'konva'
+import * as rdtr from './rdtr.js'
+import * as unit from './units.js'
 
 stage = new Konva.Stage({
 	container: "container",
@@ -18,7 +18,12 @@ board = new Konva.Layer({
 	draggable: true,
 });
 stage.add(board);
-board.add(rdtr.map);
+const mapImg = new Image()
+mapImg.src = './rdtr-map.png'
+export const map = new Konva.Image({
+    image: mapImg,
+})
+board.add(map);
 
 // The "tabIndex" MUST be done. It's not intuitive, and I have no idea
 // what it does
@@ -26,7 +31,7 @@ stage.container().tabIndex = 1
 stage.container().focus();
 stage.container().addEventListener("keydown", (e) => {
 	if (!e.repeat) {
-		if (e.key == "S") {
+		if (e.key == "S" || e.key == "s") {
 			saveGame()
 		}
 	}

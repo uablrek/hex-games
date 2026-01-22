@@ -15,7 +15,12 @@ let board = new Konva.Layer({
 	draggable: true,
 });
 stage.add(board)
-board.add(rdtr.map)
+const mapImg = new Image()
+mapImg.src = './rdtr-map.png'
+export const map = new Konva.Image({
+    image: mapImg,
+})
+board.add(map);
 
 /*
   While "require" works here, IT CAN'T BE USED IRL!

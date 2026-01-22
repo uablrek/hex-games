@@ -3,7 +3,7 @@
   This is the unit library module for:
   https://github.com/uablrek/hex-games/tree/main/rdtr
  */
-import {pixelToHex, hexToPixel, rdtrToHex} from './rdtr.js';
+import * as map from './rdtr-map.js';
 
 // Enable testing with node.js
 var newImage = function() { return new Image() }
@@ -909,25 +909,26 @@ const imageOffset = 23			  // To adjust the unit image on a hex
 
 export function removeFromMap(u) {
 	if (!u.hex) return
+	map.unitRemove(u)
 	u.img.remove()
 	delete u.hex
 }
 
 function pixelPos(hex) {
-	let h = hexToPixel(hex)
+	let h = map.hexToPixel(hex)
 	return {x: h.x - imageOffset, y: h.y - imageOffset}
 }
 function place(u, hex, parent) {
 	u.hex = hex
+	map.unitAdd(u)
 	px = pixelPos(hex)
 	if (isStack(hex)) px = stackAdjust(px)
-	u.img.x(px.x)
-	u.img.y(px.y)
+	u.img.position(px)
 	u.img.on('dragend', snapToHex)
 	parent.add(u.img)
 }
 export function placeRdtr(u, rc, parent) {
-	place(u, rdtrToHex(rc), parent)
+	place(u, map.rdtrToHex(rc), parent)
 }
 // This function should be called after the user has placed a unit,
 // for instance from 'dragend'.
@@ -938,31 +939,32 @@ export function snapToHex(e) {
 	// The unit img coordinate is top-left, adjust to center
 	let pos = {x:img.x() + imageOffset, y:img.y() + imageOffset}
 	// Get the hex, and update the unit object
-	hex = pixelToHex(pos)
+	map.unitRemove(u)
+	hex = map.pixelToHex(pos)
 	u.hex = hex
+	map.unitAdd(u)
 	// Snap!
 	pos = pixelPos(hex)		// adjusted pos
 	if (isStack(hex)) pos = stackAdjust(pos)
 	img.position(pos)
-}
-function posEqual(a, b) {
-	if (a.x != b.x) return false
-	if (a.y != b.y) return false
-	return true
+	console.log(`map: ${map.unitsTotal()}, placed: ${placedUnits()}`)
 }
 function isStack(hex) {
-	let unitCount = 0
-	for (u of units) {
-		if (u.hex && posEqual(u.hex, hex)) {
-			unitCount++
-			if (unitCount > 1) return true
-		}
-	}
-	return false
+	const s = map.unitsGet(hex)
+	if (!s) return false
+	return s.size > 1
 }
 function stackAdjust(pos) {
 	let offset = 4
 	return {x:pos.x - offset, y:pos.y - offset}
+}
+
+function placedUnits() {
+	let t = 0
+	for (const u of units) {
+		if (u.hex) t++
+	}
+	return t
 }
 
 // ----------------------------------------------------------------------

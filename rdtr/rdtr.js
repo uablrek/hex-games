@@ -6,15 +6,13 @@
 
 import Konva from 'konva';
 import * as unit from './units.js';
+import * as map from './rdtr-map.js';
+import * as box from './textbox.js';
 
 // Enable testing with node.js
 var newImage = function() { return new Image() }
 if (localStorage.getItem("nodejsTest") == "yes") {
 	newImage = function() { return {} }
-}
-
-async function imageLoaded(img) {
-	return new Promise(resolve => img.onload = resolve)
 }
 
 // Set the stage
@@ -30,8 +28,8 @@ export async function setStage(container) {
 	board = new Konva.Layer({
 		draggable: true,
 	});
-	stage.add(board);
-	board.add(map);
+	stage.add(board)
+	await map.load(board)
 
 	stage.container().tabIndex = 1
 	stage.container().focus();
@@ -41,13 +39,13 @@ export async function setStage(container) {
 			deleteModeOff()
 		}
 	})
-	// This makes it possible for the caller to block until the map is
-	// loaded
-	await imageLoaded(mapImg)
 }
 
-
-let help =
+// Adjust position so a box is visible even if the board is dragged
+function adjustBoxPos(pos) {
+	return {x: pos.x - board.x(), y: pos.y - board.y()}
+}
+const help =
 	"Shift-click - Remove unit\n" +
 	"s - Save\n" +
 	"b - Buy counters\n" +
@@ -56,7 +54,39 @@ let help =
 	"n - Deploy neutrals and minor allies\n" +
 	"t - Show current turn\n" +
 	"T - Next turn\n" +
-	"c - Combat chart (with die)"
+	"c - Combat chart (with die)\n"
+
+let helpBox = null
+function createHelpBox() {
+	if (helpBox) return
+	helpBox = box.info("Help", help)
+	helpBox.position(adjustBoxPos({x:400, y:200}))
+	board.add(helpBox)
+}
+let turnBox = null
+function createTurnBox() {
+	if (turnBox) return
+	const t = `Year: ${turn.year}, Season: ${turn.season}`
+	turnBox = box.info("Current turn", t, {
+		width: 300,
+		height: 60,
+		fontSize: 20,
+	})
+	turnBox.position(adjustBoxPos({x:200, y:100}))
+	board.add(turnBox)
+}
+function updateTurnBox(newAB) {
+	if (!turnBox) return
+	let txtObj = turnBox.findOne('.text')
+	let t = `Year: ${turn.year}, Season: ${turn.season}`
+	if (newAB) t += "\nNew Allowable Builds!"
+	txtObj.text(t)
+}
+function destroyBox(e) {
+	if (e == helpBox) helpBox = null
+	if (e == turnBox) turnBox = null
+}
+box.destroyCallback(destroyBox)
 
 function keydown(e) {
 	if (e.key == "Shift") {
@@ -100,38 +130,19 @@ function keydown(e) {
 	}
 	if (e.key == "h") {
 		if (e.repeat) return
-		new InfoBox({
-			x: 300,
-			y: 300,
-			label: "Help",
-			text: help,
-			board: board,
-		})
+		createHelpBox()
 		return
 	}
 	if (e.key == "t") {
 		if (e.repeat) return
-		new InfoBox({
-			x: 300,
-			y: 300,
-			label: "Current turn",
-			text: `Year: ${turn.year}, Season: ${turn.season}`,
-			board: board,
-		})
+		createTurnBox()
 		return
 	}
 	if (e.key == "T") {
 		if (e.repeat) return
 		let newAB = stepTurn()
-		let txt = `Year: ${turn.year}, Season: ${turn.season}`
-		if (newAB) txt += "\nNew AllowabeBuilds"
-		new InfoBox({
-			x: 300,
-			y: 300,
-			label: "Current turn",
-			text: txt,
-			board: board,
-		})
+		createTurnBox()
+		updateTurnBox(newAB)
 		return
 	}
 	if (e.key == "c") {
@@ -212,92 +223,6 @@ function turnEq(t1, t2) {
 	if (t1.season != t2.season) return false
 	return true
 }
-
-// ----------------------------------------------------------------------
-// Map
-
-const hsize = 58.7;				// --size to hex.py
-const hscale = 0.988;			// --scale to hex.py
-const rsize = hsize * hscale * Math.sqrt(3) / 2;  // row interval
-const grid_offset = {x:57, y:23}  // 0,0 on the map image
-
-// The Map image
-const mapImg = newImage();
-mapImg.src = './rdtr-map.png'
-export const map = new Konva.Image({
-    image: mapImg,
-});
-
-// Hex Coordinate Functions:
-// The pixel functions uses offset coordinates (hex) for "pointy"
-// hexes. They take --scale into account.
-export function pixelToHex(pos) {
-	// This function is NOT perfect! A click near the top/bottom of a
-	// hex *may* select an adjacent hex. But for practical use, it's
-	// good enough.
-
-	// Adjust for grid/map offset
-	pos = {x:pos.x + grid_offset.x, y:pos.y + grid_offset.y}
-	let x, y = Math.round(pos.y / rsize - 0.42) // 0.42 ~= 5/12
-	if (y % 2 == 0) {
-		x = Math.round(pos.x / hsize)
-	} else {
-		x = Math.round(pos.x / hsize - 0.5)
-	}
-	return({x:x, y:y});
-}
-export function hexToPixel(hex) {
-	let x, y = Math.round(hex.y * rsize + rsize/3)
-	if (hex.y % 2 == 0) {
-		x = Math.round(hex.x * hsize)
-	} else {
-		x = Math.round(hex.x * hsize + (hsize/2))
-	}
-	// Adjust for grid/map offset
-	return({x:x - grid_offset.x, y:y - grid_offset.y});
-}
-export function hexToAxial(hex) {
-	let q
-	if (hex.y % 2 == 0) {
-		q =  hex.x - hex.y / 2
-	} else {
-		q = hex.x - (hex.y - 1) / 2
-	}
-	return {q: q, r: hex.y}
-}
-export function axialToHex(ax) {
-	let x
-	if (ax.r % 2 == 0) {
-		x = ax.q + ax.r / 2
-	} else {
-		x = ax.q + (ax.r - 1) / 2
-	}
-	return {x:x, y: ax.r}
-}
-// RDTR uses letters A-KK for row, and a positive int for q.
-export function axialToRdtr(ax) {
-	if (ax.r < 27) {
-		r = String.fromCharCode(ax.r + 64)
-	} else {
-		let c = ax.r + 38
-		r = String.fromCharCode(c, c)
-	}
-	return {q: ax.q + 15, r: r}
-}
-export function rdtrToAxial(rc) {
-	r = rc.r.charCodeAt(0) - 64
-	if (rc.r.length > 1) {
-		r += 26
-	}
-	return {q: rc.q - 15, r: r}
-}
-export function rdtrToHex(rc) {
-	return axialToHex(rdtrToAxial(rc))
-}
-export function hexToRdtr(hex) {
-	return axialToRdtr(hexToAxial(hex))
-}
-
 
 // ----------------------------------------------------------------------
 // Save & Restore related
@@ -425,7 +350,7 @@ export function getDeplyment() {
 	for (const u of unit.units) {
 		if (!u.hex) continue
 		dep.units.push({
-			u: unit.toStr(u), hex: hexToRdtr(u.hex)
+			u: unit.toStr(u), hex: map.hexToRdtr(u.hex)
 		})
 	}
 	return dep
@@ -441,92 +366,6 @@ export function deploy(units) {
 		}
 	}
 	if (notFound.length) alert(`Not found: ${notFound}`)
-}
-
-
-// ----------------------------------------------------------------------
-// Info Box
-// A draggable box with information text
-
-// Singelton for now
-let theInfoBox
-
-export class InfoBox {
-	x = 200
-	y = 200
-	label = "Information"
-	text = "Nope, nothing"
-	board			// "this" is placed on this layer
-	#box
-	constructor(obj) {
-		for (var prop in obj) {
-			if (obj.hasOwnProperty(prop)) {
-				this[prop] = obj[prop];
-			}
-		}
-		if (theInfoBox) {
-			alert("Multiple InfoBox'es NOT allowed")
-			return
-		}
-		theInfoBox = this
-		let text = new Konva.Text({
-			x: 25,
-			y: 45,
-			fontSize: 18,
-			fill: 'white',
-			lineHeight: 1.2,
-			text: this.text
-		})
-		let width = text.width() + 100
-		let height = text.height() + 60
-		// We want the pop-up box to be visible on screen even if the
-		// board is dragged. So, compensate for the board position
-		let pos = this.board.position()
-		this.#box = new Konva.Group({
-			x: this.x - pos.x,
-			y: this.y - pos.y,
-			draggable: true,
-		})
-		this.#box.on('dragstart', moveToTop)
-		this.#box.add(new Konva.Rect({
-			x: 0,
-			y: 0,
-			width: width,
-			height: height,
-			fill: 'black',
-			stroke: 'gold',
-			strokeWidth: 4,
-			cornerRadius: 20,
-		}))
-		let close = new Konva.Image({
-			x: width - 40,
-			y: 15,
-			image: unit.X,
-			scale: {x:0.3,y:0.3},
-		})
-		this.#box.add(close)
-		close.on('click', InfoBox.#destroy)
-		this.#box.add(new Konva.Text({
-			x: 25,
-			y: 15,
-			fontSize: 22,
-			fill: 'gold',
-			text: this.label,
-		}))
-		this.#box.add(text)
-		this.board.add(this.#box)
-	}
-	destroy() {
-		// Clear the singleton reference
-		theInfoBox = null
-		// destroy the group (and all remaining childs)
-		// It is assumed that all eventHandlers are deleted too
-		this.#box.destroy()
-	}
-	// This is a 'click' event callback
-	static #destroy(e) {
-		theInfoBox.destroy()
-	}
 }
 
 // ----------------------------------------------------------------------

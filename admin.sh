@@ -265,7 +265,7 @@ cmd_rdtr_build() {
 	cd $__appd
 	local sub
 	for sub in map-demo units-demo drag-demo deployment-demo restore-demo\
-		rdtr-game map-maker; do
+		rdtr-game map-maker map-demo2; do
 		esbuild --bundle --outfile=$sub-bundle.js --loader:.svg=dataurl \
 			--minify $sub.js  || die esbuild
 		rm $sub.js
