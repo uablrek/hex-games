@@ -1,0 +1,16 @@
+{
+	"name": "rdtr",
+	"version": "1.0.0",
+	"description": "Rise and Decline of the Third Reich board game",
+	"main": "main.js",
+	"scripts": {
+		"test": "node test-rdtr.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"type": "module",
+	"dependencies": {
+		"konva": "^10.0.12"
+	}
+}

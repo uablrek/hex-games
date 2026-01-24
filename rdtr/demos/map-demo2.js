@@ -19,6 +19,7 @@ const board = new Konva.Layer({
 	draggable: true,
 });
 stage.add(board)
+unit.setLayer(board)
 
 stage.container().tabIndex = 1
 stage.container().focus();
@@ -60,7 +61,7 @@ function createHelpBox() {
 		  "z - Toggle ZOC markers\n" +
 		  "p - Flip Players\n" +
 		  "Click-unit - Show moves\n" +
-		  "Click map - Remove moves\n"
+		  "Click map - Remove moves"
 		  
 	helpBox = box.info("Help", txt)
 	helpBox.position(adjustBoxPos({x:900, y:200}))
@@ -114,8 +115,8 @@ function recomputeZOC() {
 }
 
 const marker = new Konva.Circle({
-	radius: 8,
-	fill: "green",
+	radius: 5,
+	fill: "lightgreen",
 	stroke: 'black',
 	stroke_width: 1,
 })
@@ -214,6 +215,7 @@ let zoc = new Konva.Circle({
 	stroke: 'red',
 })
 function showZOC() {
+	recomputeZOC()
 	if (markers) {
 		markers.destroy()
 		markers = null
@@ -223,7 +225,6 @@ function showZOC() {
 		zocMarkers = null
 		return
 	}
-	recomputeZOC()
 	zocMarkers = new Konva.Group()
 	let s = map.getZOC()
 	for (const h of s) {

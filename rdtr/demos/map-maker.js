@@ -20,7 +20,8 @@ import * as box from './textbox.js';
 //   m - Marsh
 //   c - City
 //   O - Objective
-//   F - Fort
+//   F - Fort (Gibraltar, Malta)
+//   f - Fort (Maginot line, West wall, Sevastopol, Leningrad)
 //   s - Shore (fleets may transit)
 //   v - Vichy
 //   q - Quattra
@@ -303,7 +304,7 @@ var stage
 	stage.container().focus();
 	stage.container().addEventListener("keydown", keydown)
 
-	let prop = 'O', nat = 'ge', sel = 0, selInfo
+	let prop = '4', nat = 'ge', sel = 0, selInfo
 	switch (sel) {
 	case 0:
 		//markDoubles()
@@ -320,11 +321,11 @@ var stage
 		markAllNats()
 		break
 	case 3:
-		selInfo = 'Prop Update'
+		selInfo = 'Prop Add'
 		markProp(prop)
 		break
 	case 4:
-		selInfo = 'Prop Set'
+		selInfo = 'Prop Remove'
 		markProp(prop)
 		break
 	}
@@ -358,8 +359,9 @@ var stage
 		case 4:
 			setMarker(h)
 			//delete hex.prop
-			hex.prop = prop
+			hex.prop = hex.prop.replace(prop, '')
 			break
 		}
+		updateHexInfo(hex)
 	})
 })()

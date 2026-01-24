@@ -1,7 +1,39 @@
 {
-	"version": 2,
+	"version": 4,
 	"type": "scenario",
 	"scenario": "1939/Campaign",
+	"nat": {
+		"ge": {
+			"brp": 150,
+			"controls": ["ge"],
+			"war": ["uk", "fr", "po"]
+		},
+		"it": {
+			"brp": 75,
+			"controls": ["it", "li"],
+			"war": []
+		},
+		"uk": {
+			"brp": 125,
+			"controls": ["uk", "cy", "iq", "pa", "tr", "eg", "ml", "gi"],
+			"war": ["ge"]
+		},
+		"fr": {
+			"brp": 85,
+			"controls": ["fr", "mo", "al", "ts", "le"],
+			"war": ["ge"]
+		},
+		"su": {
+			"brp": 90,
+			"controls": ["su"],
+			"war": []
+		},
+		"us": {
+			"brp": 270,
+			"controls": ["us"],
+			"war": []
+		}
+	},
 	"turn": { "year": 1939, "season": "fall"},
 	"initialDeployment": [
 		{"cnt": 8, "type": "ge,inf,3-3"},
@@ -31,6 +63,7 @@
 		{"cnt": 4, "type": "it,nav,9"},
 		{"cnt": 2, "type": "it,air,5-4"}
 	],
+	"deployment": {"units":[{"u":"fr,inf,2-3,18","hex":{"q":36,"r":"GG"}},{"u":"fr,inf,2-3,24","hex":{"q":11,"r":"CC"}},{"u":"su,inf,2-3,7","hex":{"q":44,"r":"D"}},{"u":"su,inf,1-3,24","hex":{"q":48,"r":"U"}},{"u":"su,inf,1-3,26","hex":{"q":43,"r":"O"}},{"u":"su,inf,1-3,27","hex":{"q":37,"r":"T"}},{"u":"su,pz,3-5,13 Me","hex":{"q":47,"r":"H"}},{"u":"nu,inf,1-3","hex":{"q":26,"r":"M"}},{"u":"nu,inf,1-3","hex":{"q":25,"r":"N"}},{"u":"nu,inf,1-3","hex":{"q":25,"r":"L"}},{"u":"nu,inf,1-3","hex":{"q":35,"r":"C"}},{"u":"nu,inf,1-3","hex":{"q":35,"r":"C"}},{"u":"nu,inf,1-3","hex":{"q":32,"r":"I"}},{"u":"nu,inf,1-3","hex":{"q":36,"r":"N"}},{"u":"nu,inf,1-3","hex":{"q":35,"r":"O"}},{"u":"nu,inf,1-3","hex":{"q":34,"r":"M"}},{"u":"nu,inf,1-3","hex":{"q":34,"r":"N"}},{"u":"nu,inf,1-3","hex":{"q":36,"r":"M"}},{"u":"nu,inf,1-3","hex":{"q":36,"r":"L"}},{"u":"nu,inf,1-3","hex":{"q":35,"r":"L"}},{"u":"nu,inf,2-3","hex":{"q":26,"r":"K"}},{"u":"nu,inf,2-3","hex":{"q":25,"r":"M"}},{"u":"nu,inf,2-3","hex":{"q":35,"r":"N"}},{"u":"nu,inf,2-3","hex":{"q":35,"r":"M"}},{"u":"nu,inf,2-3","hex":{"q":35,"r":"M"}},{"u":"nu,air,1-4","hex":{"q":26,"r":"K"}},{"u":"nu,air,1-4","hex":{"q":25,"r":"M"}},{"u":"nu,air,1-4","hex":{"q":32,"r":"I"}},{"u":"nu,air,1-4","hex":{"q":39,"r":"J"}},{"u":"nu,air,1-4","hex":{"q":39,"r":"J"}},{"u":"it,inf,1-3,Libya","hex":{"q":17,"r":"II"}},{"u":"it,inf,1-3,20","hex":{"q":24,"r":"KK"}},{"u":"it,inf,1-3,35","hex":{"q":26,"r":"AA"}},{"u":"uk,inf,1-3,Egypt","hex":{"q":26,"r":"MM"}},{"u":"uk,inf,1-3,Palest","hex":{"q":33,"r":"KK"}},{"u":"uk,inf,1-3,Malta","hex":{"q":19,"r":"GG"}},{"u":"uk,pz,2-5,WDF","hex":{"q":27,"r":"LL"}},{"u":"uk,air,1-4","hex":{"q":29,"r":"LL"}},{"u":"uk,air,1-4","hex":{"q":29,"r":"LL"}},{"u":"uk,air,1-4","hex":{"q":19,"r":"GG"}},{"u":"uk,air,1-4","hex":{"q":7,"r":"AA"}},{"u":"uk,nav,9","hex":{"q":31,"r":"LL"}},{"u":"uk,nav,9","hex":{"q":7,"r":"AA"}},{"u":"uk,nav,9","hex":{"q":7,"r":"AA"}}]},
 	"allowableBuilds": [
 		{
 			"units": [

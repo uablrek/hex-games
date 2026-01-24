@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <style>body, html { margin: 0; padding: 0; }</style>
+  <style>body, html, p { margin: 0; padding: 0; }</style>
   <head>
 	<title>Rise and Decline of the Third Reich - Game</title>
 	<script src="rdtrSaveData.js"></script>
@@ -8,5 +8,14 @@
   </head>
   <body>
 	<div id='container'></div>
+	<p style="font-size:large" id="input" float="left">
+	  ge<input type="radio" name="nat" id="nat-ge" value="ge" checked />
+	  it<input type="radio" name="nat" id="nat-it" value="it" />
+	  uk<input type="radio" name="nat" id="nat-uk" value="uk" />
+	  su<input type="radio" name="nat" id="nat-su" value="su" />
+	  fr<input type="radio" name="nat" id="nat-fr" value="fr" />
+	  us<input type="radio" name="nat" id="nat-us" value="us" />
+	  BRP:<input style="font-size:large" type="number" id="brp" min="0" value="0" />
+	</p>
   </body>
 </html>

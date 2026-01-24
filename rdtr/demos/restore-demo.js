@@ -21,6 +21,7 @@ export const map = new Konva.Image({
     image: mapImg,
 })
 board.add(map);
+unit.setLayer(board)
 
 /*
   While "require" works here, IT CAN'T BE USED IRL!
@@ -49,6 +50,6 @@ if (save.version > 1) {
 } else {
 	for (const ud of save.deployment.units) {
 		let u = unit.fromStr(ud.u)
-		unit.placeRdtr(u, ud.hex, parent=board)
+		unit.placeRdtr(u, ud.hex)
 	}
 }

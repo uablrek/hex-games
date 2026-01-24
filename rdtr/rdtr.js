@@ -15,21 +15,68 @@ if (localStorage.getItem("nodejsTest") == "yes") {
 	newImage = function() { return {} }
 }
 
+// User Interface. A <p id="input"> at the bottom of the page.
+// initUI must be called *after* loadSave/loadScenario because the
+// "game" variable is used
+export function initUI() {
+	for (const n of document.getElementsByName('nat')) {
+		n.addEventListener('click', checkNatUI)
+	}
+	let brp = document.getElementById('brp')
+	brp.addEventListener('change', checkBrpUI)
+	brp.value = game.nat.ge.brp
+}
+function checkNatUI(e) {
+	let nat = e.target.value
+	let brpElement = document.getElementById('brp')
+	brpElement.value = game.nat[nat].brp
+}
+function checkBrpUI(e) {
+	let nat
+	const radios = document.getElementsByName('nat')
+	for (const b of radios) {
+		if (b.checked) {
+			nat = b.value
+			break
+		}
+	}
+	game.nat[nat].brp = e.target.value
+}
+// Call to update BRP in the UI if it's visible. E.g. after DoW, or
+// unit buy
+function updateBrpUI(natUpdated) {
+	let nat
+	const radios = document.getElementsByName('nat')
+	for (const b of radios) {
+		if (b.checked) {
+			nat = b.value
+			break
+		}
+	}
+	if (nat == natUpdated) {
+		let brpElement = document.getElementById('brp')
+		brpElement.value = game.nat[nat].brp
+	}
+}
+
 // Set the stage
 var turn = { year: 0, season: "none" }
 export var stage;
 export var board;
 export async function setStage(container) {
+	// Init Konva
+	let input = document.getElementById('input')
 	stage = new Konva.Stage({
 		container: container,
 		width: window.innerWidth,
-		height: window.innerHeight,
+		height: window.innerHeight - input.offsetHeight,
 	});
 	board = new Konva.Layer({
 		draggable: true,
 	});
 	stage.add(board)
 	await map.load(board)
+	unit.setLayer(board)
 
 	stage.container().tabIndex = 1
 	stage.container().focus();
@@ -54,7 +101,9 @@ const help =
 	"n - Deploy neutrals and minor allies\n" +
 	"t - Show current turn\n" +
 	"T - Next turn\n" +
-	"c - Combat chart (with die)\n"
+	"c - Combat chart (with die)\n" +
+	"j - Save deployment as json\n" +
+	"Arrow - Rotate stack"
 
 let helpBox = null
 function createHelpBox() {
@@ -102,30 +151,23 @@ function keydown(e) {
 	if (e.key == "b") {
 		if (e.repeat) return
 		new unit.UnitBoxMajor({
-			board: board,
 			text: "Allowable Builds",
 		})
 		return
 	}
 	if (e.key == "a") {
 		if (e.repeat) return
-		new unit.UnitBoxAir({
-			board: board,
-		})
+		new unit.UnitBoxAir()
 		return
 	}
 	if (e.key == "f") {
 		if (e.repeat) return
-		new unit.UnitBoxNav({
-			board: board,
-		})
+		new unit.UnitBoxNav()
 		return
 	}
 	if (e.key == "n") {
 		if (e.repeat) return
-		new unit.UnitBoxNeutrals({
-			board: board,
-		})
+		new unit.UnitBoxNeutrals()
 		return
 	}
 	if (e.key == "h") {
@@ -143,6 +185,7 @@ function keydown(e) {
 		let newAB = stepTurn()
 		createTurnBox()
 		updateTurnBox(newAB)
+		deleteModeOff()
 		return
 	}
 	if (e.key == "c") {
@@ -152,13 +195,23 @@ function keydown(e) {
 		})
 		return
 	}
+	if (e.key == 'ArrowLeft' || e.key == 'ArrowRight') {
+		if (e.repeat) return
+		rollStack(e.key == 'ArrowLeft')
+		return
+	}
+	if (e.key == "j") {
+		if (e.repeat) return
+		saveJSON()
+		return
+	}
 }
 
 // Set moveToTop as dragstart by default for unit images
 function moveToTop(e) {
 	e.target.moveToTop()
 }
-var deleteMode = false
+let deleteMode = false
 function deleteModeOn() {
 	deleteMode = true
 	stage.container().style.cursor = 'not-allowed'
@@ -167,18 +220,32 @@ function deleteModeOff() {
 	deleteMode = false
 	stage.container().style.cursor = 'default'
 }
-var unitHex
 function unitClicked(e) {
 	let u = unit.fromImage(e.target)
 	if (deleteMode) {
 		unit.removeFromMap(u)
 		return
 	}
-	unitHex = u.hex
 }
 for (const [i, u] of unit.units.entries()) {
 	u.img.on('dragstart', moveToTop)
 	u.img.on('click', unitClicked)
+}
+function rollStack(down) {
+	const pos = board.getRelativePointerPosition()
+	let hex = map.pixelToHex(pos)
+	let h = map.getHex(hex)
+	if (!h || !h.units || h.units.size < 2) return
+	let minZ = 1000000, bot
+	for (u of h.units) {
+		let z = u.img.zIndex()
+		console.log(`z ${z}, i ${u.i}`)
+		if (z < minZ) {
+			bot = u
+			minZ = z
+		}
+	}
+	bot.img.moveToTop()
 }
 
 function stepTurn() {
@@ -231,7 +298,7 @@ function turnEq(t1, t2) {
   Save data is in JSON, and MUST have a "version" element with a
   number (no semantic versioning, just an int).
 
-  This describes version: 2
+  This describes version: 2 + updates
 
   The "type" element can be scenario|save
 
@@ -248,21 +315,24 @@ function turnEq(t1, t2) {
   "allowableBuilds" contains individual units (cnt=1) with labels
   (lbl) where they exist.
 
-  The future "allowableBuilds" (with a "turn" elemnt) are kept as-is
+  The future "allowableBuilds" (with a "turn" element) are kept as-is
   from the "scenario" save. When the turn matches, they are added to
   the current "allowableBuilds".
+
+  V3: A scenario *may* have a deployment element
+  V4: A 'nat' element added
  */
 
 // The version of scenario/save files
-export const version = 2
+export const version = 4
 // Game data from load scenario/save
-var game;
+var game
 
 
 // This should only be called if no save exist
 export function loadScenario(gameObject) {
 	game = gameObject
-	if (game.version != 2) {
+	if (game.version < 4) {
 		alert(`Unsupported version ${game.version}`)
 		return
 	}
@@ -278,9 +348,15 @@ export function loadScenario(gameObject) {
 		}
 	}
 	delete game.initialDeployment // not included in sub-sequent saves
-
+	if (game.deployment) {
+		// Forced or helpful deployment
+		// NOTE: it *may* not be possible to deploy all units if they
+		//   haven't become "allowable", but never mind
+		unit.unselectAll()
+		deploy(game.deployment.units, onlyAllowable=true)
+		delete game.deployment
+	}
 	new unit.UnitBoxMajor({
-		board: board,
 		neutrals: true,
 		text: game.scenario + " Initial Deployment",
 	})
@@ -296,6 +372,10 @@ export function loadScenario(gameObject) {
 }
 export function loadSave() {
 	game = JSON.parse(rdtrSaveData)
+	if (game.version < 4) {
+		alert(`Unsupported version ${game.version}`)
+		return
+	}
 	turn = game.turn
 	deploy(game.deployment.units)
 	// Mark units from default allowableBuilds (index==0)
@@ -344,6 +424,13 @@ export function saveGame(name = "rdtrSaveData.js") {
 	const blob = new Blob([js], { type: 'text/javascript' });
 	download(blob, name)
 }
+// Save the deployment as JSON
+export function saveJSON(name = "rdtr-deployment.json") {
+	const json = JSON.stringify(getDeplyment())
+	const blob = new Blob([json], { type: 'application/json' })
+	download(blob, name)
+}
+
 // Returns an array of all units on the map
 export function getDeplyment() {
 	let dep = { units: [] }
@@ -355,15 +442,19 @@ export function getDeplyment() {
 	}
 	return dep
 }
-export function deploy(units) {
+export function deploy(units, onlyAllowable=false) {
 	let notFound = []
 	for (const ud of units) {
 		let u = unit.fromStr(ud.u)
 		if (!u) {
 			notFound.push(ud.u)
-		} else {
-			unit.placeRdtr(u, ud.hex, board)
+			continue
 		}
+		if (onlyAllowable && u.nat != "nu" && !u.allowable) {
+			//notFound.push(ud.u) // allow this to fail quietly
+			continue
+		}
+		unit.placeRdtr(u, ud.hex)
 	}
 	if (notFound.length) alert(`Not found: ${notFound}`)
 }

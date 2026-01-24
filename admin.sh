@@ -261,11 +261,17 @@ src() {
 cmd_rdtr_build() {
 	src=$dir/rdtr
 	appdir
-	cp $src/*.png $src/*.html $src/*.js $src/*.json $__appd
+	cp $src/figures/* $src/demos/* $src/scenario/* \
+		$src/*.html $src/*.js $src/*.json $__appd
 	cd $__appd
 	local sub
-	for sub in map-demo units-demo drag-demo deployment-demo restore-demo\
-		rdtr-game map-maker map-demo2; do
+	local bundles="rdtr-game"
+	if test "$__demos" = "yes"; then
+		bundles="$bundles map-demo units-demo drag-demo deployment-demo restore-demo map-maker map-demo2"
+	else
+		mv -f $__appd/rdtr.html $__appd/index.html
+	fi
+	for sub in $bundles; do
 		esbuild --bundle --outfile=$sub-bundle.js --loader:.svg=dataurl \
 			--minify $sub.js  || die esbuild
 		rm $sub.js

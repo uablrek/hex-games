@@ -24,6 +24,7 @@ export const map = new Konva.Image({
     image: mapImg,
 })
 board.add(map);
+unit.setLayer(board)
 
 // The "tabIndex" MUST be done. It's not intuitive, and I have no idea
 // what it does

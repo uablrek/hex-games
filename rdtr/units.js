@@ -11,6 +11,7 @@ if (localStorage.getItem("nodejsTest") == "yes") {
 	newImage = function() { return {} }
 }
 
+// ----------------------------------------------------------------------
 // The UnitSheet class is made complicated by the "layout" element. It
 // is necessary since the unit-sheets (PNG files) does not have the
 // unit images in a perfect grid. They are offset in unpredictable
@@ -906,6 +907,11 @@ export function fromImage(img) {
 // Unit placement functions:
 
 const imageOffset = 23			  // To adjust the unit image on a hex
+let layer						  // The layer where units are placed
+
+export function setLayer(_layer) {
+	layer = _layer
+}
 
 export function removeFromMap(u) {
 	if (!u.hex) return
@@ -918,17 +924,17 @@ function pixelPos(hex) {
 	let h = map.hexToPixel(hex)
 	return {x: h.x - imageOffset, y: h.y - imageOffset}
 }
-function place(u, hex, parent) {
+function place(u, hex) {
 	u.hex = hex
 	map.unitAdd(u)
 	px = pixelPos(hex)
 	if (isStack(hex)) px = stackAdjust(px)
 	u.img.position(px)
 	u.img.on('dragend', snapToHex)
-	parent.add(u.img)
+	layer.add(u.img)
 }
-export function placeRdtr(u, rc, parent) {
-	place(u, map.rdtrToHex(rc), parent)
+export function placeRdtr(u, rc) {
+	place(u, map.rdtrToHex(rc))
 }
 // This function should be called after the user has placed a unit,
 // for instance from 'dragend'.
@@ -947,7 +953,7 @@ export function snapToHex(e) {
 	pos = pixelPos(hex)		// adjusted pos
 	if (isStack(hex)) pos = stackAdjust(pos)
 	img.position(pos)
-	console.log(`map: ${map.unitsTotal()}, placed: ${placedUnits()}`)
+	//console.log(`map: ${map.unitsTotal()}, placed: ${placedUnits()}`)
 }
 function isStack(hex) {
 	const s = map.unitsGet(hex)
@@ -959,6 +965,7 @@ function stackAdjust(pos) {
 	return {x:pos.x - offset, y:pos.y - offset}
 }
 
+// for debugging
 function placedUnits() {
 	let t = 0
 	for (const u of units) {
@@ -990,7 +997,6 @@ export class UnitBox {
 	x = 400
 	y = 100
 	text = "Units"
-	board			// "this" and dragged units are placed on this layer
 	box
 	#sizeC = 60
 	#sizeR = 70
@@ -1010,7 +1016,7 @@ export class UnitBox {
 		theUnitBox = this
 		// We want the pop-up box to be visible on screen even if the
 		// board is dragged. So, compensate for the board position
-		let pos = this.board.position()
+		let pos = layer.position()
 		this.box = new Konva.Group({
 			x: this.x - pos.x,
 			y: this.y - pos.y,
@@ -1042,7 +1048,7 @@ export class UnitBox {
 			fill: 'white',
 			text: this.text
 		}))
-		this.board.add(this.box)
+		layer.add(this.box)
 	}
 	destroy() {
 		// Clear the singleton reference
@@ -1066,7 +1072,7 @@ export class UnitBox {
 		theUnitBox.place(e)
 	}
 	place(e) {
-		e.target.moveTo(this.board)
+		e.target.moveTo(layer)
 		e.target.moveToTop()
 		e.target.on('dragend', snapToHex)
 		// replace myself! NOTE: you *must* 'off' the old callback!!
@@ -1264,13 +1270,14 @@ export class UnitBoxMajor extends UnitBox {
 
 
 export class UnitBoxNeutrals extends UnitBox {
-	constructor(obj) {
-		// nu+iq+bh, sp+tu, fin+bulg, rum+hun
-		obj.rows = 4
-		// sp+tu: inf,pz,air,nav,(blank),inf,pz,air,nav
-		obj.cols = 9
-		obj.text = "Neutrals and Minor Allies"
-		super(obj)
+	constructor() {
+		super({
+			// nu+iq+bh, sp+tu, fin+bulg, rum+hun
+			rows: 4,
+			// sp+tu: inf,pz,air,nav,(blank),inf,pz,air,nav
+			cols: 9,
+			text: "Neutrals and Minor Allies"
+		})
 
 		for (const u of units) {
 			if (!Object.keys(UnitBoxNeutrals.#layout).includes(u.nat)) continue
@@ -1362,13 +1369,14 @@ export class UnitBoxNeutrals extends UnitBox {
 // Shows all undployed air units for all major powers + air-bases
 // Intended for break/buildup of 5-4 airs
 export class UnitBoxAir extends UnitBox {
-	constructor(obj) {
-		// ge,it,uk,su,fr,us,nu*
-		obj.rows = 6
-		// 5-4, 3-4, 2-4, 1-4, ab
-		obj.cols = 5
-		obj.text = "Air Exchange"
-		super(obj)
+	constructor() {
+		super({
+			// ge,it,uk,su,fr,us,nu*
+			rows: 6,
+			// 5-4, 3-4, 2-4, 1-4, ab
+			cols: 5,
+			text: "Air Exchange",
+		})
 
 		for (const u of units) {
 			if (!Object.keys(UnitBoxAir.#layout).includes(u.nat)) continue
@@ -1412,12 +1420,13 @@ export class UnitBoxAir extends UnitBox {
 // Intended for break/buildup of 9-boats
 export class UnitBoxNav extends UnitBox {
 	constructor(obj) {
-		// ge,it,uk,su,fr,us
-		obj.rows = 6
-		// 9,8,6,4,2,1
-		obj.cols = 6
-		obj.text = "Fleet Exchange"
-		super(obj)
+		super({
+			// ge,it,uk,su,fr,us
+			rows: 6,
+			// 9,8,6,4,2,1
+			cols: 6,
+			text: "Fleet Exchange"
+		})
 
 		for (const u of units) {
 			if (!Object.keys(UnitBoxNav.#layout).includes(u.nat)) continue

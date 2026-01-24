@@ -29,6 +29,7 @@ export const map = new Konva.Image({
     image: mapImg,
 });
 
+// Map Hexes:
 // {hex: {x:0,y:0}, nat:"", edges:"" prop:""},
 // Properties:
 //   C - Capital
@@ -38,8 +39,8 @@ export const map = new Konva.Image({
 //   m - Marsh
 //   c - City
 //   O - Objective
-//   F - Fort (Malta, Gibraltar, Sevastopol)
-//   f - Fort (Maginot line, West wall)
+//   F - Fort (Malta, Gibraltar)
+//   f - Fort (Maginot line, West wall, Sevastopol, Leningrad)
 //   s - Shore (fleets may transit)
 //   v - Vichy
 //   q - Quattra
@@ -200,7 +201,7 @@ export function hexToRdtr(hex) {
 // ----------------------------------------------------------------------
 // Movement and Distance functions
 
-// return a Set of map-hex objects of "N" distance from "hex"
+// return a Set of map-hex objects of "N" distance from a hex (axial)
 // https://www.redblobgames.com/grids/hexagons/#range-coordinate
 export function inRangeAxial(N, ax) {
 	let s = new Set()
@@ -265,6 +266,7 @@ function crawl(N, h, s) {
 	}
 }
 
+// A Set of allowed nations to move in/to
 let natAllowed
 export function setNatAllowed(a) {
 	natAllowed = a
@@ -292,22 +294,7 @@ export function getZOC() {
 }
 
 // ----------------------------------------------------------------------
-
-const frontNat = {
-	west: ["ge","fr","uk","no","dk","nl","be","lx","ir","hu"],
-	east: ["po","sw","su","fi","bl"],
-	med: ["it","sp","ru","tu","gr","yu","bu","gi","ml","mo","al","ts","le",
-		  "pe","iq","eg","cy","li","ar","pa","tr","pl"]
-}
-export function front(hex) {
-	const h = getHex(hex)
-	if (!h || !h.nat) return ""
-	if (h.prop && h.prop.includes('e')) return "east"
-	for (const [f, n] of Object.entries(frontNat)) {
-		if (n.includes(h.nat)) return f
-	}
-	return ""
-}
+// Unit functions:
 
 export function unitsTotal() {
 	let t = 0
@@ -346,4 +333,27 @@ export function unitRemove(u) {
 		return
 	}
 	h.units.delete(u)
+}
+export function unitMove(u, toHex) {
+	unitRemove(u)
+	u.hex = toHex
+	unitAdd(u)
+}
+
+// ----------------------------------------------------------------------
+const frontNat = {
+	west: ["ge","fr","uk","no","dk","nl","be","lx","ir","hu"],
+	east: ["po","sw","su","fi","bl"],
+	med: ["it","sp","ru","tu","gr","yu","bu","gi","ml","mo","al","ts","le",
+		  "pe","iq","eg","cy","li","ar","pa","tr","pl"]
+}
+
+export function front(hex) {
+	const h = getHex(hex)
+	if (!h || !h.nat) return ""
+	if (h.prop && h.prop.includes('e')) return "east"
+	for (const [f, n] of Object.entries(frontNat)) {
+		if (n.includes(h.nat)) return f
+	}
+	return ""
 }

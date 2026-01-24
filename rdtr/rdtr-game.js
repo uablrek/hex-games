@@ -17,12 +17,17 @@ import sc1944 from './scenario-1944.json'
 	// isn't wrong, but looks weird
 	await rdtr.setStage('container')
 
-	if (typeof rdtrSaveData !== 'undefined') {
-		rdtr.loadSave()
+	var href = new URL(location.href)
+	let sc = href.searchParams.get("scenario");
+	if (sc == "save") {
+		if (typeof rdtrSaveData !== 'undefined') {
+			rdtr.loadSave()
+			rdtr.initUI()
+		} else {
+			alert("No save (rdtrSaveData.js) found")
+		}
 	} else {
 		let scenario = sc1939
-		var href = new URL(location.href)
-		let sc = href.searchParams.get("scenario");
 		if (sc) {
 			switch (sc) {
 			case "1939":
@@ -40,5 +45,6 @@ import sc1944 from './scenario-1944.json'
 			}
 		}
 		rdtr.loadScenario(scenario)
+		rdtr.initUI()
 	}
 })()

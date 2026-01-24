@@ -21,6 +21,7 @@ export const map = new Konva.Image({
     image: mapImg,
 })
 board.add(map);
+unit.setLayer(board)
 
 deployment = [
 	// French

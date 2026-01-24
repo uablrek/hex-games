@@ -1,7 +1,39 @@
 {
-	"version": 2,
+	"version": 4,
 	"type": "scenario",
 	"scenario": "1942",
+	"nat": {
+		"ge": {
+			"brp": 245,
+			"controls": ["ge", "no", "dk", "nl", "be", "lx", "fr", "yu", "gr", "bl", "po", "su+2", "fi", "hu", "ru", "bu"],
+			"war": ["uk", "su", "us"]
+		},
+		"it": {
+			"brp": 90,
+			"controls": ["it", "li-2"],
+			"war": ["uk", "su", "us"]
+		},
+		"uk": {
+			"brp": 160,
+			"controls": ["uk", "cy", "iq", "pa", "tr", "eg", "ml", "gi", "le", "li+2"],
+			"war": ["ge", "it"]
+		},
+		"fr": {
+			"brp": 0,
+			"controls": [],
+			"war": []
+		},
+		"su": {
+			"brp": 110,
+			"controls": ["su-2"],
+			"war": ["ge", "it"]
+		},
+		"us": {
+			"brp": 270,
+			"controls": ["us"],
+			"war": ["ge", "it"]
+		}
+	},
 	"turn": { "year": 1942, "season": "spring"},
 	"initialDeployment": [
 		{"cnt": 28, "type": "ge,inf,3-3"},
