@@ -195,6 +195,7 @@ cmd_release() {
 	$me build --appd=$tmp/grid $dir/grid
 	$me rdtr-build --appd=$tmp/rdtr
 	cd $tmp
+	rm -f $TEMP/hex-games.zip
 	zip -r $TEMP/hex-games.zip .
 	echo "Created [$TEMP/hex-games.zip]"
 }
@@ -261,12 +262,12 @@ src() {
 cmd_rdtr_build() {
 	src=$dir/rdtr
 	appdir
-	cp $src/figures/* $src/demos/* $src/scenario/* \
-		$src/*.html $src/*.js $src/*.json $__appd
+	cp $src/figures/* $src/scenario/* $src/*.html $src/*.js $src/*.json $__appd
 	cd $__appd
 	local sub
 	local bundles="rdtr-game"
 	if test "$__demos" = "yes"; then
+		cp $src/demos/* $__appd
 		bundles="$bundles map-demo units-demo drag-demo deployment-demo restore-demo map-maker map-demo2"
 	else
 		mv -f $__appd/rdtr.html $__appd/index.html
@@ -276,7 +277,7 @@ cmd_rdtr_build() {
 			--minify $sub.js  || die esbuild
 		rm $sub.js
 	done
-	rm rdtr.js test-rdtr.js units.js *.json
+	rm rdtr.js test-rdtr.js units.js rdtr-map.js textbox.js *.json
 	test "$__open" != "yes" && return 0
 	cmd_open "$1"
 }
