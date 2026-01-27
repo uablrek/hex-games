@@ -154,7 +154,7 @@ Unit is often called "counters" or "unit counters", but it is
 confusing when programming.
 
 Units may be any image or figure really, but there is support for
-generating "standard" unit counters in SVG. Example:
+generating "standard" unit counters as Konva.Group's. Example:
 
 <img src="./figures/generated-units.png" width="20%" />
 
