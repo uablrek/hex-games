@@ -7,7 +7,7 @@
  */
 import Konva from 'konva'
 import * as rdtr from './rdtr.js'
-import * as unit from './units.js'
+import * as unit from './rdtr-unit.js'
 
 stage = new Konva.Stage({
 	container: "container",
@@ -23,8 +23,6 @@ mapImg.src = './rdtr-map.png'
 export const map = new Konva.Image({
     image: mapImg,
 })
-board.add(map);
-unit.setLayer(board)
 
 // The "tabIndex" MUST be done. It's not intuitive, and I have no idea
 // what it does
@@ -72,27 +70,34 @@ function place(e) {
 	e.target.on('dragend', unit.snapToHex)
 	e.target.on('dragstart', moveToTop)  // rplace myself!
 }
-// Sort out neutral units (nu) *except* white bridge-heads
-var neutrals = []
-for (let u of unit.units) {
-	if (u.nat == "nu" && u.type != "bh") neutrals.push(u)
-}
-for (let u of neutrals) {
-	u.img.on('dragstart', place)
-	deploymentBox.add(u.img)
-	let pos, x, y=20, o=60
-	switch (u.type) {
-	case "inf":
-		x = 0
-		if (u.s == 1) x += o
-		break;
-	case "air":
-		x = o * 2
-		break;
-	case "nav":
-		x = o * 3
-		break;
+
+// async main
+;(async () => {
+	await unit.init(board)
+	await new Promise(resolve => mapImg.onload = resolve)
+	board.add(map)
+	// Sort out neutral units (nu) *except* white bridge-heads
+	let neutrals = []
+	for (let u of unit.units) {
+		if (u.nat == "nu" && u.type != "bh") neutrals.push(u)
 	}
-	u.img.position({x:x + 30, y:y})
-}
-board.add(deploymentBox)
+	for (let u of neutrals) {
+		u.img.on('dragstart', place)
+		deploymentBox.add(u.img)
+		let pos, x, y=20, o=60
+		switch (u.type) {
+		case "inf":
+			x = 0
+			if (u.s == 1) x += o
+			break;
+		case "air":
+			x = o * 2
+			break
+		case "nav":
+			x = o * 3
+			break
+		}
+		u.img.position({x:x + 30, y:y})
+	}
+	board.add(deploymentBox)
+})()

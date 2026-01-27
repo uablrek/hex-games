@@ -12,6 +12,8 @@
 import assert from 'node:assert/strict'
 import * as unit from './units.js'
 import * as map from './rdtr-map.js'
+import * as rdtr from './rdtr.js'
+unit.init()
 
 function testPixelHex(tc) {
 	// This function is dependent on the map size (and --scale). It
@@ -33,21 +35,27 @@ function testHexAxial(tc) {
 }
 function testUnitFind(tc) {
 	unit.unselectAll()
+	let selectFilter=(u) => u.selected
 	let u, str
 	u = unit.fromStr("fr,inf,2-3,Alp")
 	assert(u)
 	assert.equal(u.i, 0)
-	u = unit.fromStr("fr,inf,2-3")
+	u = unit.fromStr("fr,inf,2-3,Alp")
+	assert(u)
+	assert.equal(u.i, 0)
+	u = unit.fromStr("fr,inf,2-3,Alp", selectFilter)
+	assert(!u)					// already selected
+	u = unit.fromStr("fr,inf,2-3", selectFilter)
 	assert.equal(u.i, 1)
 	u = unit.fromStr("sv,inf") // invalid nat
 	assert(!u)
 	u = unit.fromStr("ge,nuk") // invalid type
 	assert(!u)
-	u = unit.fromStr("su,nav,1")
+	u = unit.fromStr("su,nav,1", selectFilter)
 	assert.equal(u.i, 199)
-	u = unit.fromStr("su,nav,1")
+	u = unit.fromStr("su,nav,1", selectFilter)
 	assert.equal(u.i, 200)
-	u = unit.fromStr("su,nav,1") // runned out of 1-boats
+	u = unit.fromStr("su,nav,1", selectFilter) // runned out of 1-boats
 	assert(!u)
 	u = unit.fromStr("uk,ab")
 	assert.equal(u.i, 420)
@@ -112,6 +120,34 @@ function testFronts(tc) {
 	assert.equal(map.front({x:26,y:11}), "east")
 	assert.equal(map.front({x:18,y:11}), "west")
 }
+let sequenceCheck = 0
+function testSequence(tc) {
+	let start = function(seq) {
+		//console.log(`Start of step ${seq.index}`)
+		assert(seq.currentStep)
+		assert.equal(seq.name, "Test Sequence")
+		sequenceCheck = seq.index * 100 + 1
+	}
+	let end = function(seq) {
+		//console.log(`End of step ${seq.index}`)
+		assert.equal(seq.name, "Test Sequence")
+		assert.equal(sequenceCheck, seq.index * 100 + 1)
+	}
+	let seq = new rdtr.Sequence({
+		name: "Test Sequence",
+		steps: [
+			{ start: start, end: end },
+			{ start: start, end: end },
+			{ start: start, end: end },
+			{ start: start, end: end },
+			{ start: start, end: end },
+			{ start: start, end: end },
+		],
+	})
+	assert(!seq.currentStep)
+	seq.nextStep()
+	while (seq.currentStep) seq.nextStep()
+}
 
 // (this is the "standard" way in golang)
 const testCases = [
@@ -121,6 +157,7 @@ const testCases = [
 	{msg:"Compare unit object references", fn:testUnitCompare},
 	{msg:"UnitBox", fn:testUnitBox},
 	{msg:"Fronts", fn:testFronts},
+	{msg:"Sequence", fn:testSequence},
 ];
 var failed = 0
 for (const tc of testCases) {

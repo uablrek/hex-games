@@ -10,6 +10,7 @@ import * as rdtr from './rdtr.js';
 import sc1939 from './scenario-1939.json'
 import sc1942 from './scenario-1942.json'
 import sc1944 from './scenario-1944.json'
+import scTEST from './scenario-test.json'
 
 ;(async () => {
 	// The "await" here ensures that the map is displayed before we
@@ -30,6 +31,8 @@ import sc1944 from './scenario-1944.json'
 		let scenario = sc1939
 		if (sc) {
 			switch (sc) {
+			case "TEST":
+				scenario = scTEST
 			case "1939":
 			case "Campaign":
 			case "campaign":

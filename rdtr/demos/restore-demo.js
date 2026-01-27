@@ -4,7 +4,7 @@
  */
 import Konva from 'konva';
 import * as rdtr from './rdtr.js'
-import * as unit from './units.js'
+import * as unit from './rdtr-unit.js'
 
 let stage = new Konva.Stage({
 	container: "container",
@@ -20,8 +20,6 @@ mapImg.src = './rdtr-map.png'
 export const map = new Konva.Image({
     image: mapImg,
 })
-board.add(map);
-unit.setLayer(board)
 
 /*
   While "require" works here, IT CAN'T BE USED IRL!
@@ -44,12 +42,18 @@ unit.setLayer(board)
 */
 let save = require('./test-deployment.json')
 
-// (we know version==1, but for the sake of completeness...)
-if (save.version > 1) {
-	alert(`Version not supported ${save.version}`)
-} else {
-	for (const ud of save.deployment.units) {
-		let u = unit.fromStr(ud.u)
-		unit.placeRdtr(u, ud.hex)
+// async main
+;(async () => {
+	await unit.init(board)
+	await new Promise(resolve => mapImg.onload = resolve)
+	board.add(map)
+	// (we know version==1, but for the sake of completeness...)
+	if (save.version > 1) {
+		alert(`Version not supported ${save.version}`)
+	} else {
+		for (const ud of save.deployment.units) {
+			let u = unit.fromStr(ud.u)
+			unit.placeRdtr(u, ud.hex)
+		}
 	}
-}
+})()

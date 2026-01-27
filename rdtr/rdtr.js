@@ -5,7 +5,7 @@
 */
 
 import Konva from 'konva';
-import * as unit from './units.js';
+import * as unit from './rdtr-unit.js';
 import * as map from './rdtr-map.js';
 import * as box from './textbox.js';
 
@@ -61,8 +61,8 @@ function updateBrpUI(natUpdated) {
 
 // Set the stage
 var turn = { year: 0, season: "none" }
-export var stage;
-export var board;
+export var stage
+export var board
 export async function setStage(container) {
 	// Init Konva
 	let input = document.getElementById('input')
@@ -76,8 +76,15 @@ export async function setStage(container) {
 	});
 	stage.add(board)
 	await map.load(board)
-	unit.setLayer(board)
 
+	// Make sure all unit images are loaded
+	await unit.init(board)
+	for (const u of unit.units) {
+		u.img.on('dragstart', moveToTop)
+		u.img.on('click', unitClicked)
+	}
+
+	// Listen for kbd events
 	stage.container().tabIndex = 1
 	stage.container().focus();
 	stage.container().addEventListener("keydown", keydown)
@@ -227,10 +234,6 @@ function unitClicked(e) {
 		return
 	}
 }
-for (const [i, u] of unit.units.entries()) {
-	u.img.on('dragstart', moveToTop)
-	u.img.on('click', unitClicked)
-}
 function rollStack(down) {
 	const pos = board.getRelativePointerPosition()
 	let hex = map.pixelToHex(pos)
@@ -239,7 +242,7 @@ function rollStack(down) {
 	let minZ = 1000000, bot
 	for (u of h.units) {
 		let z = u.img.zIndex()
-		console.log(`z ${z}, i ${u.i}`)
+		//console.log(`z ${z}, i ${u.i}`)
 		if (z < minZ) {
 			bot = u
 			minZ = z
@@ -272,9 +275,9 @@ function stepTurn() {
 			let units = game.allowableBuilds[i].units
 			for (const d of units) {
 				for (let i = 0; i < d.cnt; i++) {
-					let u = unit.fromStr(d.type)
+					let u = unit.fromStr(d.type, (u)=>u.allowable)
 					if (!u) {
-						console.log(`Unknown unit ${d.type}`)
+						console.log(`Unit not found ${d.type}`)
 					} else {
 						u.allowable = true
 					}
@@ -290,6 +293,72 @@ function turnEq(t1, t2) {
 	if (t1.season != t2.season) return false
 	return true
 }
+
+// The player with most BRP is first
+let lastTurnFirstPlayer
+function firstPlayer() {
+	if (game.scenario.includes("1939") || game.scenario.includes("Campaign")) {
+		if (turnEq(game.turn, { "year": 1939, "season": "fall"})) {
+			lastTurnFirstPlayer = "axis"
+			return lastTurnFirstPlayer
+		}
+	}
+	// TODO: add 1942 and 1944 starts here
+	// Germany and Italy are always summed together, even when Italy
+	// is neutral. and if conquered, brp would be 0
+	let axisBrp = game.nat.ge.brp + game.nat.it.brp
+	// It's safe to start with UK and France. If conquered, brp would be 0
+	let alliesBrp = game.nat.ge.uk + game.nat.ge.fr
+	if (game.nat.su.war.includes("ge")) alliesBrp += game.nat.su.brp
+	if (game.nat.us.war.includes("ge")) alliesBrp += game.nat.us.brp
+	if (axisBrp == axisBrp) return lastTurnFirstPlayer
+	if (axisBrp > axisBrp)
+		lastTurnFirstPlayer = "axis"
+	else
+		lastTurnFirstPlayer = "allies"
+	return lastTurnFirstPlayer
+}
+
+
+export class Sequence {
+	name
+	// step: { start:fn(), end:fn(), whatever...}
+	steps						// an array of steps
+	currentStep
+	index = 0
+	update						// Called on nextStep()
+	userRef
+	constructor(obj) {
+		for (var prop in obj) {
+			if (obj.hasOwnProperty(prop)) {
+				this[prop] = obj[prop];
+			}
+		}
+	}
+	nextStep() {
+		if (!this.currentStep) {
+			// first step, or beyond last step
+			if (!this.steps) return // (better safe than sorry)
+			if (this.index >= this.steps.length) return
+			this.currentStep = this.steps[0]
+			if (this.currentStep.start) this.currentStep.start(this)
+			if (this.update) this.update(this)
+			return
+		}
+		if (this.currentStep.end) this.currentStep.end(this)
+		this.index++
+		if (this.index >= this.steps.length) {
+			// end of the line
+			this.currentStep = null
+			if (this.update) this.update(this)
+			return
+		}
+		this.currentStep = this.steps[this.index]
+		if (this.currentStep.start) this.currentStep.start(this)
+		if (this.update) this.update(this)
+	}
+}
+
 
 // ----------------------------------------------------------------------
 // Save & Restore related
@@ -328,22 +397,22 @@ export const version = 4
 // Game data from load scenario/save
 var game
 
-
-// This should only be called if no save exist
 export function loadScenario(gameObject) {
 	game = gameObject
-	if (game.version < 4) {
-		alert(`Unsupported version ${game.version}`)
-		return
-	}
-	turn = game.turn
 	if (game.type != "scenario") {
 		alert(`Not a scenario, but ${game.type}`)
 		return
 	}
+	if (game.version != 4) {
+		alert(`Unsupported version ${game.version}`)
+		return
+	}
+	turn = game.turn
+	unit.unselectAll()
 	for (const d of game.initialDeployment) {
 		for (let i = 0; i < d.cnt; i++) {
-			let u = unit.fromStr(d.type)
+			// Filter out already selected
+			let u = unit.fromStr(d.type, (u)=>u.selected)
 			u.allowable = true
 		}
 	}
@@ -353,42 +422,58 @@ export function loadScenario(gameObject) {
 		// NOTE: it *may* not be possible to deploy all units if they
 		//   haven't become "allowable", but never mind
 		unit.unselectAll()
-		deploy(game.deployment.units, onlyAllowable=true)
+		let filterOut = function(u) {
+			if (u.selected) return true
+			if (u.nat == 'nu') return false
+			return !u.allowable
+		}
+		deploy(game.deployment.units, filterOut)
 		delete game.deployment
 	}
+	// All allowable, and not placed units displayed
 	new unit.UnitBoxMajor({
 		neutrals: true,
 		text: game.scenario + " Initial Deployment",
 	})
-
 	// Mark units from default allowableBuilds (index==0)
 	for (const d of game.allowableBuilds[0].units) {
 		for (let i = 0; i < d.cnt; i++) {
-			let u = unit.fromStr(d.type)
+			// Filter out already allowable
+			let u = unit.fromStr(d.type, (u)=>u.allowable)
 			if (!u) alert(`No unit for ${d.type}`)
 			u.allowable = true
 		}
 	}
+	game.allowableBuilds[0].units = [] // will be restored in saveGame()
 }
 export function loadSave() {
 	game = JSON.parse(rdtrSaveData)
-	if (game.version < 4) {
+	if (game.version != 4) {
 		alert(`Unsupported version ${game.version}`)
 		return
 	}
 	turn = game.turn
-	deploy(game.deployment.units)
 	// Mark units from default allowableBuilds (index==0)
+	let allowableBuilds = game.allowableBuilds[0].units
+	game.allowableBuilds[0].units = []
 	unit.unselectAll()
-	for (const d of game.allowableBuilds[0].units) {
-		// (cnt should always be 1 here)
-		for (let i = 0; i < d.cnt; i++) {
-			// include units on-map
-			let u = unit.fromStr(d.type, offmap=false)
-			if (!u) alert(`No unit for ${d.type}`)
-			u.allowable = true
-		}
+	for (const d of allowableBuilds) {
+		// d.cnt is always 1 here since we always save individual units
+		if (d.cnt != 1) alert(`BUG: ${d.type}, cnt=${d.cnt}`)
+		let u = unit.fromStr(d.type, (u)=>u.selected)
+		if (!u) alert(`BUG: No unit for ${d.type}`)
+		u.allowable = true
 	}
+	// Units to deploy may be neutrals or allowable. Minor allies must
+	// be allowable
+	unit.unselectAll()
+	let filterOut = function(u) {
+		if (u.selected) return true
+		if (['nu','sp','tu','iq'].includes(u.nat)) return false
+		return !u.allowable
+	}
+	if (!deploy(game.deployment.units, filterOut))
+		alert("BUG: couldn't deploy some units")
 }
 
 // Initiate a download
@@ -442,21 +527,38 @@ export function getDeplyment() {
 	}
 	return dep
 }
-export function deploy(units, onlyAllowable=false) {
+export function deploy(units, filterOut) {
 	let notFound = []
 	for (const ud of units) {
-		let u = unit.fromStr(ud.u)
+		let u = unit.fromStr(ud.u, filterOut)
 		if (!u) {
 			notFound.push(ud.u)
 			continue
 		}
-		if (onlyAllowable && u.nat != "nu" && !u.allowable) {
-			//notFound.push(ud.u) // allow this to fail quietly
-			continue
-		}
 		unit.placeRdtr(u, ud.hex)
 	}
-	if (notFound.length) alert(`Not found: ${notFound}`)
+	if (notFound.length) {
+		console.log(`Not found: ${notFound}`)
+		return false
+	}
+	return true
+}
+
+// Debug function
+function checkUnits(msg = "") {
+	let ecnt=0, dcnt=0, acnt=0, err=[]
+	for (const u of unit.units) {
+		if (['nu','sp','tu','iq'].includes(u.nat)) continue
+		if (u.hex) {
+			dcnt++
+			if (!u.allowable) {
+				err.push(unit.toStr(u))
+				ecnt++
+			}
+		}
+		if (u.allowable) acnt++
+	}
+	console.log(`${msg}: dcnt=${dcnt}, acnt=${acnt}, ecnt=${ecnt} ${err}`)
 }
 
 // ----------------------------------------------------------------------
@@ -465,14 +567,15 @@ export function deploy(units, onlyAllowable=false) {
 
 let theCombatBox
 const X = newImage()
-X.src = "data:image\/svg+xml,<svg width=\"80\" height=\"80\" viewBox=\"0 0 80 80\" xmlns=\"http://www.w3.org/2000/svg\"> <rect x=\"2\" y=\"2\" width=\"76\" height=\"76\" fill=\"none\" stroke=\"black\" stroke-width=\"4\"/> <path d=\"M 15 15 L 65 65 M 15 65 L 65 15\" stroke=\"black\" stroke-width=\"10\" fill=\"none\"/> </svg>"
+X.src = 'data:image/svg+xml,<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"> <rect x="2" y="2" width="76" height="76" fill="none" stroke="black" stroke-width="4"/> <path d="M 15 15 L 65 65 M 15 65 L 65 15" stroke="black" stroke-width="10" fill="none"/></svg>'
 
-const combatChartData = newImage()
-combatChartData.src = './rdtr-combat-chart.png'
+const combatChartImg = newImage()
+import {combatChartData} from './png-data.js'
+combatChartImg.src = combatChartData
 const combatChartImage = new Konva.Image({
 	x: 0,
 	y: 0,
-	image: combatChartData,
+	image: combatChartImg,
 })
 
 class CombatBox {

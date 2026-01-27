@@ -148,6 +148,22 @@ example on how images can be loaded synchronously, one after the
 other, using [await](
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await).
 
+## Units
+
+Unit is often called "counters" or "unit counters", but it is
+confusing when programming.
+
+Units may be any image or figure really, but there is support for
+generating "standard" unit counters in SVG. Example:
+
+<img src="./figures/generated-units.png" width="20%" />
+
+```javascript
+u = units.createUnit('olive', 'black', 'art', '8-3', 'xx', 'Nap')
+```
+
+Only some unit types can be generated, but more may be added when
+needed.
 
 ## Red Blob Games
 

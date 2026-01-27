@@ -19,32 +19,34 @@ if (localStorage.getItem("nodejsTest") == "yes") {
 class UnitSheet {
 	side = 150					// Side of a unit on the unit-sheet PNG
 	scale = 0.32				// Adjust so it can fit into a map hex
-	rows = 8;
-	cols = 14;
+	rows = 8
+	cols = 14
 	// The "layout" has x,y elements which consists of an array of
 	// 3-tuples [row/col, offset, gap].
-	layout;
+	layout
 	// The "imgData" may be an imported URL if the unit-sheet is
 	// packed into the bundle, otherwise it's a file name.
-	imgData;
-	sheet;
-
+	imgData
+	sheet
+	imgObj						// made public so we can await loading
+	
 	constructor(obj) {
 		for (var prop in obj) {
 			if (obj.hasOwnProperty(prop)) {
 				this[prop] = obj[prop];
 			}
 		}
-		let imgObj = newImage();
-		imgObj.src = this.imgData;
+		this.imgObj = newImage()
+		this.imgObj.src = this.imgData
 		this.sheet = new Konva.Image({
-			image: imgObj,
+			image: this.imgObj,
 		});
 	}
 	destroy() {
 		this.sheet.destroy()
 		this.imgData = null
 		this.layout = null
+		this.imgObj = null
 	}
 	// Compute the top-left corner of a unit within the unit-sheet.
 	// The "layout" plays a vital role.
@@ -79,16 +81,10 @@ class UnitSheet {
 	}
 }
 
-// If the unit-sheet file is packed into the bundle use:
-//import suSheetData from './tr-counters-ussr.png'
-// If the unit-sheet file is loaded (from server or local file):
-const suSheetData = './tr-counters-ussr.png'
-const geSheetData = './tr-counters-germany.png'
-const frSheetData = './tr-counters-fr-usa.png'
-const itSheetData = './tr-counters-italy.png'
-const ukSheetData = './tr-counters-uk.png'
-const vaSheetData = './tr-counters-variant.png'
-// TODO: find a way to select this
+// We can select different './png-data.js' depending on if png data
+// should be read from the server, or be included in the bundle
+import {suSheetData, geSheetData, frSheetData, itSheetData,
+		ukSheetData, vaSheetData} from './png-data.js'
 
 let sheet = {
 	su: new UnitSheet({
@@ -805,31 +801,51 @@ export const units = [
 	{sheet:sheet.va, pos:{x:12,y:3}, type:"inf", nat:"ge", s:1, m:3, lbl:"Croat SS"},
 ];
 
-// Load the unit index and images
-for (const [i, u] of units.entries()) {
-	u.i = i
-	u.img = u.sheet.image(u.pos.x, u.pos.y, `rdtru${i}`)
-}
+export async function init(_layer) {
+	layer = _layer
+	// Await image loading
+	let p = []
+	for (const s in sheet) {
+		p.push(new Promise(resolve => sheet[s].imgObj.onload = resolve))
+	}
+	Promise.all(p)
 
-// Now we no longer needs the unit-sheets. Remove the references so
-// they can be garbage-collected
-for (const u of units) {
-	delete u.sheet
+	// Load the unit index and images
+	for (const [i, u] of units.entries()) {
+		u.i = i
+		u.img = u.sheet.image(u.pos.x, u.pos.y, `rdtru${i}`)
+	}
+	// Now we no longer needs the unit-sheets. Remove the references so
+	// they can be garbage-collected
+	for (const u of units) {
+		delete u.sheet
+	}
+	for (const s in sheet) {
+		sheet[s].destroy()
+		sheet[s] = null
+	}
+	sheet = null
 }
-for (const s in sheet) {
-	sheet[s].destroy()
-	sheet[s] = null
-}
-sheet = null
 
 // ----------------------------------------------------------------------
 // Unit find and user-friendly representation
+
+// For "generic" units, like "ge,air,5-4" where we want *any*
+// unit that match, but NOT the same unit, do:
+//   unselectAll()
+//   u = fromStr("ge,air,5-4", (u)=>u.selected)
 export function unselectAll() {
 	for (const u of units) {
 		delete u.selected
 	}
 }
-export function fromStr(str, offmap=true) {
+export function fromStr(str, filterOut) {
+	// By default no units are filtered. Useful filters may be:
+	//   (u)=>u.selected   - exclude already selected
+	//   (u)=>u.allowable  - exclude allowable's
+	//   (u)=>!u.allowable - include allowable's
+	//   (u)=>u.hex        - exclude placed units
+	if (!filterOut) filterOut=((u) => false)
 	// return the first found unit that matches str
 	let v, nat, type, s, m, lbl, unit
 	v = str.split(',')
@@ -844,8 +860,7 @@ export function fromStr(str, offmap=true) {
 	}
 	if (v.length > 2) lbl = v[3]
 	for (const u of units) {
-		if (u.selected) continue
-		if (offmap && u.hex) continue
+		if (filterOut(u)) continue
 		if (nat != u.nat) continue
 		if (type != u.type) continue
 		if (!s) {
@@ -908,10 +923,6 @@ export function fromImage(img) {
 
 const imageOffset = 23			  // To adjust the unit image on a hex
 let layer						  // The layer where units are placed
-
-export function setLayer(_layer) {
-	layer = _layer
-}
 
 export function removeFromMap(u) {
 	if (!u.hex) return
@@ -1467,4 +1478,3 @@ export class UnitBoxNav extends UnitBox {
 		return {col:col, row:l.row}
 	}
 }
-

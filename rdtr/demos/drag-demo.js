@@ -4,7 +4,7 @@
   when dropped.
  */
 import Konva from 'konva'
-import * as unit from './units.js'
+import * as unit from './rdtr-unit.js'
 
 const stage = new Konva.Stage({
 	container: 'container',
@@ -20,8 +20,6 @@ mapImg.src = './rdtr-map.png'
 export const map = new Konva.Image({
     image: mapImg,
 })
-board.add(map);
-unit.setLayer(board)
 
 deployment = [
 	// French
@@ -49,7 +47,16 @@ deployment = [
 	{i:394, rc: {r:"K", q:23}},
 	{i:430, rc: {r:"L", q:22}},	
 ]
-for (d of deployment) {
-	u = unit.units[d.i]
-	unit.placeRdtr(u, d.rc, board)
-}
+
+// async main
+;(async () => {
+	await unit.init(board)
+	await new Promise(resolve => mapImg.onload = resolve)
+	board.add(map)
+
+	for (d of deployment) {
+		u = unit.units[d.i]
+		unit.placeRdtr(u, d.rc, board)
+	}
+})()
+

@@ -23,8 +23,9 @@ if (localStorage.getItem("nodejsTest") == "yes") {
 }
 
 // The Map image
+import {mapImageData} from './png-data.js'
 const mapImg = newImage();
-mapImg.src = './rdtr-map.png'
+mapImg.src = mapImageData
 export const map = new Konva.Image({
     image: mapImg,
 });

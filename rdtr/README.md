@@ -71,7 +71,7 @@ do (almost) everything yourself (same as the board game). You may use a
 [spreadsheet](https://boardgamegeek.com/filepage/128258/3r4-bookkeeping-aid-for-brps-and-other-in-game-dat)
 for book-keeping. When you start a game you will see something like this:
 
-<img src="../figures/1939-initial-phase.png" width="70%" />
+<img src="./figures/1939-initial-phase.png" width="70%" />
 
 The screen-shot shows the initial deployment phase for the 1939
 scenario. The gray box is called a `UnitBox`. You can drag counters
@@ -146,7 +146,7 @@ to learn about the program.
 
 I want to run unit tests with `node.js`:
 ```
-nmp link konva   # (once)
+npm link konva   # (once)
 node --localstorage-file=lstore test-rdtr.js
 ```
 
@@ -237,7 +237,7 @@ example the Portsmouth hex is a beach, it has 2 ports, the channel
 inhibits movement to the adjacent land-hex in France, and it has a
 river towards London.
 
-<img src="../figures/portsmouth.png "/>
+<img src="./figures/portsmouth.png "/>
 
 While this is not especially complicated, it's *a lot* of work. The
 `map-maker.js` program is a help program for this job. It is altered
@@ -260,11 +260,6 @@ appropriate type, such as a hash-map, or a matrix.
 
 I use the term `unit` often since "counter" has a different meaning in
 code, and would cause confusion.
-
-Again, I would prefer vector graphics, but PNG is fine.
-
-**Idea:** Write a program to generate an SVG-image of a unit given
-  parametes like: `--type=inf --stat=3-3 label="22" --color=black`
 
 Same as for the map, I convert the counter [PDF-sheet](
 https://boardgamegeek.com/filepage/246780/third-reich-counters-pdf-for-scaling)
@@ -313,6 +308,8 @@ human readable form is needed, like `fr,inf,2-3,Alp` or `uk,nav,9` or
 	fi: Finland                    int: Interceptor
 	iq: Iraq
 ```
+
+
 
 
 ## Save and Restore

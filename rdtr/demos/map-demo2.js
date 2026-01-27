@@ -7,19 +7,18 @@
 
 import Konva from 'konva'
 import * as map from  './rdtr-map.js'
-import * as unit from './units.js';
+import * as unit from './rdtr-unit.js';
 import * as box from './textbox.js';
 
 const stage = new Konva.Stage({
 	container: 'container',
 	width: window.innerWidth,
 	height: window.innerHeight,
-});
+})
 const board = new Konva.Layer({
 	draggable: true,
-});
+})
 stage.add(board)
-unit.setLayer(board)
 
 stage.container().tabIndex = 1
 stage.container().focus();
@@ -236,23 +235,23 @@ function showZOC() {
 	board.add(zocMarkers)
 }
 
-board.on('click', function() {
-	const pos = board.getRelativePointerPosition();
-	let hex = map.pixelToHex(pos)
-	let h = map.getHex(hex)
-	if (!h || !h.units || h.units.size == 0) {
-		if (markers) markers.destroy()
-	}
-	//airMovementRange(h)
-	//markNeighbours(h)
-	//markGroundMovement(4, h)
-})
-
 
 // ----------------------------------------------------------------------
 // "main"
 ;(async () => {
+	await unit.init(board)
 	await map.load(board)
-	placeUnits()
 	createHelpBox()
+	placeUnits()
+	board.on('click', function() {
+		const pos = board.getRelativePointerPosition();
+		let hex = map.pixelToHex(pos)
+		let h = map.getHex(hex)
+		if (!h || !h.units || h.units.size == 0) {
+			if (markers) markers.destroy()
+		}
+		//airMovementRange(h)
+		//markNeighbours(h)
+		//markGroundMovement(4, h)
+	})
 })()

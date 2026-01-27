@@ -193,8 +193,10 @@ cmd_release() {
 	cp $dir/lib/index.html $tmp
 	export __open=no
 	$me build --appd=$tmp/grid $dir/grid
-	$me rdtr-build --appd=$tmp/rdtr
+	$me build --appd=$tmp/units --images $dir/units
+	$me rdtr-build --bundle --appd=$tmp/rdtr
 	cd $tmp
+	rm -f rdtr/rdtrSaveData.js
 	rm -f $TEMP/hex-games.zip
 	zip -r $TEMP/hex-games.zip .
 	echo "Created [$TEMP/hex-games.zip]"
@@ -257,12 +259,14 @@ src() {
 	main=$(cat $src/package.json | jq -r .main)
 	test -r $src/$main || die "Missing [$main]"
 }
-##   rdtr-build [--appd=dir] [--clean] [--open] page
+##   rdtr-build [--appd=dir] [--clean] [--demos] [--open] page
 ##     Build the "Rise and Decline of the Third Reich" (rdtr) project
 cmd_rdtr_build() {
 	src=$dir/rdtr
 	appdir
 	cp $src/figures/* $src/scenario/* $src/*.html $src/*.js $src/*.json $__appd
+	cp $dir/units/units.js $__appd
+	cp $dir/units/unit-images-empty.js $__appd/unit-images.js
 	cd $__appd
 	local sub
 	local bundles="rdtr-game"
@@ -271,13 +275,18 @@ cmd_rdtr_build() {
 		bundles="$bundles map-demo units-demo drag-demo deployment-demo restore-demo map-maker map-demo2"
 	else
 		mv -f $__appd/rdtr.html $__appd/index.html
+		test "$__bundle" = "yes" && \
+			mv -f $__appd/png-data-bundle.js $__appd/png-data.js 
 	fi
 	for sub in $bundles; do
-		esbuild --bundle --outfile=$sub-bundle.js --loader:.svg=dataurl \
-			--minify $sub.js  || die esbuild
+		esbuild --bundle --outfile=$sub-bundle.js --loader:.png=dataurl \
+			--loader:.svg=dataurl --minify $sub.js  || die esbuild
 		rm $sub.js
 	done
-	rm rdtr.js test-rdtr.js units.js rdtr-map.js textbox.js *.json
+	rm -f rdtr.js test-rdtr.js rdtr-unit.js rdtr-map.js textbox.js *.json \
+		1939-initial-phase.png portsmouth.png png-data-bundle.js png-data.js \
+		units.js
+	test "$__bundle" = "yes" && rm -f *.png
 	test "$__open" != "yes" && return 0
 	cmd_open "$1"
 }
