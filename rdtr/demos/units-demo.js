@@ -107,7 +107,8 @@ function generatedUnits() {
 	for (const [i, u] of unit.units.entries()) {
 		x = (col * (side+10) * scale) + offsetX
 		y = (row * (side+10) * scale) + 40
-		if (u.nat in ucolors && ['inf','pz','res','air','ab','nav','mec'].includes(u.type)) {
+		if (u.nat in ucolors &&
+			['inf','pz','res','air','ab','nav','mec','par'].includes(u.type)) {
 			let stat, lbl=''
 			if (u.m)
 				stat = `${u.s}-${u.m}`

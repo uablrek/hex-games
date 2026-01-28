@@ -210,6 +210,7 @@ cmd_build() {
 	src $1
 	test -r $src/index.html || die "No index.html in [$src]"
 	appdir
+	cp $dir/lib/* $__appd
 	cp $src/* $__appd
 	cd $__appd
 	test -r build.sh && . ./build.sh
@@ -265,8 +266,8 @@ cmd_rdtr_build() {
 	src=$dir/rdtr
 	appdir
 	cp $src/figures/* $src/scenario/* $src/*.html $src/*.js $src/*.json $__appd
-	cp $dir/units/units.js $__appd
-	cp $dir/units/unit-images-empty.js $__appd/unit-images.js
+	cp $dir/lib/units.js $dir/lib/textbox.js $__appd
+	cp $dir/lib/unit-images-empty.js $__appd/unit-images.js
 	cd $__appd
 	local sub
 	local bundles="rdtr-game"
@@ -283,9 +284,10 @@ cmd_rdtr_build() {
 			--loader:.svg=dataurl --minify $sub.js  || die esbuild
 		rm $sub.js
 	done
+	# Clean up
 	rm -f rdtr.js test-rdtr.js rdtr-unit.js rdtr-map.js textbox.js *.json \
 		1939-initial-phase.png portsmouth.png png-data-bundle.js png-data.js \
-		units.js
+		units.js unit-images.js
 	test "$__bundle" = "yes" && rm -f *.png
 	test "$__open" != "yes" && return 0
 	cmd_open "$1"

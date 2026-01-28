@@ -66,6 +66,10 @@ function placeUnits() {
 	u = units.createUnit('lightblue', 'black', 'gen', '10', '', 'Napoleon')
 	u.position(hex.hexToPixel({x: 10, y:7}))
 	board.add(u)
+
+	u = units.createUnit('black', 'white', 'par', '3-3', '', '1 Fsj')
+	u.position(hex.hexToPixel({x: 4, y:9}))
+	board.add(u)
 }
 
 async function placeUnitImages() {
