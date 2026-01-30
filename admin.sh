@@ -208,13 +208,19 @@ cmd_release() {
 cmd_build() {
 	which esbuild > /dev/null || die 'Not in $PATH [esbuild]'
 	src $1
+	if test -r $src/rdtr-game.js; then
+		log "rdtr-build..."
+		shift
+		cmd_rdtr_build $@
+		return
+	fi
 	test -r $src/index.html || die "No index.html in [$src]"
 	appdir
 	cp $dir/lib/* $__appd
 	cp $src/* $__appd
 	cd $__appd
 	test -r build.sh && . ./build.sh
-	esbuild --bundle --outfile=bundle.js --loader:.svg=dataurl \
+	esbuild --bundle --outfile=bundle.js --loader:.svg=dataurl --minify \
 		--loader:.png=dataurl --loader:.jpg=dataurl . || die esbuild
 	# Remove everything except index.html and bundle.js
 	local f
@@ -266,7 +272,7 @@ cmd_rdtr_build() {
 	src=$dir/rdtr
 	appdir
 	cp $src/figures/* $src/scenario/* $src/*.html $src/*.js $src/*.json $__appd
-	cp $dir/lib/units.js $dir/lib/textbox.js $__appd
+	cp $dir/lib/units.js $dir/lib/textbox.js $dir/lib/hex-grid.js $__appd
 	cp $dir/lib/unit-images-empty.js $__appd/unit-images.js
 	cd $__appd
 	local sub

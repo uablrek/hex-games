@@ -105,11 +105,12 @@ function boxDestroy(e) {
 box.destroyCallback(boxDestroy)
 function createHexInfoBox() {
 	if (hexInfoBox) return
-	hexInfoBox = box.info("Hex Information", "", {
+	hexInfoBox = box.info({
 		fontFamily: 'monospace',
 		width: 500,
 		x: 400,
 		y: 400,
+		label: "Hex Information",
 	})
 	board.add(hexInfoBox)
 }
@@ -216,8 +217,8 @@ function updateHexInfo(h) {
 	const p = map.hexToRdtr(h.hex)
 	let str = `${p.r},${p.q} - `
 	if (h.nat) str += `${h.nat}`
-	if (h.prop) str += `, prop: ${h.prop}`
-	if (h.edges) str += `, edges: ${h.edges}`
+	if ('prop' in h) str += `, prop: ${h.prop}`
+	if ('edges' in h) str += `, edges: ${h.edges}`
 	let txtObj = hexInfoBox.findOne('.text')
 	txtObj.text(str)
 }
@@ -329,7 +330,10 @@ var stage
 		markProp(prop)
 		break
 	}
-	board.add(box.info("Function", `${selInfo} - prop: ${prop}, nat: ${nat}`))
+	board.add(box.info({
+		label: "Function",
+		text: `${selInfo} - prop: ${prop}, nat: ${nat}`
+	}))
 	createHexInfoBox()
 	board.on('click', function() {
         let pos = board.getRelativePointerPosition()

@@ -75,22 +75,6 @@ function byNation() {
 }
 
 function generatedUnits() {
-	const ucolors = {
-		ge: ['black','white'],
-		uk: ['#FAD449','black'],
-		it: ['#C1C7B1','black'],
-		fr: ['#76BFCB','black'],
-		us: ['#9F8E29','black'],
-		su: ['#AE8C29','black'],
-		iq: ['#327844','white'],
-		sp: ['#AF8D54','white'],
-		tu: ['#D5C085','white'],
-		nu: ['#996E2B','white'],
-		fi: ['#CBCBCB','black'],
-		hu: ['#CBCBCB','black'],
-		ru: ['#CBCBCB','black'],
-		bu: ['#CBCBCB','black'],
-	}
 	function indexText(x, y, txt) {
 		layer.add(new Konva.Text({
 			x: x,
@@ -105,22 +89,13 @@ function generatedUnits() {
 	let row = 0, col = 0, offsetX = 80
 	let maxRow = Math.round(unit.units.length / 20)
 	for (const [i, u] of unit.units.entries()) {
-		x = (col * (side+10) * scale) + offsetX
-		y = (row * (side+10) * scale) + 40
-		if (u.nat in ucolors &&
-			['inf','pz','res','air','ab','nav','mec','par'].includes(u.type)) {
-			let stat, lbl=''
-			if (u.m)
-				stat = `${u.s}-${u.m}`
-			else
-				stat = `${u.s}`
-			if (u.lbl) lbl = u.lbl
-			let gu = genunit.createUnit(ucolors[u.nat][0],ucolors[u.nat][1],u.type,stat,'',lbl)
-			gu.position({x:x+27,y:y+27})
-			layer.add(gu)
-		}
+		x = (col * (side+10) * scale) + offsetX + 20
+		y = (row * (side+10) * scale) + 80
+		u.img.x(x)
+		u.img.y(y)
+		layer.add(u.img)
 		if ((i % 10) == 0) {
-			indexText(offsetX - 50, y + 15, `${i}`)
+			indexText(offsetX - 50, y - 13, `${i}`)
 		}
 		col++
 		if (col >= 10) {
@@ -133,11 +108,26 @@ function generatedUnits() {
 		}
 	}
 }
+const nations = {
+	ge: {color:'black',stroke:'white'},
+	uk: {color:'#FAD449',stroke:'black'},
+	it: {color:'#C1C7B1',stroke:'black'},
+	fr: {color:'#76BFCB',stroke:'black'},
+	us: {color:'#9F8E29',stroke:'black'},
+	su: {color:'#AE8C29',stroke:'black'},
+	iq: {color:'#327844',stroke:'white'},
+	sp: {color:'#AF8D54',stroke:'white'},
+	tu: {color:'#D5C085',stroke:'white'},
+	nu: {color:'#996E2B',stroke:'white'},
+	fi: {color:'#CBCBCB',stroke:'black'},
+	hu: {color:'#CBCBCB',stroke:'black'},
+	ru: {color:'#CBCBCB',stroke:'black'},
+	bu: {color:'#CBCBCB',stroke:'black'},
+}
 
 // async main
 ;(async () => {
 	await unit.init(layer)
-	await genunit.init(0.92)
 	// Get the scenario given by "?scenario=0" in the url
 	let href = new URL(location.href);
 	let scenario = 0;
@@ -145,6 +135,16 @@ function generatedUnits() {
 	if (sc == "1") {
 		byNation()
 	} else if (sc == "2") {
+		// Define .stat. In rdtr units has .s and .m
+		for (const u of unit.units) {
+			if ('s' in u) {
+				if (u.m)
+					u.stat = `${u.s}-${u.m}`
+				else
+					u.stat = `${u.s}`
+			}
+		}
+		await genunit.init(unit.units, nations, 0.88, false)
 		generatedUnits()
 	} else {
 		byIndex()

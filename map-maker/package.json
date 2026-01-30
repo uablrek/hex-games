@@ -1,0 +1,15 @@
+{
+  "name": "map-maker",
+  "version": "1.0.0",
+  "description": "Hex-Grid Map Maker",
+  "main": "map-maker.js",
+  "scripts": {
+  },
+  "keywords": [],
+  "author": "",
+  "license": "CC0",
+  "type": "module",
+  "dependencies": {
+	  "konva": "^10.0.12"
+  }
+}

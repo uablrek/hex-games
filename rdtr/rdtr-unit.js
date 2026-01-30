@@ -957,7 +957,7 @@ export function snapToHex(e) {
 	let pos = {x:img.x() + imageOffset, y:img.y() + imageOffset}
 	// Get the hex, and update the unit object
 	map.unitRemove(u)
-	hex = map.pixelToHex(pos)
+	let hex = map.pixelToHex(pos)
 	u.hex = hex
 	map.unitAdd(u)
 	// Snap!

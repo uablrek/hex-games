@@ -2,7 +2,7 @@
 	"name": "rdtr",
 	"version": "1.0.0",
 	"description": "Rise and Decline of the Third Reich board game",
-	"main": "main.js",
+	"main": "rdtr-game.js",
 	"scripts": {
 		"test": "node test-rdtr.js"
 	},

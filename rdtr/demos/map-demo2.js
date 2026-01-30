@@ -62,7 +62,10 @@ function createHelpBox() {
 		  "Click-unit - Show moves\n" +
 		  "Click map - Remove moves"
 		  
-	helpBox = box.info("Help", txt)
+	helpBox = box.info({
+		label: "Help",
+		text: txt,
+	})
 	helpBox.position(adjustBoxPos({x:900, y:200}))
 	board.add(helpBox)
 }
@@ -72,7 +75,8 @@ let enemies = ['ge']
 let turnBox = null
 function createTurnBox() {
 	if (turnBox) return
-	turnBox = box.info("Current Player", "", {
+	turnBox = box.info({
+		label: "Current Player",
 		width: 400,
 		fontSize: 20,
 	})

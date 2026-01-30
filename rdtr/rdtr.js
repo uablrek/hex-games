@@ -5,9 +5,9 @@
 */
 
 import Konva from 'konva';
-import * as unit from './rdtr-unit.js';
-import * as map from './rdtr-map.js';
-import * as box from './textbox.js';
+import * as unit from './rdtr-unit.js'
+import * as map from './rdtr-map.js'
+import * as box from './textbox.js'
 
 // Enable testing with node.js
 var newImage = function() { return new Image() }
@@ -115,7 +115,10 @@ const help =
 let helpBox = null
 function createHelpBox() {
 	if (helpBox) return
-	helpBox = box.info("Help", help)
+	helpBox = box.info({
+		label: "Help",
+		text: help,
+	})
 	helpBox.position(adjustBoxPos({x:400, y:200}))
 	board.add(helpBox)
 }
@@ -123,10 +126,12 @@ let turnBox = null
 function createTurnBox() {
 	if (turnBox) return
 	const t = `Year: ${turn.year}, Season: ${turn.season}`
-	turnBox = box.info("Current turn", t, {
+	turnBox = box.info({
 		width: 300,
-		height: 60,
+		height: 110,
 		fontSize: 20,
+		label: "Current turn",
+		text: t,
 	})
 	turnBox.position(adjustBoxPos({x:200, y:100}))
 	board.add(turnBox)

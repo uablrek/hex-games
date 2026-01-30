@@ -165,6 +165,60 @@ u = units.createUnit('olive', 'black', 'art', '8-3', 'xx', 'Nap')
 Only some unit types can be generated, but more may be added when
 needed.
 
+## Map
+
+A game map can be created in many ways, like generating from some
+simple format as [Battle for Wesnoth](https://www.wesnoth.org/), or
+from pre-drawn tiles like [Panzer General](
+https://en.wikipedia.org/wiki/Panzer_General). In `hex-games` I do:
+
+1. Generate a hex-grid (SVG)
+2. Draw the map graphics with [Inkscape](https://inkscape.org/)
+3. Define the map with a `map-maker` program
+
+Draw the map:
+```
+hex emit-grid --rect=1400x1000 > example-map.svg
+inkscape example-map.svg &
+```
+
+### Map maker
+
+We must define properies of hexes, such as terrain, and possible for
+edges between hexes, e.g. some obstacles. A `map-maker` shows the map
+and let you defining this by clicking on hexes. The `map-maker` is
+specific for a type of map, and must be adapted for different
+maps. However the procedure is very similar and [map-maker.js](
+map-maker/map-maker.js) server a template. The result is a `json`
+file, something like:
+
+```json
+[
+  {{"hex":{"x":21,"y":8},"prop":"f"},
+  {"hex":{"x":3,"y":11},"edges":"u....u"}  
+]
+```
+
+**NOTE**: The definition can (and probably often is) "sparse". Meaning
+that only "interresting" hex'es are defined. For instance, if the
+majority of hexes are "plain", you may leave them undefined
+
+The dimensions of the map are *not* defined in this json file.
+
+The [example map](./map-maker/example-map.svg) has 3 terrain types:
+forrest (f), river (r) and mountain (m). It has one edge type:
+up-slope (u), which can give combat/movement penalties.
+
+The `json` file is used to store the map [in any way you prefer](
+https://www.redblobgames.com/grids/hexagons/#map-storage).  Personally
+I prefer to use a hash table (javascript Map()).  A hex object can
+*not* be used as key since the object reference is used, instead
+create a key something like:
+
+```javascript
+  let key = hex.x + hex.y * 1000
+```
+
 ## Red Blob Games
 
 [Red Blob Games](https://www.redblobgames.com/)
