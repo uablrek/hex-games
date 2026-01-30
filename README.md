@@ -189,7 +189,7 @@ edges between hexes, e.g. some obstacles. A `map-maker` shows the map
 and let you defining this by clicking on hexes. The `map-maker` is
 specific for a type of map, and must be adapted for different
 maps. However the procedure is very similar and [map-maker.js](
-map-maker/map-maker.js) server a template. The result is a `json`
+map-maker/map-maker.js) serves as a template. The result is a `json`
 file, something like:
 
 ```json
