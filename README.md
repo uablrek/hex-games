@@ -139,7 +139,7 @@ fit:
 hex emit_grid --flattop --rect 2200x1600 --size 72 --scale 0.865 > bfw-grid.svg
 ```
 
-Now you can use the [hex-grid module](grid/hex-grid.js) to add a
+Now you can use the [hex-grid module](lib/hex-grid.js) to add a
 grid. The offsets must also be tuned, and this time I think
 trial-and-error is best.
 
@@ -148,9 +148,10 @@ example on how images can be loaded synchronously, one after the
 other, using [await](
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await).
 
+
 ## Units
 
-Unit is often called "counters" or "unit counters", but it is
+Units are often called "counters" or "unit counters", but it is
 confusing when programming.
 
 Units may be any image or figure really, but there is support for
@@ -159,11 +160,17 @@ generating "standard" unit counters as Konva.Group's. Example:
 <img src="./figures/generated-units.png" width="20%" />
 
 ```javascript
-u = units.createUnit('olive', 'black', 'art', '8-3', 'xx', 'Nap')
+const units = [
+   	{nat:'ge' , type:'pz', stat:'4-6', lbl:'56'},
+    {color:'olive', type:'inf', stat:'3-4', lbl:'3'},
+    {color:'olive', type:'cav', stat:'5-6', sz:'xx', lbl:'Gdg 1234'},
+    {color:'olive', type:'art', stat:'8-3', sz:'xx', lbl:'Nap'},
+]
 ```
 
 Only some unit types can be generated, but more may be added when
 needed.
+
 
 ## Map
 

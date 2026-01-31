@@ -192,9 +192,11 @@ cmd_release() {
 	mkdir -p $tmp
 	cp $dir/lib/index.html $tmp
 	export __open=no
-	$me build --appd=$tmp/grid $dir/grid
-	$me build --appd=$tmp/units --images $dir/units
-	$me rdtr-build --bundle --appd=$tmp/rdtr
+	export __bundle=yes
+	local app
+	for app in grid units bfw-map map-maker rdtr; do
+		$me build --appd=$tmp/$app $dir/$app
+	done
 	cd $tmp
 	rm -f rdtr/rdtrSaveData.js
 	rm -f $TEMP/hex-games.zip

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CC0-1.0.
 /*
   This is the main module for:
-  https://github.com/uablrek/hex-games/tree/main/map
+  https://github.com/uablrek/hex-games/tree/main/map-maker
  */
 
 import Konva from 'konva'
@@ -12,7 +12,6 @@ import * as rdata from './remote-data.js'
 const map = require('./map-data.json')
 
 // Init Konva
-let input = document.getElementById('input')
 stage = new Konva.Stage({
 	container: container,
 	width: window.innerWidth,
