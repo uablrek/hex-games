@@ -133,6 +133,7 @@ function keydown(e) {
 		e.key == 'e' || e.key == 'E' ||
 		e.key == 'r' || e.key == 'R' ||
 		e.key == 'x' || e.key == 'X' ||
+		e.key == 'w' || e.key == 'W' ||
 		e.key == 'm' || e.key == 'M' || e.key == '-') {
 		if (e.repeat) return
 		func = e.key
@@ -154,6 +155,7 @@ const helpTxt =
 	  'f,F - Forrest set/delete\n' +
 	  'r,R - River set/delete\n' +
 	  'm,M - Mountain set/delete\n' +
+	  'w,W - Water set/delete\n' +
 	  'x,X - Forbidden set/delete\n' +
 	  'e,E - Edge set/delete\n' +
 	  'u,.,sp - Edge definition\n' +
@@ -198,6 +200,16 @@ function updateFunc() {
 		break
 	case 'M':
 		funcText = "Clear Mountain"
+		propMarkFn = markProp
+		funcFn = clearProp
+		break
+	case 'w':
+		funcText = "Set Water"
+		propMarkFn = markProp
+		funcFn = setProp
+		break
+	case 'W':
+		funcText = "Clear Water"
 		propMarkFn = markProp
 		funcFn = clearProp
 		break

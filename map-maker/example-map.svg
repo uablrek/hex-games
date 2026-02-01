@@ -305,8 +305,8 @@
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
      inkscape:zoom="1.3172389"
-     inkscape:cx="699.94895"
-     inkscape:cy="501.04806"
+     inkscape:cx="699.94896"
+     inkscape:cy="397.8018"
      inkscape:window-width="2560"
      inkscape:window-height="1379"
      inkscape:window-x="0"
@@ -419,6 +419,20 @@
        d="m 174.818,464.20058 25.88218,12.2532 26.59531,-14.23391 21.78011,13.38494 29.25681,-15.16932 -0.0138,-29.20209 23.95184,-13.37303 -1.59631,-29.11405 -23.74898,-12.96366 -4.64084,-27.68862 -22.45211,-17.07678 -0.38538,-25.54338 -23.91477,-14.44186 -27.44038,14.06193 -21.79637,-14.17557 -25.7214,13.6441 0.75916,29.94543 -27.47647,13.7344 2.0775,26.79435 -26.276681,13.41121 0.641111,32.00146 25.93923,11.43902 0.25837,30.23681 24.45405,13.62325 z"
        id="path367"
        sodipodi:nodetypes="ccccccccccccccccccccccccc" />
+    <path
+       style="fill:#2c7ddb;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:1"
+       d="M 463.04016,-0.12031059 550.591,129.75104 1399.6681,120.92713 1399.089,-0.16092381 Z"
+       id="path369" />
+    <text
+       xml:space="preserve"
+       style="font-size:26.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold Italic';font-weight:bold;font-style:italic;font-stretch:normal;font-variant:normal"
+       x="866.97192"
+       y="66.741982"
+       id="text981"><tspan
+         sodipodi:role="line"
+         id="tspan979"
+         x="866.97192"
+         y="66.741982">The Lake</tspan></text>
   </g>
   <rect
      x="0"

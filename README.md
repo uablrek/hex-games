@@ -161,7 +161,7 @@ generating "standard" unit counters as Konva.Group's. Example:
 
 ```javascript
 const units = [
-   	{nat:'ge' , type:'pz', stat:'4-6', lbl:'56'},
+    {nat:'ge' , type:'pz', stat:'4-6', lbl:'56'},
     {color:'olive', type:'inf', stat:'3-4', lbl:'3'},
     {color:'olive', type:'cav', stat:'5-6', sz:'xx', lbl:'Gdg 1234'},
     {color:'olive', type:'art', stat:'8-3', sz:'xx', lbl:'Nap'},
@@ -201,20 +201,21 @@ file, something like:
 
 ```json
 [
-  {{"hex":{"x":21,"y":8},"prop":"f"},
+  {"hex":{"x":21,"y":8},"prop":"f"},
   {"hex":{"x":3,"y":11},"edges":"u....u"}  
 ]
 ```
 
-**NOTE**: The definition can (and probably often is) "sparse". Meaning
-that only "interresting" hex'es are defined. For instance, if the
-majority of hexes are "plain", you may leave them undefined
+**NOTE**: The definition can be (and probably often is)
+"sparse". Meaning that only "interresting" hex'es are defined. For
+instance, if the majority of hexes are "plain", you may leave them
+undefined
 
 The dimensions of the map are *not* defined in this json file.
 
-The [example map](./map-maker/example-map.svg) has 3 terrain types:
-forrest (f), river (r) and mountain (m). It has one edge type:
-up-slope (u), which can give combat/movement penalties.
+The [example map](./map-maker/example-map.svg) has 4 terrain types:
+forrest (f), river (r), water (w) and mountain (m). It has one edge
+type: up-slope (u), which can give combat/movement penalties.
 
 The `json` file is used to store the map [in any way you prefer](
 https://www.redblobgames.com/grids/hexagons/#map-storage).  Personally
