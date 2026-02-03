@@ -55,6 +55,7 @@ function placeUnits() {
 			x = 2
 		}
 	}
+	//unit.addMark1(units[2], 'gold')
 }
 let theBox = box.info({
 	label: 'Clicked Unit', 
@@ -65,10 +66,21 @@ let theBox = box.info({
 function onclick(e) {
 	let u = unit.fromImg(e.target)
 	box.update(theBox, unit.toStr(u))
+	mark = u.img.findOne('.mark1')
+	if (mark) {
+		if (mark.fill() == 'gold') {
+			unit.addMark1(u, 'red')
+			unit.addMark2(u, 'green')
+		} else {
+			unit.removeMark1(u)
+			unit.removeMark2(u)
+		}
+	} else
+		unit.addMark1(u, 'gold')
 }
 
 ;(async () => {
-	await unit.init(units, nations, 1.2, true)
+	await unit.init(units, nations, 1.2, false)
 	hex.configure(80)
 	let pattern = new Image()
 	pattern.src = hex.patternSvg()

@@ -57,7 +57,7 @@ function keydown(e) {
 		createHelpBox()
 		return
 	}
-	if (e.key == " ") {
+	if (e.key == ' ') {
 		if (e.repeat) return
 		removeMarkers()
 		return
@@ -65,6 +65,11 @@ function keydown(e) {
 	if (e.key == 'z') {
 		if (e.repeat) return
 		toggleZOC()
+		return
+	}
+	if (e.key == 'r') {
+		if (e.repeat) return
+		regretMove(selectedUnit)
 		return
 	}
 }
@@ -195,6 +200,8 @@ function dragStart(e) {
 }
 function unitDragend(e) {
     let u = unit.fromImg(e.target)
+	unit.removeMark1(u)
+	delete u.ohex
 	let ohex = u.hex
     let hex = grid.pixelToHex(e.target.position())
 	moveUnitTo(u, hex)
@@ -206,10 +213,13 @@ function unitDragend(e) {
 }
 function moveUnitTo(u, hex, tween=false) {
 	if (!hex) return
+	let ohex = u.hex
 	removeUnitFromMap(u)
 	addUnitToMap(u, hex)
 	let pos = grid.hexToPixel(hex)
 	if (tween) {
+		unit.addMark1(u, 'red')
+		u.ohex = ohex
 		new Konva.Tween({
 			node: selectedUnit.img,
 			x: pos.x,
@@ -219,6 +229,13 @@ function moveUnitTo(u, hex, tween=false) {
 		}).play()		
 	} else
 		u.img.position(pos)		// (snapToHex)
+}
+function regretMove(u) {
+	if (!u) return
+	if (!u.ohex) return
+	moveUnitTo(u, u.ohex, true)
+	unit.removeMark1(u)
+	delete u.ohex
 }
 
 // ----------------------------------------------------------------------
@@ -237,10 +254,12 @@ function createHelpBox() {
 	const helpTxt =
 		  'It is the French players movement phase. English units may not ' +
 		  'be moved, but they may be dragged. English units have '+
-		  'Zone of Control (ZOC). Stacking limit is 2\n\n' +
+		  'Zone of Control (ZOC). Stacking limit is 2.' +
+		  'Unit that has moved get a red mark, drag it to remove\n\n' +
 		  'h - This help\n' +
-		  "' ' - Remove Markers" +
-		  "z - Toggle ZOC markers"
+		  "' ' - Remove Markers\n" +
+		  "z - Toggle ZOC markers\n" +
+		  "r - Regret move"
 	if (theHelpBox) return
 	theHelpBox = box.info({
 		x: 400,
@@ -336,6 +355,7 @@ function unitClick(e) {
 	removeMarkers()				// (clears allowedHexes)
 	selectedUnit = u
 	if (u.nat == 'en') return	// French movement phase
+	if (u.ohex) return			// Has already moved
 	allowedHexes = grid.movementAxial(u.m, grid.hexToAxial(u.hex), u)
 	for (const h of allowedHexes) setMarker(h)
 }

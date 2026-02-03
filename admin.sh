@@ -274,14 +274,15 @@ cmd_rdtr_build() {
 	src=$dir/rdtr
 	appdir
 	cp $src/figures/* $src/scenario/* $src/*.html $src/*.js $src/*.json $__appd
-	cp $dir/lib/units.js $dir/lib/textbox.js $dir/lib/hex-grid.js $__appd
+	cp $dir/lib/units.js $dir/lib/textbox.js $dir/lib/hex-grid.js \
+		$dir/lib/sequence.js $__appd
 	cp $dir/lib/unit-images-empty.js $__appd/unit-images.js
 	cd $__appd
 	local sub
 	local bundles="rdtr-game"
 	if test "$__demos" = "yes"; then
 		cp $src/demos/* $__appd
-		bundles="$bundles map-demo units-demo drag-demo deployment-demo restore-demo map-maker map-demo2"
+		bundles="$bundles map-demo units-demo drag-demo deployment-demo restore-demo map-maker map-demo2 seq-demo"
 	else
 		mv -f $__appd/rdtr.html $__appd/index.html
 		test "$__bundle" = "yes" && \
