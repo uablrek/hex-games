@@ -190,7 +190,7 @@ cmd_mapgen2_build() {
 ##     Create a release zip-file
 cmd_release() {
 	mkdir -p $tmp
-	cp $dir/lib/index.html $tmp
+	cp $dir/hex-games.html $tmp/index.html
 	export __open=no
 	export __bundle=yes
 	local app
@@ -216,13 +216,16 @@ cmd_build() {
 		cmd_rdtr_build $@
 		return
 	fi
-	test -r $src/index.html || die "No index.html in [$src]"
 	appdir
 	cp $dir/lib/* $__appd
 	cp $src/* $__appd
 	cd $__appd
+	test -r ./index.html || generateIndex
+	mv lib.js hex-games.js
 	test -r build.sh && . ./build.sh
-	esbuild --bundle --outfile=bundle.js --loader:.svg=dataurl --minify \
+	local minify
+	test "$__minify" = "yes" && minify="--minify"
+	esbuild --bundle --outfile=bundle.js --loader:.svg=dataurl $minify \
 		--loader:.png=dataurl --loader:.jpg=dataurl . || die esbuild
 	# Remove everything except index.html and bundle.js
 	local f
@@ -267,6 +270,22 @@ src() {
 	test -r $src/package.json || die "No package.json in [$1]"
 	main=$(cat $src/package.json | jq -r .main)
 	test -r $src/$main || die "Missing [$main]"
+	description="$(cat $src/package.json | jq -r .description)"
+}
+generateIndex() {
+	cat > index.html <<EOF
+<!DOCTYPE html>
+<html>
+  <style>body, html { margin: 0; padding: 0; }</style>
+  <head>
+        <title>$description</title>
+        <script defer src="bundle.js"></script>
+  </head>
+  <body>
+        <div id='container'></div>
+  </body>
+</html>
+EOF
 }
 ##   rdtr-build [--appd=dir] [--clean] [--demos] [--open] page
 ##     Build the "Rise and Decline of the Third Reich" (rdtr) project

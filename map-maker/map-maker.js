@@ -5,25 +5,44 @@
  */
 
 import Konva from 'konva'
-import * as grid from './hex-grid.js'
-import * as box from './textbox.js'
+import {setup, grid, box, rdata} from './hex-games.js'
 import mapData from './example-map.svg'
-import * as rdata from './remote-data.js'
-const map = require('./map-data.json')
+import mapProperties from './map-data.json'
 
-// Init Konva
-stage = new Konva.Stage({
-	container: container,
-	width: window.innerWidth,
-	height: window.innerHeight,
-})
-board = new Konva.Layer({
-	draggable: true,
-})
-stage.add(board)
-stage.container().tabIndex = 1
-stage.container().focus()
-stage.container().addEventListener("keydown", keydown)
+let board = setup.stage()
+
+const keyFn = [
+	{key: 'j', fn: function (e) {
+		rdata.saveJSON(mapProperties, 'map-data.json')
+	}},
+	{key: 'h', fn: createHelpBox},
+	{key: '.', fn:setEdge},
+	{key: ' ', fn:setEdge},
+	{key: 'u', fn:setEdge},
+
+	{key: 'f', fn:setFunc},
+	{key: 'F', fn:setFunc},
+	{key: 'e', fn:setFunc},
+	{key: 'E', fn:setFunc},
+	{key: 'r', fn:setFunc},
+	{key: 'R', fn:setFunc},
+	{key: 'x', fn:setFunc},
+	{key: 'X', fn:setFunc},
+	{key: 'w', fn:setFunc},
+	{key: 'W', fn:setFunc},
+	{key: 'm', fn:setFunc},
+	{key: 'M', fn:setFunc},
+	{key: '-', fn:setFunc},
+
+	{key: 'p', fn:function (e) {if (propMarkFn) propMarkFn()}},
+]
+function setFunc(e) {
+	discardEdge()
+	func = e.key
+	updateFunc()
+	updateHexInfo()
+}
+setup.setKeys(keyFn)
 
 // {hex: {x:0,y:0}, edges:"...uu." prop:"f"},
 // Properties:
@@ -79,7 +98,7 @@ function markProp() {
 		text: p,
 	})
 	const offset = 9
-	for (const h of map) {
+	for (const h of mapProperties) {
 		if (!h.prop) continue
 		if (!h.prop.includes(p)) continue
 		const pos = grid.hexToPixel(h.hex)
@@ -104,49 +123,15 @@ function hexEqual(h1, h2) {
 }
 // Get a defined hex object, or create a new one
 function getHex(hex, create=true) {
-	for (const h of map) {
+	for (const h of mapProperties) {
 		if (hexEqual(hex, h.hex)) return h
 	}
 	if (!create) return undefined
 	let h = {hex:hex}
-	map.push(h)
+	mapProperties.push(h)
 	return h
 }
 
-function keydown(e) {
-	if (e.key == "j") {
-		if (e.repeat) return
-		rdata.saveJSON(map, 'map-data.json')
-		return
-	}
-	if (e.key == "h") {
-		if (e.repeat) return
-		createHelpBox()
-		return
-	}
-	if (e.key == '.' || e.key == ' ' || e.key == 'u') {
-		if (e.repeat) return
-		setEdge(e.key)
-		return
-	}
-	if (e.key == 'f' || e.key == 'F' ||
-		e.key == 'e' || e.key == 'E' ||
-		e.key == 'r' || e.key == 'R' ||
-		e.key == 'x' || e.key == 'X' ||
-		e.key == 'w' || e.key == 'W' ||
-		e.key == 'm' || e.key == 'M' || e.key == '-') {
-		if (e.repeat) return
-		func = e.key
-		updateFunc()
-		updateHexInfo()
-		return
-	}
-	if (e.key == 'p') {
-		if (e.repeat) return
-		if (propMarkFn) propMarkFn()
-		return
-	}
-}
 const helpTxt =
 	  'h - This help\n' +
 	  'j - Save map data\n' +
@@ -305,13 +290,21 @@ function updateHexInfo(h, hex) {
 
 var edgeHex = null
 var edgeNo = 0
-const edgeArrow = new Konva.Path({
+const edgeArrowTemplate = new Konva.Path({
 	fill: 'green',
 	stroke: 'black',
 	strokeWidth: 3,
 	data: "m 10 0 l 5 0 l -15 -20 l -15 20 l 5 0 l 0 20 l 20 0 l z",
-	rotate: 30
 })
+let edgeArrow = null
+function discardEdge() {
+	if (!edgeHex) return
+	delete edgeHex.edges
+	if (edgeArrow) edgeArrow.destroy()
+	edgeArrow = null
+	edgeHex = null
+	edgeNo = 0
+}
 function markEdge() {
 	if (propMarkers) propMarkers.destroy()
 	if (marker.getParent()) marker.remove()
@@ -323,7 +316,7 @@ function markEdge() {
 		text: 'E',
 	})
 	const offset = 9
-	for (const h of map) {
+	for (const h of mapProperties) {
 		if (!h.edges) continue
 		const pos = grid.hexToPixel(h.hex)
 		propMarkers.add(txt.clone({
@@ -345,13 +338,14 @@ function selectEdgeHex(hex) {
 	if (edgeHex) {
 		if (edgeNo == 0) {
 			// No updates, restore the arrow
-			edgeArrow.remove()
-			edgeArrow.rotate(-30)
+			edgeArrow.destroy()
+			edgeArrow = null
 		} else {
 			alert("Define all edges first")
 			return
 		}
 	}
+	edgeArrow = edgeArrowTemplate.clone()
 	edgeHex = h
 	edgeNo = 0
 	let pos = grid.hexToPixel(h.hex)
@@ -360,8 +354,9 @@ function selectEdgeHex(hex) {
 	board.add(edgeArrow)
 	updateHexInfo(edgeHex)
 }
-function setEdge(c) {
+function setEdge(e) {
 	if (!edgeHex) return
+	c = e.key
 	if (c == ' ') c = '.'
 	if (edgeNo == 0) edgeHex.edges=''
 	edgeHex.edges += c

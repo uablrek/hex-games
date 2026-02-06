@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CC0-1.0.
 import Konva from 'konva';
-import * as hex from './hex-grid.js';
+import {grid} from './hex-games.js'
 // Imports image data to the bundle. Must be on top level
 import wn2Data from './wn2.png'
 
@@ -27,20 +27,20 @@ async function imageLoaded(img) {
 	})
 	board.add(map)
 
-	hex.configure(72, 0.865, {x:10, y:-34}, true)
+	grid.configure(72, 0.865, {x:10, y:-34}, true)
 	const gridImg = new Image()
-	gridImg.src = hex.patternSvg()
+	gridImg.src = grid.patternSvg()
 	await imageLoaded(gridImg)
-	const grid = new Konva.Rect({
+	const hexGrid = new Konva.Rect({
 		width: map.width(),
 		height: map.height(),
 		stroke: 'black',
 		opacity: 0.5,
 		fillPatternImage: gridImg,
 		fillPatternOffset: {x: 10, y:38},
-		fillPatternScale: hex.patternScale(),
+		fillPatternScale: grid.patternScale(),
 	})
-	board.add(grid)
+	board.add(hexGrid)
 
 	// Add a "marker" that can be moved to hexes
 	const initMarker = {x:10,y:4}
@@ -50,12 +50,12 @@ async function imageLoaded(img) {
 		stroke: 'black',
 		strokeWidth: 2,
 	})
-	marker.position(hex.hexToPixel(initMarker))
+	marker.position(grid.hexToPixel(initMarker))
 	board.add(marker)
 	board.on('click', function() {
 		let pos = board.getRelativePointerPosition()
-		let h = hex.pixelToHex(pos)
-		let ph = hex.hexToPixel(h)
+		let h = grid.pixelToHex(pos)
+		let ph = grid.hexToPixel(h)
 		marker.position(ph)
 	})
 })()

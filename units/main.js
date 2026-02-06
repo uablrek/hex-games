@@ -6,20 +6,9 @@
   to prevent frequent rendering.
  */
 import Konva from 'konva'
-import * as hex from './hex-grid.js'
-import * as unit from './units.js'
-import * as box from './textbox.js'
+import { unit, grid, box, setup } from './hex-games.js'
 
-const stage = new Konva.Stage({
-	container: 'container',
-	width: window.innerWidth,
-	height: window.innerHeight,
-})
-
-const board = new Konva.Layer({
-	draggable: true,
-})
-stage.add(board)
+let board = setup.stage()
 
 const nations = {
 	ge: {color:'black', stroke:'white'},
@@ -35,7 +24,7 @@ const units = [
 	{color:'olive', type:'air', stat:'5-4'},
 	{color:'olive', type:'ab'},
 	{type:'nav', stat:'9'},
-	{nat:'ge', color:'red', stroke:'green', type:'nav', stat:'9'},
+	{nat:'ge', color:'brown', stroke:'white', type:'nav', stat:'9'},
 	{nat:'fr', type:'gen', stat:'(10)6', lbl:'Napoleon'},
 	{nat:'ge', type:'par', stat:'3-3', lbl:'1 Fsj'},
 ]
@@ -43,7 +32,7 @@ function placeUnits() {
 	let x = 2
 	let y = 2
 	for (const u of units) {
-		u.img.position(hex.hexToPixel({x:x, y:y}))
+		u.img.position(grid.hexToPixel({x:x, y:y}))
 		u.img.draggable(true)
 		u.img.on('dragend', unit.snapToHex)
 		u.img.on('click', onclick)
@@ -55,7 +44,6 @@ function placeUnits() {
 			x = 2
 		}
 	}
-	//unit.addMark1(units[2], 'gold')
 }
 let theBox = box.info({
 	label: 'Clicked Unit', 
@@ -81,18 +69,18 @@ function onclick(e) {
 
 ;(async () => {
 	await unit.init(units, nations, 1.2, false)
-	hex.configure(80)
+	grid.configure(80)
 	let pattern = new Image()
-	pattern.src = hex.patternSvg()
+	pattern.src = grid.patternSvg()
 	await new Promise(resolve => pattern.onload = resolve)
-	const grid = new Konva.Rect({
+	const hexGrid = new Konva.Rect({
 		width: window.innerWidth,
 		height: window.innerHeight,
 		stroke: 'black',
 		fillPatternImage: pattern,
-		fillPatternScale: hex.patternScale(),
+		fillPatternScale: grid.patternScale(),
 	})
-	board.add(grid)
+	board.add(hexGrid)
 	board.add(theBox)
 	placeUnits()
 })()

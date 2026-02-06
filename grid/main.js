@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CC0-1.0.
-import Konva from 'konva';
-import * as hex from './hex-grid.js';
+import Konva from 'konva'
+import {grid } from './hex-games.js'
 // Imports image data to the bundle. Must be on top level
 import gridData from './grid.svg'
 
@@ -18,13 +18,13 @@ const href = new URL(location.href)
 const p = href.searchParams.get("pattern")
 if (p == "svg") {
 	// Pointy-top with map as SVG
-	hex.configure(50, 1.1)
+	grid.configure(50, 1.1)
 	const imageObj = new Image()
 	imageObj.src = gridData;
-	const grid = new Konva.Image({
+	const gridImg = new Konva.Image({
 		image: imageObj,
 	});
-	board.add(grid)
+	board.add(gridImg)
 } else {
 	// Flat-top, Konva generated rect with fillPattern
 	let size=50, scale=1.0, flattop=false
@@ -34,12 +34,12 @@ if (p == "svg") {
 		if (w.length > 1) scale = Number(w[1])
 		if (w.length > 2 && w[2] == 'flat') flattop=true
 	}
-	hex.configure(size, scale, {x:0, y:0}, flattop)
+	grid.configure(size, scale, {x:0, y:0}, flattop)
 	let pattern = new Image()
-	pattern.src = hex.patternSvg()
+	pattern.src = grid.patternSvg()
 	pattern.onload = () => {
 		console.log(`img h=${pattern.height}, w=${pattern.width}`)
-		const grid = new Konva.Rect({
+		const hexGrid = new Konva.Rect({
 			x: 0,
 			y: 0,
 			width: 4000,
@@ -47,9 +47,9 @@ if (p == "svg") {
 			stroke: 'black',
 			fillPatternImage: pattern,
 			fillPatternRepeat: 'repeat',
-			fillPatternScale: hex.patternScale(),
+			fillPatternScale: grid.patternScale(),
 		})
-		board.add(grid)
+		board.add(hexGrid)
 	}
 }
 
@@ -61,7 +61,7 @@ marker = new Konva.Circle({
 	strokeWidth: 1
 });
 initMarker = {x:10,y:4}
-marker.position(hex.hexToPixel(initMarker))
+marker.position(grid.hexToPixel(initMarker))
 board.add(marker)
 
 // Create an "info" layer that stays in place (on top, to the left)
@@ -134,7 +134,7 @@ axialBox = textBox({
 }, "Axial coordinates")
 axialText = axialBox.findOne('.txt')
 info.add(axialBox)
-axial = hex.hexToAxial(initMarker)
+axial = grid.hexToAxial(initMarker)
 axialText.text(`${axial.q}, ${axial.r}`)
 
 posBox = textBox({
@@ -149,11 +149,11 @@ info.add(posBox)
 board.on('click', function() {
 	pos = board.getRelativePointerPosition();
 	clickText.text(`${pos.x}, ${pos.y}`)
-	h = hex.pixelToHex(pos)
+	h = grid.pixelToHex(pos)
 	hexText.text(`${h.x}, ${h.y}`)
-	axial = hex.hexToAxial(h)
+	axial = grid.hexToAxial(h)
 	axialText.text(`${axial.q}, ${axial.r}`)
-	ph = hex.hexToPixel(h)
+	ph = grid.hexToPixel(h)
 	marker.x(ph.x)
 	marker.y(ph.y)
 });

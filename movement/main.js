@@ -5,25 +5,23 @@
  */
 
 import Konva from 'konva'
-import * as grid from './hex-grid.js'
-import * as box from './textbox.js'
-import * as unit from './units.js'
+import {setup, grid, box, unit, map} from './hex-games.js'
 import mapData from './example-map.svg'
-const map = require('./map-data.json')
+import mapProperties from './map-data.json'
 
-// Init Konva
-stage = new Konva.Stage({
-	container: container,
-	width: window.innerWidth,
-	height: window.innerHeight,
-})
-board = new Konva.Layer({
-	draggable: true,
-})
-stage.add(board)
-stage.container().tabIndex = 1
-stage.container().focus()
-stage.container().addEventListener("keydown", keydown)
+let board = setup.stage()
+const keyFn = [
+    {key: 'h', fn:createHelpBox},
+    {key: ' ', fn:removeMarkers},
+	{key: 'z', fn:toggleZOC},
+	{key: 'r', fn: function (e) {
+		unit.regretMove(selectedUnit)
+	}},
+	{key:'ArrowLeft', fn: rotateStack},
+	{key:'ArrowRight', fn: rotateStack},
+]
+setup.setKeys(keyFn)
+
 
 const marker = new Konva.Circle({
 	radius: 6,
@@ -51,97 +49,16 @@ function removeMarkers() {
 	}
 }
 
-function keydown(e) {
-	if (e.key == "h") {
-		if (e.repeat) return
-		createHelpBox()
-		return
-	}
-	if (e.key == ' ') {
-		if (e.repeat) return
-		removeMarkers()
-		return
-	}
-	if (e.key == 'z') {
-		if (e.repeat) return
-		toggleZOC()
-		return
-	}
-	if (e.key == 'r') {
-		if (e.repeat) return
-		regretMove(selectedUnit)
-		return
-	}
-}
-
 function boardOnClick(e) {
 	let pos = board.getRelativePointerPosition()
 	let hex = grid.pixelToHex(pos)
-	let h = getHex(hex)
+	let h = map.getHex(hex)
 	updateHexInfo(h, hex)
 	if (h) {
-		let ah = getAxial(h.ax)
+		let ah = map.getAxial(h.ax)
 		if (h != ah) alert("We have a problem...")
 		moveSelectedUnit(h)
 	}
-}
-
-
-// ----------------------------------------------------------------------
-// Map
-
-const mapWidth = 28
-const mapHeight = 23
-const hexMap = new Map()
-const axMap = new Map()
-function initMap() {
-	// The "map" is sparse, meaning that many hex'es are
-	// "undefined". For the movementAxial() function to work, we must
-	// define *all* hexes, and they must have a .ax field. Further, we
-	// want to allow lookup with both offset and axial coordinates so
-	// two Map's must be defined
-	for (let x = 0; x < mapWidth; x++) {
-		for (let y = 0; y < mapHeight; y++) {
-			let hex, ax, h, key
-			hex = {x:x,y:y}
-			ax = grid.hexToAxial(hex)
-			h = {hex:hex, ax:ax}
-			key = x + 1000*y
-			hexMap.set(key, h)
-			key = ax.q + 1000*ax.r
-			axMap.set(key, h)
-		}
-	}
-	// Now all hex'es are defined, so add information from "map"
-	for (const hp of map) {
-		let h = getHex(hp.hex)
-		if (!h) continue		// (outside map. May happen on map-edges)
-		if (hp.prop) h.prop = hp.prop
-		if (hp.edges) h.edges = hp.edges
-	}
-}
-function getHex(hex) {
-	const k = hex.x + hex.y * 1000
-	return hexMap.get(k)
-}
-function getAxial(ax) {
-	const k = ax.q + 1000*ax.r
-	return axMap.get(k)
-}
-function removeUnitFromMap(u) {
-	if (!u.hex) return
-	let h = getHex(u.hex)
-	if (!h.units) return
-	h.units.delete(u)
-	delete u.hex
-}
-
-function addUnitToMap(u, hex) {
-	let h = getHex(hex)
-	if (!h) return				// (off map?)
-	u.hex = hex
-	if (!h.units) h.units = new Set()
-	h.units.add(u)
 }
 
 // ----------------------------------------------------------------------
@@ -191,7 +108,7 @@ function placeUnit(u, ax) {
 	u.img.on('dragend', unitDragend)
 	u.img.on('click', unitClick)
 	let hex = grid.axialToHex(ax)
-	moveUnitTo(u, hex)
+	unit.moveTo(u, hex, tween=false)
 	board.add(u.img)
 }
 function dragStart(e) {
@@ -204,38 +121,12 @@ function unitDragend(e) {
 	delete u.ohex
 	let ohex = u.hex
     let hex = grid.pixelToHex(e.target.position())
-	moveUnitTo(u, hex)
+	unit.moveTo(u, hex, tween=false)
 	if (!u.hex) {
 		// Can't move here! Probably off-map. Move the unit back
-		moveUnitTo(u, ohex)
+		unit.moveTo(u, ohex, tween=false)
 	}
 	if (u.nat == 'en') recomputeZOC()
-}
-function moveUnitTo(u, hex, tween=false) {
-	if (!hex) return
-	let ohex = u.hex
-	removeUnitFromMap(u)
-	addUnitToMap(u, hex)
-	let pos = grid.hexToPixel(hex)
-	if (tween) {
-		unit.addMark1(u, 'red')
-		u.ohex = ohex
-		new Konva.Tween({
-			node: selectedUnit.img,
-			x: pos.x,
-			y: pos.y,
-			duration: 0.5,
-			easing: Konva.Easings.EaseInOut,
-		}).play()		
-	} else
-		u.img.position(pos)		// (snapToHex)
-}
-function regretMove(u) {
-	if (!u) return
-	if (!u.ohex) return
-	moveUnitTo(u, u.ohex, true)
-	unit.removeMark1(u)
-	delete u.ohex
 }
 
 // ----------------------------------------------------------------------
@@ -301,7 +192,7 @@ function updateHexInfo(h, hex) {
 // Movement
 
 function removeD() {
-	for (const h of hexMap.values()) delete h.d
+	for (const h of map.hexMap.values()) delete h.d
 }
 function blocked(h, n, i) {
 	if (!n.prop) return false
@@ -343,13 +234,13 @@ function getMovementCost(h,n,i,u) {
 	if (h.edges && h.edges.charAt(i) == 'u') return 3
 	return 1
 }
-grid.mapFunctions(getAxial, blocked, getMovementCost, removeD)
+grid.mapFunctions(map.getAxial, blocked, getMovementCost, removeD)
 
 let selectedUnit
 let allowedHexes
 function unitClick(e) {
 	let u = unit.fromImg(e.target)
-	let h = getHex(u.hex)
+	let h = map.getHex(u.hex)
 	// Check if this click i a movement-click (not a unit-select click)
 	if (allowedHexes && allowedHexes.has(h)) return
 	removeMarkers()				// (clears allowedHexes)
@@ -364,15 +255,15 @@ function moveSelectedUnit(h) {
 	if (!selectedUnit || !allowedHexes) return
 	if (!allowedHexes.has(h)) return
 	removeMarkers()
-	moveUnitTo(selectedUnit, h.hex, true)
+	unit.moveTo(selectedUnit, h.hex)
 }
 function recomputeZOC() {
-	for (const h of hexMap.values()) delete h.zoc
+	for (const h of map.hexMap.values()) delete h.zoc
 	for (const u of units) {
 		if (u.nat != 'en') continue
 		if (u.type == 'gen') continue
 		if (!u.hex) continue
-		const h = getHex(u.hex)
+		const h = map.getHex(u.hex)
 		for (n of grid.neighboursAxial(h.ax)) {
 			if (n) n.zoc = true
 		}
@@ -383,7 +274,7 @@ function recomputeZOC() {
 		if (u.nat != 'en') continue
 		if (u.type == 'gen') continue
 		if (!u.hex) continue
-		const h = getHex(u.hex)
+		const h = map.getHex(u.hex)
 		delete h.zoc
 	}
 	markZOC()
@@ -397,7 +288,7 @@ function markZOC() {
 	if (!zocMarkers) return
 	zocMarkers.destroy()
 	zocMarkers = new Konva.Group()
-	for (const h of hexMap.values()) {
+	for (const h of map.hexMap.values()) {
 		if (h.zoc) {
 			zocMarkers.add(zocMarker.clone({
 				position: grid.hexToPixel(h.hex),
@@ -416,28 +307,25 @@ function toggleZOC() {
 	}
 }
 
+function rotateStack(e) {
+	let pos = board.getRelativePointerPosition()
+	let hex = grid.pixelToHex(pos)
+	unit.rotateStack(hex)
+	removeMarkers()
+}
+
 // ----------------------------------------------------------------------
 // Main
 ;(async () => {
-	let mapImg = new Image()
-	mapImg.src = mapData
-	await new Promise(resolve => mapImg.onload = resolve)
-	let map = new Konva.Image({
-		image: mapImg,
-	})
+	let mapImage = await map.mapImage(mapData)
 	grid.configure(50)
-	// Lesson to learn:
-	// An SVG map seems to be re-rendered on drag, which burns a lot
-	// of CPU. Pre-render the map-image - and drag seem more or less free
-	if (true) {
-		mapImg = await map.toImage()
-		map = new Konva.Image({
-			image: mapImg,
-		})
-	}
 	await unit.init(units, nations, 0.75)
-	initMap()
-	board.add(map)
+	map.init({
+        width: 28,
+        height: 23,
+        mapProperties: mapProperties,
+    })
+	board.add(mapImage)
 	//createHelpBox()
 	createHexInfoBox()
 	updateHexInfo()
