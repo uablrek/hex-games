@@ -1,0 +1,15 @@
+{
+  "name": "the-hill",
+  "version": "1.0.0",
+  "description": "Battle for The Hill",
+  "main": "main.js",
+  "scripts": {
+  },
+  "keywords": [],
+  "author": "",
+  "license": "CC0",
+  "type": "module",
+  "dependencies": {
+	  "konva": "^10.0.12"
+  }
+}

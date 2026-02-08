@@ -20,6 +20,10 @@ const keyFn = [
 	{key: ' ', fn:setEdge},
 	{key: 'u', fn:setEdge},
 
+	{key: 'a', fn:setFunc},
+	{key: 'A', fn:setFunc},
+	{key: 'b', fn:setFunc},
+	{key: 'B', fn:setFunc},
 	{key: 'f', fn:setFunc},
 	{key: 'F', fn:setFunc},
 	{key: 'e', fn:setFunc},
@@ -32,6 +36,8 @@ const keyFn = [
 	{key: 'W', fn:setFunc},
 	{key: 'm', fn:setFunc},
 	{key: 'M', fn:setFunc},
+	{key: 'o', fn:setFunc},
+	{key: 'O', fn:setFunc},
 	{key: '-', fn:setFunc},
 
 	{key: 'p', fn:function (e) {if (propMarkFn) propMarkFn()}},
@@ -137,11 +143,14 @@ const helpTxt =
 	  'j - Save map data\n' +
 	  'p - Show properties or edges\n' +
 	  '- - Examine hexes\n' +
+	  'a,A - Deployment area set/delete\n' +
+	  'b,B - Deployment area set/delete\n' +
 	  'f,F - Forrest set/delete\n' +
 	  'r,R - River set/delete\n' +
 	  'm,M - Mountain set/delete\n' +
 	  'w,W - Water set/delete\n' +
 	  'x,X - Forbidden set/delete\n' +
+	  'o,O - Objective set/delete\n' +
 	  'e,E - Edge set/delete\n' +
 	  'u,.,sp - Edge definition\n' +
 	  ''
@@ -195,6 +204,36 @@ function updateFunc() {
 		break
 	case 'W':
 		funcText = "Clear Water"
+		propMarkFn = markProp
+		funcFn = clearProp
+		break
+	case 'o':
+		funcText = "Set Objective"
+		propMarkFn = markProp
+		funcFn = setProp
+		break
+	case 'O':
+		funcText = "Clear Objective"
+		propMarkFn = markProp
+		funcFn = clearProp
+		break
+	case 'a':
+		funcText = "Set Deplyment A"
+		propMarkFn = markProp
+		funcFn = setProp
+		break
+	case 'A':
+		funcText = "Clear Deplyment A"
+		propMarkFn = markProp
+		funcFn = clearProp
+		break
+	case 'b':
+		funcText = "Set Deplyment B"
+		propMarkFn = markProp
+		funcFn = setProp
+		break
+	case 'B':
+		funcText = "Clear Deplyment B"
 		propMarkFn = markProp
 		funcFn = clearProp
 		break

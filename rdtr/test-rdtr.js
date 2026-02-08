@@ -10,7 +10,7 @@
 */
 
 import assert from 'node:assert/strict'
-import * as unit from './units.js'
+import * as unit from './rdtr-unit.js'
 import * as map from './rdtr-map.js'
 import * as rdtr from './rdtr.js'
 unit.init()

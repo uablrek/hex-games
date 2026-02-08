@@ -186,6 +186,21 @@ cmd_mapgen2_build() {
 	test -x "$BROWSER" || die "Not executable [$BROWSER]"
 	GTK_MODULES= $BROWSER --new-window file://$WS/mapgen2/embed.html
 }
+##   unit-test
+##     Execute unit-tests
+cmd_unit_test() {
+	cd $dir/test
+	node ./test.js || die "Local tests failed"
+	appdir
+	cp $dir/lib/* $__appd
+	cp $dir/rdtr/rdtr-unit.js $dir/rdtr/rdtr-map.js $dir/rdtr/rdtr.js \
+		$dir/rdtr/lstore $dir/rdtr/test-rdtr.js $dir/rdtr/png-data.js \
+		$dir/rdtr/rdtr-map.json $__appd
+	cd $__appd
+	mv lib.js hex-games.js
+	npm link konva || "die npm link konva"
+	node --localstorage-file=lstore test-rdtr.js || die "RDTR tests failed"
+}
 ##   release
 ##     Create a release zip-file
 cmd_release() {
@@ -194,7 +209,8 @@ cmd_release() {
 	export __open=no
 	export __bundle=yes
 	local app
-	for app in grid units bfw-map map-maker movement rdtr; do
+	for app in grid units bfw-map map-maker movement rdtr combat\
+		the-hill; do
 		$me build --appd=$tmp/$app $dir/$app
 	done
 	cd $tmp
@@ -293,8 +309,8 @@ cmd_rdtr_build() {
 	src=$dir/rdtr
 	appdir
 	cp $src/figures/* $src/scenario/* $src/*.html $src/*.js $src/*.json $__appd
-	cp $dir/lib/units.js $dir/lib/textbox.js $dir/lib/hex-grid.js \
-		$dir/lib/sequence.js $__appd
+	cp $dir/lib/* $__appd
+	mv $__appd/lib.js $__appd/hex-games.js
 	cp $dir/lib/unit-images-empty.js $__appd/unit-images.js
 	cd $__appd
 	local sub

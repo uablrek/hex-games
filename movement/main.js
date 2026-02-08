@@ -255,6 +255,7 @@ function moveSelectedUnit(h) {
 	if (!selectedUnit || !allowedHexes) return
 	if (!allowedHexes.has(h)) return
 	removeMarkers()
+	selectedUnit.img.moveToTop()
 	unit.moveTo(selectedUnit, h.hex)
 }
 function recomputeZOC() {

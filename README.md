@@ -23,6 +23,12 @@ in your browser. No dependencies needed!
 **WARNING:** On Ubuntu Linux, Firefox may run in a "snap sandbox", so
   you can't browse local files. If so, I suggest to switch to Chrome.
 
+**WARNING:** On Windows you can click on the zip-file without
+  unpacking it. This is **not sufficient**. The zip-file must be extracted.
+
+In `2.1.0` a playable (sort of) example game is included:
+[The battle for The Hill](./the-hill/README.md)
+
 
 ## Development
 

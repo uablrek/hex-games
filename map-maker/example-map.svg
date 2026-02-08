@@ -305,14 +305,15 @@
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
      inkscape:zoom="1.3172389"
-     inkscape:cx="699.94896"
-     inkscape:cy="397.8018"
+     inkscape:cx="636.93837"
+     inkscape:cy="399.32012"
      inkscape:window-width="2560"
      inkscape:window-height="1379"
      inkscape:window-x="0"
      inkscape:window-y="37"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" />
+     inkscape:current-layer="layer1"
+     showguides="false" />
   <metadata
      id="metadata2">
     <rdf:RDF>
@@ -372,16 +373,6 @@
        rx="168.80597"
        cy="394.04443"
        cx="197.75003" />
-    <text
-       xml:space="preserve"
-       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:26.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold Italic';opacity:0.45360852"
-       x="154.7424"
-       y="396.362"
-       id="text6202"><tspan
-         sodipodi:role="line"
-         id="tspan6200"
-         x="154.7424"
-         y="396.362">The Hill</tspan></text>
     <path
        style="fill:#dedede;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 449.60311,1002.2756 115.84182,-188.68607 124.7459,4.51151 105.70592,184.48666 z"
@@ -419,6 +410,16 @@
        d="m 174.818,464.20058 25.88218,12.2532 26.59531,-14.23391 21.78011,13.38494 29.25681,-15.16932 -0.0138,-29.20209 23.95184,-13.37303 -1.59631,-29.11405 -23.74898,-12.96366 -4.64084,-27.68862 -22.45211,-17.07678 -0.38538,-25.54338 -23.91477,-14.44186 -27.44038,14.06193 -21.79637,-14.17557 -25.7214,13.6441 0.75916,29.94543 -27.47647,13.7344 2.0775,26.79435 -26.276681,13.41121 0.641111,32.00146 25.93923,11.43902 0.25837,30.23681 24.45405,13.62325 z"
        id="path367"
        sodipodi:nodetypes="ccccccccccccccccccccccccc" />
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:26.6667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold Italic';opacity:0.45360852"
+       x="154.7424"
+       y="396.362"
+       id="text6202"><tspan
+         sodipodi:role="line"
+         id="tspan6200"
+         x="154.7424"
+         y="396.362">The Hill</tspan></text>
     <path
        style="fill:#2c7ddb;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:1"
        d="M 463.04016,-0.12031059 550.591,129.75104 1399.6681,120.92713 1399.089,-0.16092381 Z"
@@ -433,6 +434,38 @@
          id="tspan979"
          x="866.97192"
          y="66.741982">The Lake</tspan></text>
+    <path
+       sodipodi:type="star"
+       style="fill:none;stroke:#545454;stroke-width:2;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
+       id="path1464"
+       inkscape:flatsided="false"
+       sodipodi:sides="5"
+       sodipodi:cx="-67.905327"
+       sodipodi:cy="144.50237"
+       sodipodi:r1="15.136601"
+       sodipodi:r2="7.7524958"
+       sodipodi:arg1="0.99401874"
+       sodipodi:arg2="1.6545047"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="m -59.65095,157.19023 -8.902568,-4.96251 -8.867944,4.04579 1.968588,-10.00035 -6.588125,-7.18369 10.119223,-1.21804 4.796259,-8.48557 4.285435,9.24756 9.552376,1.93933 -7.470678,6.93335 z"
+       transform="matrix(0.6292929,-0.02932407,0.02540696,0.72631388,238.87896,255.68371)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#path1464"
+       id="use2020"
+       transform="translate(-26.189202,44.788469)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#use2020"
+       id="use2022"
+       transform="translate(50.94132,-0.3825188)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-dasharray:2, 4;stroke-dashoffset:0"
+       d="m 612.80898,813.88422 121.60835,-218.90688 173.9155,3.99928"
+       id="path375" />
   </g>
   <rect
      x="0"

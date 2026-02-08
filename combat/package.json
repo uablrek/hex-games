@@ -1,0 +1,15 @@
+{
+  "name": "combat",
+  "version": "1.0.0",
+  "description": "Combat example",
+  "main": "main.js",
+  "scripts": {
+  },
+  "keywords": [],
+  "author": "",
+  "license": "CC0",
+  "type": "module",
+  "dependencies": {
+	  "konva": "^10.0.12"
+  }
+}
