@@ -8,7 +8,7 @@ English troops. The French must secure "The Hill" within 2 hours
 game-time (8 turns).
 
 By default the English are pre-deployed and stands passive. Only the
-French player takes turns. This can be changes with the `passiveBrits`
+French player takes turns. This can be changed with the `passiveBrits`
 variable. Since time is a factor, this is not as easy as it seems. Bad
 tactics, or bad luck will result in an English victory.
 
@@ -20,6 +20,7 @@ tactics, or bad luck will result in an English victory.
 * Stacking limit is 2
 * To leave the river cost 2mp
 * To move upslope cost 3mp
+* All units have a Zone of Control (ZOC) in the 6 hexes around it
 * To move in ZOC cost an additional 3mp
 * ZOC does not extend into forrest or mountain
 * There is no advance after combat
