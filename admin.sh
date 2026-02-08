@@ -209,8 +209,7 @@ cmd_release() {
 	export __open=no
 	export __bundle=yes
 	local app
-	for app in grid units bfw-map map-maker movement rdtr combat\
-		the-hill; do
+	for app in grid units map-maker movement rdtr combat the-hill; do
 		$me build --appd=$tmp/$app $dir/$app
 	done
 	cd $tmp

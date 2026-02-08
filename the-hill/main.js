@@ -408,6 +408,7 @@ function createHelpBox() {
 		  'h - This help\n' +
 		  'Enter,x - Next phase\n' +
 		  'r - Regret move\n' +
+		  'a - Attack\n' +
 		  'Space - Rotate Stack\n'
 	if (theHelpBox) return
 	theHelpBox = box.info({
