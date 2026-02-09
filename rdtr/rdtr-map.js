@@ -18,9 +18,7 @@ import Konva from 'konva'
 
 // Enable testing with node.js
 var newImage = function() { return new Image() }
-if (localStorage.getItem("nodejsTest") == "yes") {
-	newImage = function() { return {} }
-}
+if (typeof document == 'undefined') newImage = function() { return {} }
 
 // The Map image
 import {mapImageData} from './png-data.js'

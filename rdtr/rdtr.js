@@ -11,9 +11,7 @@ import * as box from './textbox.js'
 
 // Enable testing with node.js
 var newImage = function() { return new Image() }
-if (localStorage.getItem("nodejsTest") == "yes") {
-	newImage = function() { return {} }
-}
+if (typeof document == 'undefined') newImage = function() { return {} }
 
 // User Interface. A <p id="input"> at the bottom of the page.
 // initUI must be called *after* loadSave/loadScenario because the

@@ -7,9 +7,7 @@ import * as map from './rdtr-map.js';
 
 // Enable testing with node.js
 var newImage = function() { return new Image() }
-if (localStorage.getItem("nodejsTest") == "yes") {
-	newImage = function() { return {} }
-}
+if (typeof document == 'undefined') newImage = function() { return {} }
 
 // ----------------------------------------------------------------------
 // The UnitSheet class is made complicated by the "layout" element. It

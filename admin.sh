@@ -194,12 +194,12 @@ cmd_unit_test() {
 	appdir
 	cp $dir/lib/* $__appd
 	cp $dir/rdtr/rdtr-unit.js $dir/rdtr/rdtr-map.js $dir/rdtr/rdtr.js \
-		$dir/rdtr/lstore $dir/rdtr/test-rdtr.js $dir/rdtr/png-data.js \
+		$dir/rdtr/test-rdtr.js $dir/rdtr/png-data.js \
 		$dir/rdtr/rdtr-map.json $__appd
 	cd $__appd
 	mv lib.js hex-games.js
 	npm link konva || "die npm link konva"
-	node --localstorage-file=lstore test-rdtr.js || die "RDTR tests failed"
+	node test-rdtr.js || die "RDTR tests failed"
 }
 ##   release
 ##     Create a release zip-file

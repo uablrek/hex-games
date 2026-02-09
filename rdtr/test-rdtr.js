@@ -1,12 +1,5 @@
 /*
-  Invoke with: node --localstorage-file=lstore test-rdtr.js
-
-  Before testing run a program (once) with:
-    localStorage.setItem("nodejsTest", "yes")
-  then keep the "lstore" file
-
-  This tells rdtr.js that the Web API is limited, e.g "new Image()"
-  doesn't work.
+  Invoke with: node test-rdtr.js
 */
 
 import assert from 'node:assert/strict'

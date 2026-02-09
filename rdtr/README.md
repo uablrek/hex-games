@@ -147,7 +147,6 @@ to learn about the program.
 I want to run unit tests with `node.js`:
 ```
 npm link konva   # (once)
-node --localstorage-file=lstore test-rdtr.js
 ```
 
 However, `node.js` is not the same as a browser. Fortunately only
@@ -156,15 +155,7 @@ However, `node.js` is not the same as a browser. Fortunately only
 ```javascript
 // Enable testing with node.js
 var newImage = function() { return new Image() }
-if (localStorage.getItem("nodejsTest") == "yes") {
-	newImage = function() { return {} }
-}
-```
-
-The `lstore` file is filled *before* unit test with:
-
-```javascript
-localStorage.setItem("nodejsTest", "yes")
+if (typeof document == 'undefined') newImage = function() { return {} }
 ```
 
 **TODO:** Improve code structure. Since I haven't worked with a larger
