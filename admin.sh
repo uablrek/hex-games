@@ -209,9 +209,11 @@ cmd_release() {
 	export __open=no
 	export __bundle=yes
 	local app
-	for app in grid units map-maker movement rdtr combat the-hill; do
+	for app in grid units map-maker movement rdtr combat the-hill\
+		the-hill-mp; do
 		$me build --appd=$tmp/$app $dir/$app
 	done
+	$me run --bundle --appd=$tmp/the-hill-server the-hill-mp/server
 	cd $tmp
 	rm -f rdtr/rdtrSaveData.js
 	rm -f $TEMP/hex-games.zip
@@ -234,7 +236,7 @@ cmd_build() {
 	shift
 	appdir
 	cp $dir/lib/* $__appd
-	cp $src/* $__appd
+	cp $src/* $__appd 2> /dev/null # silently ignore dir's
 	cd $__appd
 	test -r ./index.html || generateIndex
 	mv lib.js hex-games.js
@@ -302,8 +304,9 @@ generateIndex() {
 </html>
 EOF
 }
-##   run <dir> [esbuild options...]
-##     Run an application with "node"
+##   run [--bundle] <dir> [esbuild options...]
+##     Run an application with "node". --bundle builds "bundle.cjs" but
+##     does not run it
 cmd_run() {
 	src $1
 	shift
@@ -317,7 +320,6 @@ cmd_run() {
 		esbuild --bundle --outfile=bundle.cjs --platform=node $@ $main \
 			|| die esbuild
 		rm -rf build.sh *.js package.json node_modules
-		node bundle.cjs
 	else
 		node $main
 	fi
