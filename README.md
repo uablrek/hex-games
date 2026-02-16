@@ -48,9 +48,20 @@ admin <tab><tab>         # suggest available commands
 
 Set environment variables if necessary. Example:
 ```
-export GITHUBD=$HOME/go/src/github.com
-export BROWSER=/opt/google/chrome/chrome
+export GITHUBD=$HOME/go/src/github.com    # (only needed for mapgen2)
+export BROWSER=/opt/google/chrome/chrome  # needed for --open
 ```
+
+Admin builds in a temp area. Files are copied, `esbuild` is invoked,
+and files used for building are removed. Usually only `bundle.js` and
+`index.html` should remain.
+
+```
+admin env | grep __appd        # the application is built in $__appd
+admin build --open the-hill    # build "the-hill" and open it with $BROWSER
+```
+
+
 
 ### Versioning
 
@@ -232,6 +243,30 @@ create a key something like:
 ```javascript
   let key = hex.x + hex.y * 1000
 ```
+
+## Multi-player
+
+<img src="./figures/game-server.svg" width="50%" />
+
+Multi-player gaming requires a server. An AI can of course be in the
+server. This is supposed to be interactive, so [websockets](
+https://en.wikipedia.org/wiki/WebSocket) are used. How functions can
+be distributed between the server and clients is described in a good
+way in [this post](https://longwelwind.net/blog/networking-turn-based-game/).
+The extremes are something like:
+
+* The server only relays messages between players. It knows nothing
+  about the game (and can thus be generic)
+
+* The server controls everything. The clients just send user actions
+  to the server, and updates the UI on server commands
+
+Both have pros and cons, and probably something in between may be
+appropriate. Anyway, this is game specific.
+
+[the-hill-mp](./the-hill-mp/README.md) is a multi player version of
+[The Battle for The Hill](./the-hill/README.md) example game. A dumb
+server is used since the client already have all functions.
 
 ## Red Blob Games
 

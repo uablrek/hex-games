@@ -1,0 +1,15 @@
+{
+  "name": "the-hill-mp",
+  "version": "1.0.0",
+  "description": "Battle for The Hill -Multi player",
+  "main": "main.js",
+  "scripts": {
+  },
+  "keywords": [],
+  "author": "",
+  "license": "CC0-1.0",
+  "type": "module",
+  "dependencies": {
+	  "konva": "^10.0.12"
+  }
+}

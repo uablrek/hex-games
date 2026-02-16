@@ -198,7 +198,7 @@ cmd_unit_test() {
 		$dir/rdtr/rdtr-map.json $__appd
 	cd $__appd
 	mv lib.js hex-games.js
-	npm link konva || "die npm link konva"
+	npm link --silent konva || "die npm link konva"
 	node test-rdtr.js || die "RDTR tests failed"
 }
 ##   release
@@ -218,7 +218,7 @@ cmd_release() {
 	zip -r $TEMP/hex-games.zip .
 	echo "Created [$TEMP/hex-games.zip]"
 }
-##   build [--appd=dir] [--clean] [--open] <dir>
+##   build [--appd=dir] [--clean] [--open] <dir> [esbuild-opts...]
 ##     Build an example/project.
 ##     --clean - Delete existing appd. This is default in $TEMP
 ##     --open - Open in $BROWSER after succesful build
@@ -231,6 +231,7 @@ cmd_build() {
 		cmd_rdtr_build $@
 		return
 	fi
+	shift
 	appdir
 	cp $dir/lib/* $__appd
 	cp $src/* $__appd
@@ -238,10 +239,9 @@ cmd_build() {
 	test -r ./index.html || generateIndex
 	mv lib.js hex-games.js
 	test -r build.sh && . ./build.sh
-	local minify
-	test "$__minify" = "yes" && minify="--minify"
-	esbuild --bundle --outfile=bundle.js --loader:.svg=dataurl $minify \
-		--loader:.png=dataurl --loader:.jpg=dataurl . || die esbuild
+	esbuild --bundle --outfile=bundle.js --loader:.svg=dataurl \
+		--loader:.png=dataurl --loader:.jpg=dataurl \
+		$@ . || die esbuild
 	# Remove everything except index.html and bundle.js
 	local f
 	for f in $(find . -type f); do
@@ -260,7 +260,7 @@ cmd_open() {
 	test -n "$1" && page="$1"
 	local file=$(echo "$page" | cut -d'?' -f1)
 	test -r "./$file" || die "Not readable [$__appd/$file]"
-	if which xdotool > /dev/null; then
+	if which xdotool > /dev/null && test "$__keep" != "yes"; then
 		# Try to close the old window
 		# https://askubuntu.com/questions/616738/how-do-i-close-a-new-firefox-window-from-the-terminal
 		# TODO: examine why this works with Firefox, but not with Chrome
@@ -302,6 +302,26 @@ generateIndex() {
 </html>
 EOF
 }
+##   run <dir> [esbuild options...]
+##     Run an application with "node"
+cmd_run() {
+	src $1
+	shift
+	appdir
+	#cp $dir/lib/* $__appd
+	cp $src/* $__appd
+	cd $__appd
+	test -r build.sh && . ./build.sh
+	if test "$__bundle" = "yes"; then
+		which esbuild > /dev/null || die 'Not in $PATH [esbuild]'
+		esbuild --bundle --outfile=bundle.cjs --platform=node $@ $main \
+			|| die esbuild
+		rm -rf build.sh *.js package.json node_modules
+		node bundle.cjs
+	else
+		node $main
+	fi
+}
 ##   rdtr-build [--appd=dir] [--clean] [--demos] [--open] page
 ##     Build the "Rise and Decline of the Third Reich" (rdtr) project
 cmd_rdtr_build() {
@@ -315,6 +335,7 @@ cmd_rdtr_build() {
 	local sub
 	local bundles="rdtr-game"
 	if test "$__demos" = "yes"; then
+		test "$__bundle" = "yes" && die "Can't set both --demo and --bundle"
 		cp $src/demos/* $__appd
 		bundles="$bundles map-demo units-demo drag-demo deployment-demo restore-demo map-maker map-demo2 seq-demo"
 	else
@@ -330,7 +351,8 @@ cmd_rdtr_build() {
 	# Clean up
 	rm -f rdtr.js test-rdtr.js rdtr-unit.js rdtr-map.js textbox.js *.json \
 		1939-initial-phase.png portsmouth.png png-data-bundle.js png-data.js \
-		units.js unit-images.js
+		units.js unit-images.js grid.js hex-games.js map.js remote-data.js \
+		sequence.js setup.js unit-images-empty.js hussar.svg
 	test "$__bundle" = "yes" && rm -f *.png
 	test "$__open" != "yes" && return 0
 	cmd_open "$1"
