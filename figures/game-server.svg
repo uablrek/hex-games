@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="240.08174mm"
+   height="53.284279mm"
+   viewBox="0 0 907.39557 201.3894"
+   version="1.1"
+   id="SVGRoot"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="game-controller.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="407.5"
+     inkscape:cy="181"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1717"
+     inkscape:window-height="1013"
+     inkscape:window-x="464"
+     inkscape:window-y="220"
+     inkscape:window-maximized="0"
+     inkscape:pagecheckerboard="0"
+     units="mm"
+     fit-margin-left="10"
+     fit-margin-top="10"
+     fit-margin-right="10"
+     fit-margin-bottom="10"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1" />
+  <defs
+     id="defs3737">
+    <marker
+       style="overflow:visible"
+       id="TriangleStart"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="TriangleStart"
+       markerWidth="5.3244081"
+       markerHeight="6.155385"
+       viewBox="0 0 5.3244081 6.1553851"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135" />
+    </marker>
+    <marker
+       inkscape:stockid="DotL"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker5317"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path5315"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         transform="matrix(0.8,0,0,0.8,5.92,0.8)" />
+    </marker>
+  </defs>
+  <metadata
+     id="metadata3740">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     inkscape:groupmode="layer"
+     inkscape:label="Layer 1"
+     transform="translate(-119.26453,-243.57202)">
+    <g
+       id="g489"
+       transform="translate(36.769958,44.748047)">
+      <rect
+         style="fill:#d1d7c1;fill-opacity:1;stroke:#000000;stroke-width:1.7;stop-color:#000000"
+         id="rect287"
+         width="221.27905"
+         height="126.92773"
+         x="424.02112"
+         y="237.08112"
+         ry="36.158417" />
+      <text
+         xml:space="preserve"
+         style="font-size:24px;line-height:1.25;font-family:sans-serif"
+         x="450.59717"
+         y="309.54498"
+         id="text1059"><tspan
+           sodipodi:role="line"
+           id="tspan1057"
+           x="450.59717"
+           y="309.54498">Server/backend</tspan></text>
+    </g>
+    <g
+       id="g3586"
+       transform="translate(-4,-5.5288123)">
+      <rect
+         style="fill:#d7d3c1;fill-opacity:1;stroke:#000000;stroke-width:1.7;stop-color:#000000"
+         id="rect1997"
+         width="141.8479"
+         height="102.59607"
+         x="145.61945"
+         y="299.5238"
+         ry="24.70755" />
+      <text
+         xml:space="preserve"
+         style="font-size:24px;line-height:1.25;font-family:sans-serif"
+         x="180.62741"
+         y="357.06183"
+         id="text2843"><tspan
+           sodipodi:role="line"
+           id="tspan2841"
+           x="180.62741"
+           y="357.06183">Player</tspan></text>
+    </g>
+    <g
+       id="g5682"
+       transform="translate(-28,-5.5288123)">
+      <rect
+         style="fill:#d7d3c1;fill-opacity:1;stroke:#000000;stroke-width:1.7;stop-color:#000000"
+         id="rect3588"
+         width="141.8479"
+         height="102.59607"
+         x="887.39386"
+         y="299.5238"
+         ry="24.70755" />
+      <text
+         xml:space="preserve"
+         style="font-size:24px;line-height:1.25;font-family:sans-serif;text-align:center;text-anchor:middle"
+         x="957.3338"
+         y="344.82184"
+         id="text3592"><tspan
+           sodipodi:role="line"
+           id="tspan3590"
+           x="957.3338"
+           y="344.82184">Player</tspan><tspan
+           sodipodi:role="line"
+           x="957.3338"
+           y="374.82184"
+           id="tspan3669">or AI</tspan></text>
+    </g>
+    <path
+       style="fill:none;stroke:#949494;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#TriangleStart);marker-end:url(#TriangleStart)"
+       d="M 319.18973,345.29303 H 425.06869"
+       id="path3725" />
+    <path
+       style="fill:none;stroke:#949494;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#TriangleStart);marker-end:url(#TriangleStart)"
+       d="M 717.79251,345.29303 H 823.67147"
+       id="path4018" />
+  </g>
+</svg>
