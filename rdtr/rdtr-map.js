@@ -15,18 +15,7 @@
 */
 
 import Konva from 'konva'
-
-// Enable testing with node.js
-var newImage = function() { return new Image() }
-if (typeof document == 'undefined') newImage = function() { return {} }
-
-// The Map image
-import mapImageData from './rdtr-map.png'
-const mapImg = newImage();
-mapImg.src = mapImageData
-export const map = new Konva.Image({
-    image: mapImg,
-});
+import * as images from './rdtr-images.js'
 
 // Map Hexes:
 // {hex: {x:0,y:0}, nat:"", edges:"" prop:""},
@@ -116,8 +105,8 @@ export function getAxial(ax) {
 
 // Call with "await" to load the map synchronously
 export async function load(board) {
+	const map = await images.map()
 	board.add(map)
-	await new Promise(resolve => mapImg.onload = resolve)
 }
 
 // ----------------------------------------------------------------------

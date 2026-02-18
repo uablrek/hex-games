@@ -4,12 +4,7 @@
   https://github.com/uablrek/hex-games/tree/main/rdtr
  */
 import * as map from './rdtr-map.js';
-import * as unit from './units.js'
-
-// Enable testing with node.js
-var newImage = function() { return new Image() }
-if (typeof document == 'undefined') newImage = function() { return {} }
-
+import {unit, box} from './hex-games.js'
 
 // An array of all units.
 // { type:"inf", nat: "fr", m:2, s:3, lbl:"8",
@@ -852,10 +847,6 @@ function placedUnits() {
 // A draggable shaded box with units (prototype in "deployment-demo.js")
 // TODO: move UnitBox to "units.js"?
 
-// A traditional "close" button
-export const X = newImage()
-X.src = "data:image\/svg+xml,<svg width=\"80\" height=\"80\" viewBox=\"0 0 80 80\" xmlns=\"http://www.w3.org/2000/svg\"> <rect x=\"2\" y=\"2\" width=\"76\" height=\"76\" fill=\"none\" stroke=\"white\" stroke-width=\"4\"/> <path d=\"M 15 15 L 65 65 M 15 65 L 65 15\" stroke=\"white\" stroke-width=\"10\" fill=\"none\"/> </svg>"
-
 // Singelton for now
 let theUnitBox
 
@@ -906,12 +897,12 @@ export class UnitBox {
 			opacity: 0.75,
 			cornerRadius: 20,
 		}))
-		let close = new Konva.Image({
+		let close = box.X.clone({
 			x: width - 40,
 			y: 15,
-			image: X,
 			scale: {x:0.3,y:0.3},
 		})
+		box.setStrokeX(close, 'white')
 		this.box.add(close)
 		close.on('click', UnitBox.#destroy)
 		this.box.add(new Konva.Text({

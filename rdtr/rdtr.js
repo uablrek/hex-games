@@ -7,11 +7,8 @@
 import Konva from 'konva';
 import * as unit from './rdtr-unit.js'
 import * as map from './rdtr-map.js'
+import * as images from './rdtr-images.js'
 import {box, setup} from './hex-games.js'
-
-// Enable testing with node.js
-var newImage = function() { return new Image() }
-if (typeof document == 'undefined') newImage = function() { return {} }
 
 // User Interface. A <p id="input"> at the bottom of the page.
 // initUI must be called *after* loadSave/loadScenario because the
@@ -75,6 +72,7 @@ export async function setStage(container) {
 		u.img.on('click', unitClicked)
 	}
 	setup.setKeys(keyFn, keyUpFn)
+	combatChartImage = await images.crt()
 }
 
 // Adjust position so a box is visible even if the board is dragged
@@ -467,18 +465,7 @@ function checkUnits(msg = "") {
 // A box with the combat chart, and a die
 
 let theCombatBox
-const X = newImage()
-X.src = 'data:image/svg+xml,<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"> <rect x="2" y="2" width="76" height="76" fill="none" stroke="black" stroke-width="4"/> <path d="M 15 15 L 65 65 M 15 65 L 65 15" stroke="black" stroke-width="10" fill="none"/></svg>'
-
-const combatChartImg = newImage()
-import combatChartData from './rdtr-combat-chart.png'
-combatChartImg.src = combatChartData
-const combatChartImage = new Konva.Image({
-	x: 0,
-	y: 0,
-	image: combatChartImg,
-})
-
+let combatChartImage
 class CombatBox {
 	x = 400
 	y = 100
@@ -509,12 +496,12 @@ class CombatBox {
 		})
 		this.#box.on('dragstart', moveToTop)
 		this.#box.add(combatChartImage)
-		let close = new Konva.Image({
+		let close = box.X.clone({
 			x: combatChartImage.width() - 40,
 			y: 15,
-			image: X,
-			scale: {x:0.3,y:0.3},
+			scale: {x:0.35,y:0.35},
 		})
+		box.setStrokeX(close, 'black')
 		this.#box.add(close)
 		close.on('click', CombatBox.#destroy)
 		let dieBox = new Konva.Rect({

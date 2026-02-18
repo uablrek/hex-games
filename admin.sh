@@ -193,9 +193,9 @@ cmd_unit_test() {
 	node ./test.js || die "Local tests failed"
 	appdir
 	cp $dir/lib/* $__appd
-	cp $dir/rdtr/rdtr-unit.js $dir/rdtr/rdtr-map.js $dir/rdtr/rdtr.js \
-		$dir/rdtr/test-rdtr.js $dir/rdtr/png-data.js \
+	cp $dir/rdtr/rdtr-unit.js $dir/rdtr/rdtr-map.js $dir/rdtr/test-rdtr.js \
 		$dir/rdtr/rdtr-map.json $__appd
+	echo "export function map() {return{}}" > $__appd/rdtr-images.js
 	cd $__appd
 	mv lib.js hex-games.js
 	npm link --silent konva || "die npm link konva"

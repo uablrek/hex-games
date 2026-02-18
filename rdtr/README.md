@@ -144,23 +144,10 @@ to learn about the program.
 
 ## Unit test
 
-I want to run unit tests with `node.js`:
+Execute with:
 ```
-npm link konva   # (once)
+admin unit-test
 ```
-
-However, `node.js` is not the same as a browser. Fortunately only
-"new Image()" doesn't work. So a "trick" is used ([rdtr.js](rdtr.js)):
-
-```javascript
-// Enable testing with node.js
-var newImage = function() { return new Image() }
-if (typeof document == 'undefined') newImage = function() { return {} }
-```
-
-**TODO:** Improve code structure. Since I haven't worked with a larger
-  JavaScript (or associates) project, I don't know the best practices.
-
 
 ## The map
 

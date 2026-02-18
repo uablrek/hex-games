@@ -122,8 +122,8 @@ const posBox = textBox({
 const clickText = posBox.findOne('.txt')
 info.add(posBox)
 
-map.map.on('click', function() {
-	const pos = map.map.getRelativePointerPosition();
+board.on('click', function() {
+	const pos = board.getRelativePointerPosition();
 	clickText.text(`${pos.x}, ${pos.y}`)
 	let h = map.pixelToHex(pos)
 	hexText.text(`${h.x}, ${h.y}`)
