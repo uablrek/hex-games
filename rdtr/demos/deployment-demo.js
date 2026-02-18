@@ -84,7 +84,7 @@ function place(e) {
 	for (let u of neutrals) {
 		u.img.on('dragstart', place)
 		deploymentBox.add(u.img)
-		let pos, x, y=20, o=60
+		let pos, x, y=50, o=60
 		switch (u.type) {
 		case "inf":
 			x = 0
@@ -97,7 +97,7 @@ function place(e) {
 			x = o * 3
 			break
 		}
-		u.img.position({x:x + 30, y:y})
+		u.img.position({x:x + 60, y:y})
 	}
 	board.add(deploymentBox)
 })()

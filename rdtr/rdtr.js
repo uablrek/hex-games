@@ -7,7 +7,7 @@
 import Konva from 'konva';
 import * as unit from './rdtr-unit.js'
 import * as map from './rdtr-map.js'
-import * as box from './textbox.js'
+import {box, setup} from './hex-games.js'
 
 // Enable testing with node.js
 var newImage = function() { return new Image() }
@@ -59,38 +59,22 @@ function updateBrpUI(natUpdated) {
 
 // Set the stage
 var turn = { year: 0, season: "none" }
-export var stage
-export var board
+var board
 export async function setStage(container) {
 	// Init Konva
 	let input = document.getElementById('input')
-	stage = new Konva.Stage({
+	board = setup.stage({
 		container: container,
 		width: window.innerWidth,
 		height: window.innerHeight - input.offsetHeight,
-	});
-	board = new Konva.Layer({
-		draggable: true,
-	});
-	stage.add(board)
+	})
 	await map.load(board)
-
-	// Make sure all unit images are loaded
 	await unit.init(board)
 	for (const u of unit.units) {
 		u.img.on('dragstart', moveToTop)
 		u.img.on('click', unitClicked)
 	}
-
-	// Listen for kbd events
-	stage.container().tabIndex = 1
-	stage.container().focus();
-	stage.container().addEventListener("keydown", keydown)
-	stage.container().addEventListener("keyup", (e) => {
-		if (e.key == "Shift") {
-			deleteModeOff()
-		}
-	})
+	setup.setKeys(keyFn, keyUpFn)
 }
 
 // Adjust position so a box is visible even if the board is dragged
@@ -108,7 +92,7 @@ const help =
 	"T - Next turn\n" +
 	"c - Combat chart (with die)\n" +
 	"j - Save deployment as json\n" +
-	"Arrow - Rotate stack"
+	"' ' - Rotate stack"
 
 let helpBox = null
 function createHelpBox() {
@@ -147,76 +131,32 @@ function destroyBox(e) {
 }
 box.destroyCallback(destroyBox)
 
-function keydown(e) {
-	if (e.key == "Shift") {
-		deleteModeOn()
-		return
-	}
-	if (e.key == "S" || e.key == "s") {
-		if (e.repeat) return
-		saveGame()
-		deleteModeOff()			// 'Shift' trigs deleteMode
-		return
-	}
-	if (e.key == "b") {
-		if (e.repeat) return
+const keyFn = [
+	{key:'Shift', fn:deleteModeOn},
+	{key:'s', fn:saveGame},
+	{key:'b', fn:()=>{
 		new unit.UnitBoxMajor({
 			text: "Allowable Builds",
 		})
-		return
-	}
-	if (e.key == "a") {
-		if (e.repeat) return
-		new unit.UnitBoxAir()
-		return
-	}
-	if (e.key == "f") {
-		if (e.repeat) return
-		new unit.UnitBoxNav()
-		return
-	}
-	if (e.key == "n") {
-		if (e.repeat) return
-		new unit.UnitBoxNeutrals()
-		return
-	}
-	if (e.key == "h") {
-		if (e.repeat) return
-		createHelpBox()
-		return
-	}
-	if (e.key == "t") {
-		if (e.repeat) return
-		createTurnBox()
-		return
-	}
-	if (e.key == "T") {
-		if (e.repeat) return
+	}},
+	{key:'a', fn:()=>{ new unit.UnitBoxAir }},
+	{key:'f', fn:()=>{ new unit.UnitBoxNav }},
+	{key:'n', fn:()=>{ new unit.UnitBoxNeutrals }},
+	{key:'h', fn:createHelpBox},
+	{key:'t', fn:createTurnBox},
+	{key:'T', fn:()=>{
 		let newAB = stepTurn()
 		createTurnBox()
 		updateTurnBox(newAB)
 		deleteModeOff()
-		return
-	}
-	if (e.key == "c") {
-		if (e.repeat) return
-		new CombatBox({
-			board: board,
-		})
-		return
-	}
-	if (e.key == 'ArrowLeft' || e.key == 'ArrowRight') {
-		if (e.repeat) return
-		rollStack(e.key == 'ArrowLeft')
-		return
-	}
-	if (e.key == "j") {
-		if (e.repeat) return
-		saveJSON()
-		return
-	}
-}
-
+	}},
+	{key:'c', fn:()=>{ new CombatBox({ board: board, }) }},
+	{key:' ', fn:rollStack},
+	{key:'j', fn:saveJSON},
+]
+const keyUpFn = [
+	{key:'Shift', fn:deleteModeOff}
+]
 // Set moveToTop as dragstart by default for unit images
 function moveToTop(e) {
 	e.target.moveToTop()
@@ -224,11 +164,11 @@ function moveToTop(e) {
 let deleteMode = false
 function deleteModeOn() {
 	deleteMode = true
-	stage.container().style.cursor = 'not-allowed'
+	board.getStage().container().style.cursor = 'not-allowed'
 }
 function deleteModeOff() {
 	deleteMode = false
-	stage.container().style.cursor = 'default'
+	board.getStage().container().style.cursor = 'default'
 }
 function unitClicked(e) {
 	let u = unit.fromImage(e.target)
@@ -245,7 +185,6 @@ function rollStack(down) {
 	let minZ = 1000000, bot
 	for (u of h.units) {
 		let z = u.img.zIndex()
-		//console.log(`z ${z}, i ${u.i}`)
 		if (z < minZ) {
 			bot = u
 			minZ = z
@@ -321,47 +260,6 @@ function firstPlayer() {
 		lastTurnFirstPlayer = "allies"
 	return lastTurnFirstPlayer
 }
-
-
-export class Sequence {
-	name
-	// step: { start:fn(), end:fn(), whatever...}
-	steps						// an array of steps
-	currentStep
-	index = 0
-	update						// Called on nextStep()
-	userRef
-	constructor(obj) {
-		for (var prop in obj) {
-			if (obj.hasOwnProperty(prop)) {
-				this[prop] = obj[prop];
-			}
-		}
-	}
-	nextStep() {
-		if (!this.currentStep) {
-			// first step, or beyond last step
-			if (!this.steps) return // (better safe than sorry)
-			if (this.index >= this.steps.length) return
-			this.currentStep = this.steps[0]
-			if (this.currentStep.start) this.currentStep.start(this)
-			if (this.update) this.update(this)
-			return
-		}
-		if (this.currentStep.end) this.currentStep.end(this)
-		this.index++
-		if (this.index >= this.steps.length) {
-			// end of the line
-			this.currentStep = null
-			if (this.update) this.update(this)
-			return
-		}
-		this.currentStep = this.steps[this.index]
-		if (this.currentStep.start) this.currentStep.start(this)
-		if (this.update) this.update(this)
-	}
-}
-
 
 // ----------------------------------------------------------------------
 // Save & Restore related
@@ -573,7 +471,7 @@ const X = newImage()
 X.src = 'data:image/svg+xml,<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"> <rect x="2" y="2" width="76" height="76" fill="none" stroke="black" stroke-width="4"/> <path d="M 15 15 L 65 65 M 15 65 L 65 15" stroke="black" stroke-width="10" fill="none"/></svg>'
 
 const combatChartImg = newImage()
-import {combatChartData} from './png-data.js'
+import combatChartData from './rdtr-combat-chart.png'
 combatChartImg.src = combatChartData
 const combatChartImage = new Konva.Image({
 	x: 0,

@@ -8,6 +8,7 @@ import Konva from 'konva'
 import {setup, grid, box, unit, map} from './hex-games.js'
 import mapData from './example-map.svg'
 import mapProperties from './map-data.json'
+import * as gen from './unit-gen.js'
 
 let board = setup.stage()
 const keyFn = [
@@ -318,9 +319,12 @@ function rotateStack(e) {
 // ----------------------------------------------------------------------
 // Main
 ;(async () => {
+	await gen.init()			// define the "gen" unit type
+	unit.addUnitGenerator('nav', unit.ugenNav)
+	await unit.init(units, nations, 0.75)
+
 	let mapImage = await map.mapImage(mapData)
 	grid.configure(50)
-	await unit.init(units, nations, 0.75)
 	map.init({
         width: 28,
         height: 23,

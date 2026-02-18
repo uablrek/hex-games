@@ -252,24 +252,24 @@ appropriate type, such as a hash-map, or a matrix.
 I use the term `unit` often since "counter" has a different meaning in
 code, and would cause confusion.
 
-Same as for the map, I convert the counter [PDF-sheet](
+Originally I did the same as for the map, I convert the counter [PDF-sheet](
 https://boardgamegeek.com/filepage/246780/third-reich-counters-pdf-for-scaling)
 to (many) PNG files using [Gimp](https://www.gimp.org/). The
 individual counter images are cut out from the sheet with Konva
-`clone/crop`.
+`clone/crop`. The old code is still available in the [units-demo.js](
+demos/units-demo.js).
 
-The counter images must be included in JavaScript as objects that a
-program can handle.
+Now the unit counters are generated from the `units` array:
 
 ```javascript
 const units = [
-        {sheet:fr, pos:{x:0,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"Alp"},
-        {sheet:fr, pos:{x:1,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"Col"},
-        {sheet:fr, pos:{x:2,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"6"},
-        {sheet:fr, pos:{x:3,y:0}, type:"inf", nat: "fr", m:3, s:2, lbl:"7"},
+        {type:"inf", nat: "fr", m:3, s:2, lbl:"Alp"},
+        {type:"inf", nat: "fr", m:3, s:2, lbl:"Col"},
+        {type:"inf", nat: "fr", m:3, s:2, lbl:"6"},
+        {type:"inf", nat: "fr", m:3, s:2, lbl:"7"},
 // ...
-        {sheet:germany, pos:{x:8,y:5}, type:"ab", nat:"ge"},
-        {sheet:germany, pos:{x:8,y:5}, type:"ab", nat:"ge"},
+        {type:"ab", nat:"ge"},
+        {type:"bh", nat:"ge"},
 ];
 ```
 New fields, like "img" and "hex" (on map), are added later.

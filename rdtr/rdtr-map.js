@@ -21,7 +21,7 @@ var newImage = function() { return new Image() }
 if (typeof document == 'undefined') newImage = function() { return {} }
 
 // The Map image
-import {mapImageData} from './png-data.js'
+import mapImageData from './rdtr-map.png'
 const mapImg = newImage();
 mapImg.src = mapImageData
 export const map = new Konva.Image({

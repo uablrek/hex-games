@@ -207,7 +207,6 @@ cmd_release() {
 	mkdir -p $tmp
 	cp $dir/hex-games.html $tmp/index.html
 	export __open=no
-	export __bundle=yes
 	local app
 	for app in grid units map-maker movement rdtr combat the-hill\
 		the-hill-mp; do
@@ -220,6 +219,28 @@ cmd_release() {
 	zip -r $TEMP/hex-games.zip .
 	echo "Created [$TEMP/hex-games.zip]"
 }
+##   rdtr-build-demos [--appd=dir] [--clean] [--open] page
+##     Build the "Rise and Decline of the Third Reich" demos.
+##     Normally invoked with "admin build --demos rdtr"
+cmd_rdtr_build_demos() {
+	src=$dir/rdtr
+	appdir
+	cd $__appd
+	cp $src/figures/tr-counters-* $src/figures/rdtr-map.png \
+		$src/figures/rdtr-combat-chart.png .
+	cp $src/*.json $src/*.js $src/demos/* .
+	cp $dir/lib/* .
+	mv lib.js hex-games.js
+	local sub
+	cp $src/demos/* $__appd
+	for sub in map-demo units-demo drag-demo deployment-demo restore-demo\
+		map-maker map-demo2 seq-demo; do
+		esbuild --bundle --outfile=$sub-bundle.js --loader:.png=dataurl \
+			--loader:.svg=dataurl --minify $sub.js  || die esbuild
+	done
+	# Clean up
+	rm $(find . -name '*.js' | grep -v bundle) package.json
+}
 ##   build [--appd=dir] [--clean] [--open] <dir> [esbuild-opts...]
 ##     Build an example/project.
 ##     --clean - Delete existing appd. This is default in $TEMP
@@ -227,7 +248,7 @@ cmd_release() {
 cmd_build() {
 	which esbuild > /dev/null || die 'Not in $PATH [esbuild]'
 	src $1
-	if test -r $src/rdtr-game.js; then
+	if test -r $src/rdtr-game.jsX; then
 		log "rdtr-build..."
 		shift
 		cmd_rdtr_build $@
@@ -246,7 +267,7 @@ cmd_build() {
 		$@ . || die esbuild
 	# Remove everything except index.html and bundle.js
 	local f
-	for f in $(find . -type f); do
+	for f in $(find . -maxdepth 1 -type f); do
 		echo $f | grep -qE '^./(.*.html|bundle.js)$' || rm $f
 	done
 	test "$__open" != "yes" && return 0
@@ -323,41 +344,6 @@ cmd_run() {
 	else
 		node $main
 	fi
-}
-##   rdtr-build [--appd=dir] [--clean] [--demos] [--open] page
-##     Build the "Rise and Decline of the Third Reich" (rdtr) project
-cmd_rdtr_build() {
-	src=$dir/rdtr
-	appdir
-	cp $src/figures/* $src/scenario/* $src/*.html $src/*.js $src/*.json $__appd
-	cp $dir/lib/* $__appd
-	mv $__appd/lib.js $__appd/hex-games.js
-	cp $dir/lib/unit-images-empty.js $__appd/unit-images.js
-	cd $__appd
-	local sub
-	local bundles="rdtr-game"
-	if test "$__demos" = "yes"; then
-		test "$__bundle" = "yes" && die "Can't set both --demo and --bundle"
-		cp $src/demos/* $__appd
-		bundles="$bundles map-demo units-demo drag-demo deployment-demo restore-demo map-maker map-demo2 seq-demo"
-	else
-		mv -f $__appd/rdtr.html $__appd/index.html
-		test "$__bundle" = "yes" && \
-			mv -f $__appd/png-data-bundle.js $__appd/png-data.js 
-	fi
-	for sub in $bundles; do
-		esbuild --bundle --outfile=$sub-bundle.js --loader:.png=dataurl \
-			--loader:.svg=dataurl --minify $sub.js  || die esbuild
-		rm $sub.js
-	done
-	# Clean up
-	rm -f rdtr.js test-rdtr.js rdtr-unit.js rdtr-map.js textbox.js *.json \
-		1939-initial-phase.png portsmouth.png png-data-bundle.js png-data.js \
-		units.js unit-images.js grid.js hex-games.js map.js remote-data.js \
-		sequence.js setup.js unit-images-empty.js hussar.svg
-	test "$__bundle" = "yes" && rm -f *.png
-	test "$__open" != "yes" && return 0
-	cmd_open "$1"
 }
 
 ##

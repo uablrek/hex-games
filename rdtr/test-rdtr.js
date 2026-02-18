@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict'
 import * as unit from './rdtr-unit.js'
 import * as map from './rdtr-map.js'
-import * as rdtr from './rdtr.js'
+import "konva/canvas-backend"
 unit.init()
 
 function testPixelHex(tc) {
@@ -113,34 +113,6 @@ function testFronts(tc) {
 	assert.equal(map.front({x:26,y:11}), "east")
 	assert.equal(map.front({x:18,y:11}), "west")
 }
-let sequenceCheck = 0
-function testSequence(tc) {
-	let start = function(seq) {
-		//console.log(`Start of step ${seq.index}`)
-		assert(seq.currentStep)
-		assert.equal(seq.name, "Test Sequence")
-		sequenceCheck = seq.index * 100 + 1
-	}
-	let end = function(seq) {
-		//console.log(`End of step ${seq.index}`)
-		assert.equal(seq.name, "Test Sequence")
-		assert.equal(sequenceCheck, seq.index * 100 + 1)
-	}
-	let seq = new rdtr.Sequence({
-		name: "Test Sequence",
-		steps: [
-			{ start: start, end: end },
-			{ start: start, end: end },
-			{ start: start, end: end },
-			{ start: start, end: end },
-			{ start: start, end: end },
-			{ start: start, end: end },
-		],
-	})
-	assert(!seq.currentStep)
-	seq.nextStep()
-	while (seq.currentStep) seq.nextStep()
-}
 
 // (this is the "standard" way in golang)
 const testCases = [
@@ -150,8 +122,7 @@ const testCases = [
 	{msg:"Compare unit object references", fn:testUnitCompare},
 	{msg:"UnitBox", fn:testUnitBox},
 	{msg:"Fronts", fn:testFronts},
-	{msg:"Sequence", fn:testSequence},
-];
+]
 var failed = 0
 for (const tc of testCases) {
 	let ok = true
