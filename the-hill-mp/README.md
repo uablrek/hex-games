@@ -6,31 +6,28 @@ https://github.com/uablrek/hex-games/tree/main/the-hill).
 The rules are the same, but the start is different:
 
 1. Start the server
-2. Start the French player
-3. Start the English player in another tab/window
-
-Start the server, assuming a release is used:
-```
-cd the-hill-server
-node bundle.cjs
-```
-
-Then open "index.html" in your browser and open The Hill - Multi
-player two times in different tab/window's to test. If another player can
-connect to the server, you can play PvP.
+2. Open the server url in a browser, usually http://localhost:8081/
+3. Open the server url again in another browser/tab/window
 
 When connections are established, the English player starts with
 initial deployment.
 
-## Development run
-
+Start the server:
 ```
 eval $(admin env | grep HEX_GAMES_WORKSPACE)
 serverd=$HEX_GAMES_WORKSPACE/server
-admin run --appd=$serverd ./the-hill-mp/server/
-# (in another shell)
 admin build --open=no ./the-hill-mp # Build the client
-admin open --keep index.html        # Start French player
-admin open --keep index.html        # Start English player
+admin run --appd=$serverd ./the-hill-mp/server/
+# Open http://localhost:8081/ with your browswe twice
 ```
+Or start the server in a docker container:
+```
+eval $(admin env | grep HEX_GAMES_WORKSPACE)
+admin build --open=no ./the-hill-mp # Build the client
+serverd=$HEX_GAMES_WORKSPACE/server
+admin docker-build --appd=$serverd --tag=the-hill:latest ./the-hill-mp/server/
+admin docker-run --tag=the-hill:latest
+```
+
+
 

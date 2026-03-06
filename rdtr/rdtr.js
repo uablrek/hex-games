@@ -1,256 +1,520 @@
 // SPDX-License-Identifier: CC0-1.0.
 /*
-  This is the library module for:
+  This is the game module for:
   https://github.com/uablrek/hex-games/tree/main/rdtr
+
+  In here are the sequences, which are the game engine. The sequences
+  are made up by "phases"
 */
 
-import Konva from 'konva';
+import Konva from 'konva'
 import * as unit from './rdtr-unit.js'
 import * as map from './rdtr-map.js'
 import * as images from './rdtr-images.js'
-import {box, setup} from './hex-games.js'
+import * as ui from './rdtr-ui.js'
+import {box, setup, sequence} from './hex-games.js'
+import {board} from './rdtr-ui.js'
 
-// User Interface. A <p id="input"> at the bottom of the page.
-// initUI must be called *after* loadSave/loadScenario because the
-// "game" variable is used
-export function initUI() {
-	for (const n of document.getElementsByName('nat')) {
-		n.addEventListener('click', checkNatUI)
-	}
-	let brp = document.getElementById('brp')
-	brp.addEventListener('change', checkBrpUI)
-	brp.value = game.nat.ge.brp
+// Globals
+const version = 5				// The version of scenario/save files
+export var g = {}				// Game status. This is loaded/saved
+const playerStr = {
+	nu: "Neutrals",
+	it: "Italy",
+	fr: "France",
+	uk: "Britain",
+	su: "U.S.S.R",
+	ge: "Germany",
+	us: "United States",
+	al: "Allies",
+	ax: "Axis",
+	po: "Poland",
 }
-function checkNatUI(e) {
-	let nat = e.target.value
-	let brpElement = document.getElementById('brp')
-	brpElement.value = game.nat[nat].brp
-}
-function checkBrpUI(e) {
-	let nat
-	const radios = document.getElementsByName('nat')
-	for (const b of radios) {
-		if (b.checked) {
-			nat = b.value
-			break
-		}
-	}
-	game.nat[nat].brp = e.target.value
-}
-// Call to update BRP in the UI if it's visible. E.g. after DoW, or
-// unit buy
-function updateBrpUI(natUpdated) {
-	let nat
-	const radios = document.getElementsByName('nat')
-	for (const b of radios) {
-		if (b.checked) {
-			nat = b.value
-			break
-		}
-	}
-	if (nat == natUpdated) {
-		let brpElement = document.getElementById('brp')
-		brpElement.value = game.nat[nat].brp
-	}
-}
+let me							// My alliance in a multi-player game al/ax
 
-// Set the stage
-var turn = { year: 0, season: "none" }
-var board
-export async function setStage(container) {
-	// Init Konva
-	let input = document.getElementById('input')
-	board = setup.stage({
-		container: container,
-		width: window.innerWidth,
-		height: window.innerHeight - input.offsetHeight,
-	})
-	await map.load(board)
-	await unit.init(board)
-	for (const u of unit.units) {
-		u.img.on('dragstart', moveToTop)
-		u.img.on('click', unitClicked)
+// ----------------------------------------------------------------------
+// Sequences
+
+function updatePhase(seq, info) {
+	g.seq = seq
+	g.phase = seq.currentStep.name
+	ui.updateInfo(g, info)
+}
+// This is called from the UI on 'Enter'
+export function nextStep() {
+	if (me) {
+		// Multiplayer
+		if (me != alliance(g.nat)) return // ignore non-active player
+		sendNextStep()
 	}
-	setup.setKeys(keyFn, keyUpFn)
-	combatChartImage = await images.crt()
+	sequence.nextStep()
 }
+// This is the "top" sequence
+sequence.add(new sequence.Sequence({
+	name: "game",
+	steps: [
+		{
+			name: "Connect to server",
+			start: function(seq) {
+				ui.setChoiceCallback((c, seq)=> {
+					if (c != "Connect")
+						seq.nextStep()
+					else
+						sequence.jump(seq, "connect")
+					return false // destroy the choice box
+				}, seq)
+				updatePhase(seq)
+				const c = box.choice({
+					label: "Connect to server",
+					width: 400,
+					choices: ["Connect", "Local"],
+				})
+				c.position(ui.adjustBoxPos({x:600,y:200}))
+				board.add(c)
+			}
+		},
+		{
+			//name: "Init",
+			start: function(seq) {
+				if (!me && g.deployment) {
+					// Forced or helpful deployment
+					for (const uh of g.deployment.units)
+						unit.place(uh, board, true)
+					g.deployment = null
+				}
+				seq.nextStep()
+			}
+		},
+		{
+			//name: "Initial Deployment",
+			start: (seq) => {
+				sequence.jump(seq, "ideploy")
+			}
+		},
+		{
+			//name: "Add Allowable",
+			start: (seq) => {
+				// Initial Deployment is done, mark initial Allowable
+				// Builds
+				addAllowables(g.allowableBuilds[0].units)
+				seq.nextStep()
+			}
+		},
+		{
+			name: "Turn",
+			start: (seq) => {
+				sequence.jump(seq, "turn")
+			}
+		},
+		{
+			//name: "Next Turn",
+			start: (seq) => {
+				stepTurn()
+				if (g.turn.year == 1940 && g.turn.season == 'summer')
+					seq.nextStep()
+				else
+					seq.gotoStep("Turn")
+			}
+		},
+		{
+			name: "Decide Winner",
+			start: (seq) => {
+				g.player = ''
+				g.front = ''
+				g.action = ''
+				updatePhase(seq)
+			}
+		},
+	],
+}), true)
 
-// Adjust position so a box is visible even if the board is dragged
-function adjustBoxPos(pos) {
-	return {x: pos.x - board.x(), y: pos.y - board.y()}
-}
-const help =
-	"Shift-click - Remove unit\n" +
-	"s - Save\n" +
-	"b - Buy counters\n" +
-	"a - Air exchange counters\n" +
-	"f - Fleet exchange counters\n" +
-	"n - Deploy neutrals and minor allies\n" +
-	"t - Show current turn\n" +
-	"T - Next turn\n" +
-	"c - Combat chart (with die)\n" +
-	"j - Save deployment as json\n" +
-	"' ' - Rotate stack"
 
-let helpBox = null
-function createHelpBox() {
-	if (helpBox) return
-	helpBox = box.info({
-		label: "Help",
-		text: help,
-	})
-	helpBox.position(adjustBoxPos({x:400, y:200}))
-	board.add(helpBox)
-}
-let turnBox = null
-function createTurnBox() {
-	if (turnBox) return
-	const t = `Year: ${turn.year}, Season: ${turn.season}`
-	turnBox = box.info({
-		width: 300,
-		height: 110,
-		fontSize: 20,
-		label: "Current turn",
-		text: t,
-	})
-	turnBox.position(adjustBoxPos({x:200, y:100}))
-	board.add(turnBox)
-}
-function updateTurnBox(newAB) {
-	if (!turnBox) return
-	let txtObj = turnBox.findOne('.text')
-	let t = `Year: ${turn.year}, Season: ${turn.season}`
-	if (newAB) t += "\nNew Allowable Builds!"
-	txtObj.text(t)
-}
-function destroyBox(e) {
-	if (e == helpBox) helpBox = null
-	if (e == turnBox) turnBox = null
-}
-box.destroyCallback(destroyBox)
+sequence.add(new sequence.Sequence({
+	name: "turn",
+	steps: [
+		{
+			//name: "Check for YSS",
+			start: (seq) => {
+				if (g.turn.season == "spring") {
+					sequence.jump(seq, "yss")
+					return
+				}
+				seq.nextStep()
+			}
+		},
+		{
+			name: "Determine order of play",
+			start: (seq) => {
+				g.playerOrder = []
+				g.i = 0
+				seq.nextStep()
+			}
+		},
+		{
+			name: "Declaration of War (DoW)",
+			start: (seq) => {
+				g.player = "All"
+				g.action = ''
+				updatePhase(seq)
+			}
+		},
+		{
+			name: "Announce front action",
+			start: (seq) => {
+				updatePhase(seq)
+				frontAction()
+			}
+		},
+		{
+			name: "Player",
+			start: (seq) => {
+				g.player = playerOrder[g.i]
+				switch (g.player) {
+				case "Axis": g.action = "Offensive"; break
+				case "Allies": g.action = "Attrition"; break
+				case "Soviet": g.action = "Pass"; break
+				}
+				seq.nextStep()
+			}
+		},
+		{
+			name: "Movement",
+			start: updatePhase
+		},
+		{
+			name: "Action",
+			start: (seq) => {
+				switch (s.action) {
+				case "Offensive":
+					sequence.jump(seq, "offensive")
+					break
+				case "Attrition":
+					sequence.jump(seq, "attrition")
+					break
+				case "Pass":
+					seq.nextStep()
+				}
+			}
+		},
+		{
+			name: "Unit Construction",
+			start: updatePhase
+		},
+		{
+			name: "Strategic Redeployment (SR)",
+			start: updatePhase
+		},
+		{
+			name: "Remove units",
+			start: updatePhase
+		},
+		{
+			name: "Next Player",
+			start: (seq) => {
+				g.i++
+				if (g.i >= playerOrder.length) {
+					// Clean-up
+					g.nat = ''
+					g.player = ''
+					g.front = ''
+					g.action = null
+					sequence.back(seq, true)
+					return
+				}
+				seq.gotoStep("Player")
+			}
+		},
+	],
+}))
 
-const keyFn = [
-	{key:'Shift', fn:deleteModeOn},
-	{key:'s', fn:saveGame},
-	{key:'b', fn:()=>{
-		new unit.UnitBoxMajor({
-			text: "Allowable Builds",
-		})
-	}},
-	{key:'a', fn:()=>{ new unit.UnitBoxAir }},
-	{key:'f', fn:()=>{ new unit.UnitBoxNav }},
-	{key:'n', fn:()=>{ new unit.UnitBoxNeutrals }},
-	{key:'h', fn:createHelpBox},
-	{key:'t', fn:createTurnBox},
-	{key:'T', fn:()=>{
-		let newAB = stepTurn()
-		createTurnBox()
-		updateTurnBox(newAB)
-		deleteModeOff()
-	}},
-	{key:'c', fn:()=>{ new CombatBox({ board: board, }) }},
-	{key:' ', fn:rollStack},
-	{key:'j', fn:saveJSON},
-]
-const keyUpFn = [
-	{key:'Shift', fn:deleteModeOff}
-]
-// Set moveToTop as dragstart by default for unit images
-function moveToTop(e) {
-	e.target.moveToTop()
+sequence.add(new sequence.Sequence({
+	name: "ideploy",
+	steps: [
+		{
+			start: (seq) => {
+				seq.i = 0
+				seq.nextStep()
+			}
+		},
+		{
+			name: "Initial Deployment",
+			start: (seq) => {
+				g.nat = g.orderOfDeployment[seq.i]
+				g.player = playerStr[g.nat]
+				updatePhase(seq)
+				if (!me || me == alliance(g.nat)) {
+					// For "po" we must bring up the "neutrals" box
+					let nat = g.nat == "po" ? "nu" : g.nat
+					seq.unitbox = unit.mkUnitbox(nat)
+				}
+			},
+			end: (seq) => {
+				if (seq.unitbox) {
+					seq.unitbox.destroy()
+					seq.unitbox = null
+					if (me) sendDeployment()
+				}
+			}
+		},
+		{
+			name: "Next Deployer",
+			start: (seq) => {
+				seq.i++
+				if (seq.i >= g.orderOfDeployment.length)
+					sequence.back(seq)
+				else
+					seq.gotoStep("Initial Deployment")
+			}
+		},
+	]
+}))
+
+sequence.add(new sequence.Sequence({
+	name: "yss",
+	steps: [
+		{
+			name: "Year Start Sequence (YSS)",
+			start: (seq) => {
+				s.player = ''
+				updatePhase(seq)
+			}
+		},
+		{
+			name: "SW resolution",
+			start: updatePhase
+		},
+		{
+			name: "BRP calculation",
+			start: updatePhase
+		},
+		{
+			name: "SW construction",
+			start: updatePhase
+		},
+		{
+			name: "Continue turn",
+			start: sequence.back
+		},
+	]
+}))
+
+sequence.add(new sequence.Sequence({
+	name: "offensive",
+	steps: [
+		{
+			name: "Setup",
+			start: sequence.proceed
+		},
+		{
+			name: "Attacker naval+air",
+			start: updatePhase
+		},
+		{
+			name: "Defender inteception+DAS",
+			start: updatePhase
+		},
+		{
+			name: "Sea Transport Missions",
+			start: updatePhase
+		},
+		{
+			name: "Airborne drops",
+			start: updatePhase
+		},
+		{
+			name: "Combat",
+			start: updatePhase
+		},
+		{
+			name: "Exploitation",
+			start: updatePhase
+		},
+		{
+			name: "Continue turn",
+			start: sequence.back
+		},
+	]
+}))
+
+sequence.add(new sequence.Sequence({
+	name: "attrition",
+	steps: [
+		{
+			name: "Attrition resolution",
+			start: updatePhase
+		},
+		{
+			name: "Continue turn",
+			start: sequence.back
+		},		
+	]
+}))
+
+sequence.add(new sequence.Sequence({
+	name: "connect",
+	steps: [
+		{
+			name: "Connecting...",
+			start: function(seq) {
+				openConnection("ws://localhost:8081")
+				updatePhase(seq)
+			}
+		},
+		{
+			//name: "Continue turn",
+			start: sequence.back
+		},		
+	]
+}))
+
+// ----------------------------------------------------------------------
+// Websocket related
+let ws
+let url
+
+function openConnection(_url) {
+	url = _url
+	ws = new WebSocket(url)
+	ws.onclose = retryConnection
+	ws.onerror = retryConnection
+	ws.onmessage = handleConnectMessage
 }
-let deleteMode = false
-function deleteModeOn() {
-	deleteMode = true
-	board.getStage().container().style.cursor = 'not-allowed'
+function retryConnection() {
+	ws = null
+	status = null
+	setTimeout(openConnection, 2000, url)
 }
-function deleteModeOff() {
-	deleteMode = false
-	board.getStage().container().style.cursor = 'default'
-}
-function unitClicked(e) {
-	let u = unit.fromImage(e.target)
-	if (deleteMode) {
-		unit.removeFromMap(u)
+function handleConnectMessage(_msg) {
+	// This should be a json-status message. These are the only
+	// messages sent by the server itself
+	let msg = JSON.parse(_msg.data)
+	if (msg.status != "connected") {
+		//console.log(`Status: ${msg.status}`)
 		return
 	}
+	if (msg.player == 'A')
+		me = "ax"
+	else
+		me = "al"
+	ws.onclose = brokenConnection
+	ws.onerror = brokenConnection
+	ws.onmessage = handlePeerMessage
+	sequence.nextStep()
 }
-function rollStack(down) {
-	const pos = board.getRelativePointerPosition()
-	let hex = map.pixelToHex(pos)
-	let h = map.getHex(hex)
-	if (!h || !h.units || h.units.size < 2) return
-	let minZ = 1000000, bot
-	for (u of h.units) {
-		let z = u.img.zIndex()
-		if (z < minZ) {
-			bot = u
-			minZ = z
+function handlePeerMessage(_msg) {
+	// A message from the other player
+	let msg = JSON.parse(_msg.data)
+	let u
+	switch (msg.type) {
+	case "nextstep":
+		sequence.nextStep()
+		break
+	case "deployment":
+		for (const uh of msg.units) {
+			const u = unit.units[uh.i]
+			if (u.hex && hexEq(u.hex, uh.hex)) continue
+			unit.place(uh, board)
 		}
+		break
 	}
-	bot.img.moveToTop()
+}
+function brokenConnection() {
+	me = null
+	ws = null
+	alert("The connection was broken. Please reload the page")
+}
+function sendNextStep() {
+	if (ws) ws.send('{"type":"nextstep"}')
+}
+function sendDeployment() {
+	const msg = {type: "deployment", units: []}
+	for (const [i, u] of unit.units.entries())
+		if (u.hex) msg.units.push({i:i, hex:u.hex})
+	sendMsg(msg)
+}		
+function sendMsg(msg) {
+	if (ws) ws.send(JSON.stringify(msg))
+}
+
+// ----------------------------------------------------------------------
+// Utils
+
+function hexEq(h1, h2) {
+	return (h1.x == h2.x && h1.y == h2.y)
+}
+function alliance(nat) {
+	if (g.al.active.includes(nat)) return "al"
+	if (g.al.neutral.includes(nat)) return "al"
+	return "ax"
 }
 
 function stepTurn() {
-	switch (turn.season) {
+	switch (g.turn.season) {
 	case "spring":
-		turn.season = "summer"
+		g.turn.season = "summer"
 		break
 	case "summer":
-		turn.season = "fall"
+		g.turn.season = "fall"
 		break
 	case "fall":
-		turn.season = "winter"
+		g.turn.season = "winter"
 		break
 	case "winter":
-		turn.season = "spring"
-		turn.year = turn.year + 1
+		g.turn.season = "spring"
+		g.turn.year = g.turn.year + 1
 		break
 	}
 	// When the turn is stepped, we must check is new allowableBuilds
 	// become available. If so, we add them to allowableBuilds[0].
 	// (the "consumed" entry is kept since it does no harm)
-	for (let i = 1; i < game.allowableBuilds.length; i++) {
-		if (turnEq(turn, game.allowableBuilds[i].turn)) {
-			let units = game.allowableBuilds[i].units
-			for (const d of units) {
-				for (let i = 0; i < d.cnt; i++) {
-					let u = unit.fromStr(d.type, (u)=>u.allowable)
-					if (!u) {
-						console.log(`Unit not found ${d.type}`)
-					} else {
-						u.allowable = true
-					}
-				}
-			}
-			return true
+	for (let i = 1; i < g.allowableBuilds.length; i++) {
+		if (turnEq(g.turn, g.allowableBuilds[i].turn)) {
+			addAllowables(g.allowableBuilds[i].units)
+			return true			// new allowable builds
 		}
 	}
-	return false	
+	return false				// NO new allowable builds
 }
 function turnEq(t1, t2) {
 	if (t1.year != t2.year) return false
 	if (t1.season != t2.season) return false
 	return true
 }
+function addAllowables(allowable) {
+	unit.unselectAll()
+	let filterOut = function(u) {
+		if (u.allowable || u.selected) return true
+		return false
+	}
+	for (const uh of allowable) {
+		for (let i = 0; i < uh.cnt; i++) {
+			const u = unit.fromStr(uh.type, filterOut)
+			if (!u)
+				console.log(`Unit not found ${d.type}`)
+			else
+				u.allowable = true
+		}
+	}
+}
+
 
 // The player with most BRP is first
 let lastTurnFirstPlayer
 function firstPlayer() {
-	if (game.scenario.includes("1939") || game.scenario.includes("Campaign")) {
-		if (turnEq(game.turn, { "year": 1939, "season": "fall"})) {
-			lastTurnFirstPlayer = "axis"
+	if (g.scenario.includes("1939") || g.scenario.includes("Campaign")) {
+		if (turnEq(g.turn, { "year": 1939, "season": "fall"})) {
+			lastTurnFirstPlayer = "ax"
 			return lastTurnFirstPlayer
 		}
 	}
 	// TODO: add 1942 and 1944 starts here
 	// Germany and Italy are always summed together, even when Italy
 	// is neutral. and if conquered, brp would be 0
-	let axisBrp = game.nat.ge.brp + game.nat.it.brp
+	let axisBrp = g.status.ge.brp + g.status.it.brp
 	// It's safe to start with UK and France. If conquered, brp would be 0
-	let alliesBrp = game.nat.ge.uk + game.nat.ge.fr
-	if (game.nat.su.war.includes("ge")) alliesBrp += game.nat.su.brp
-	if (game.nat.us.war.includes("ge")) alliesBrp += game.nat.us.brp
+	let alliesBrp = g.nat.ge.uk + g.nat.ge.fr
+	if (g.al.active.includes("su")) alliesBrp += g.status.su.brp
+	if (g.al.active.includes("us")) alliesBrp += g.status.us.brp
 	if (axisBrp == axisBrp) return lastTurnFirstPlayer
 	if (axisBrp > axisBrp)
 		lastTurnFirstPlayer = "axis"
@@ -258,6 +522,38 @@ function firstPlayer() {
 		lastTurnFirstPlayer = "allies"
 	return lastTurnFirstPlayer
 }
+
+// Define g.action for all active nations and alliances
+let actionBox
+function frontAction() {
+	g.action = {}
+	let def, a, txt, player = playerStr[g.nat]
+	actionBox = box.choice({
+		label: "Front Action",
+		width: 600,
+		text: "West: Attrition, Med: Attrition, East: Attrition ", // (template)
+		height: 120,
+		choices: ["Offensive", "Attrition", "Pass", "Accept"]
+	})
+	// Allies
+	a = {
+		west: "Attrition",
+		med: "Pass",
+		east: "Pass"
+	}
+	for (let front of ["west", "med", "east"]) {
+		txt = `West: ${a.west}, Med: ${a.med}, East: ${a.east}\n`
+		txt += `Player ${player}, Front ${front}`
+	}
+	g.action['al'] = a
+	// Before DoW Italy, US and Soviet are handled as
+	// separete countries. After DoW, alliances are
+	// handled; "Allies" and "Axis"
+	box.update(actionBox, txt)
+	actionBox.position(ui.adjustBoxPos({x:600,y:100}))
+	board.add(actionBox)
+}
+
 
 // ----------------------------------------------------------------------
 // Save & Restore related
@@ -276,7 +572,7 @@ function firstPlayer() {
   Once the Initial Deployment is done you can (and should) save.
 
   The current "allowableBuilds" MUST be the first,
-  i.e. game.allowableBuilds[0].
+  i.e. g.allowableBuilds[0].
 
   A type "save" has no "initialDeployment", but they have a
   "deployment" with all units on the map. The current
@@ -291,88 +587,41 @@ function firstPlayer() {
   V4: A 'nat' element added
  */
 
-// The version of scenario/save files
-export const version = 4
-// Game data from load scenario/save
-var game
-
-export function loadScenario(gameObject) {
-	game = gameObject
-	if (game.type != "scenario") {
-		alert(`Not a scenario, but ${game.type}`)
+export function loadScenario(gameObject, campaign) {
+	g = gameObject
+	if (g.type != "scenario") {
+		alert(`Not a scenario, but ${g.type}`)
 		return
 	}
-	if (game.version != 4) {
-		alert(`Unsupported version ${game.version}`)
+	if (g.version != 5) {
+		alert(`Unsupported version ${g.version}`)
 		return
 	}
-	turn = game.turn
+	// Mark all unit in initial deployment as "allowable"
 	unit.unselectAll()
-	for (const d of game.initialDeployment) {
+	for (const d of g.initialDeployment) {
 		for (let i = 0; i < d.cnt; i++) {
 			// Filter out already selected
 			let u = unit.fromStr(d.type, (u)=>u.selected)
+			if (!u) {
+				console.log(`NO UNIT FOR ${d.type}`)
+				break
+			}
 			u.allowable = true
 		}
 	}
-	delete game.initialDeployment // not included in sub-sequent saves
-	if (game.deployment) {
-		// Forced or helpful deployment
-		// NOTE: it *may* not be possible to deploy all units if they
-		//   haven't become "allowable", but never mind
-		unit.unselectAll()
-		let filterOut = function(u) {
-			if (u.selected) return true
-			if (u.nat == 'nu') return false
-			return !u.allowable
-		}
-		deploy(game.deployment.units, filterOut)
-		delete game.deployment
-	}
-	// All allowable, and not placed units displayed
-	new unit.UnitBoxMajor({
-		neutrals: true,
-		text: game.scenario + " Initial Deployment",
-	})
-	// Mark units from default allowableBuilds (index==0)
-	for (const d of game.allowableBuilds[0].units) {
-		for (let i = 0; i < d.cnt; i++) {
-			// Filter out already allowable
-			let u = unit.fromStr(d.type, (u)=>u.allowable)
-			if (!u) alert(`No unit for ${d.type}`)
-			u.allowable = true
-		}
-	}
-	game.allowableBuilds[0].units = [] // will be restored in saveGame()
+	for (const u of unit.units)
+		if (u.nat == "nu" || u.type == "ab") u.allowable = true
+	delete g.initialDeployment // not included in sub-sequent saves
 }
 export function loadSave() {
 	game = JSON.parse(rdtrSaveData)
-	if (game.version != 4) {
-		alert(`Unsupported version ${game.version}`)
+	if (g.version != 5) {
+		alert(`Unsupported version ${g.version}`)
 		return
 	}
-	turn = game.turn
-	// Mark units from default allowableBuilds (index==0)
-	let allowableBuilds = game.allowableBuilds[0].units
-	game.allowableBuilds[0].units = []
-	unit.unselectAll()
-	for (const d of allowableBuilds) {
-		// d.cnt is always 1 here since we always save individual units
-		if (d.cnt != 1) alert(`BUG: ${d.type}, cnt=${d.cnt}`)
-		let u = unit.fromStr(d.type, (u)=>u.selected)
-		if (!u) alert(`BUG: No unit for ${d.type}`)
-		u.allowable = true
-	}
-	// Units to deploy may be neutrals or allowable. Minor allies must
-	// be allowable
-	unit.unselectAll()
-	let filterOut = function(u) {
-		if (u.selected) return true
-		if (['nu','sp','tu','iq'].includes(u.nat)) return false
-		return !u.allowable
-	}
-	if (!deploy(game.deployment.units, filterOut))
-		alert("BUG: couldn't deploy some units")
+	turn = g.turn
+	// TODO: Rewrite!!!
 }
 
 // Initiate a download
@@ -386,164 +635,42 @@ export function download(blob, name) {
 	URL.revokeObjectURL(fileURL);
 }
 
-export function saveGame(name = "rdtrSaveData.js") {
+export function saveGame() {
 	if (!game) {
 		game = {
 			version: version,
 			allowableBuilds: [null],
 		}
 	}
-	game.type = "save"
-	game.turn = turn
-	game.deployment = getDeplyment()
+	g.type = "save"
+	g.turn = turn
+	g.deployment = getDeplyment()
 	// Replace the current "allowableBuilds"
 	let abuilds = {units: []}
 	for (let u of unit.units) {
 		if (!u.allowable) continue
-		abuilds.units.push({cnt:1, type:unit.toStr(u)})
+		abuilds.units.push({cnt:1, type:unit.toStr(u), i:u.i})
 	}
-	game.allowableBuilds[0] = abuilds
+	g.allowableBuilds[0] = abuilds
 	const json = JSON.stringify(game)
 	const js = `const rdtrSaveData = '${json}'`
 	const blob = new Blob([js], { type: 'text/javascript' });
-	download(blob, name)
+	download(blob, "rdtrSaveData.js")
 }
 // Save the deployment as JSON
-export function saveJSON(name = "rdtr-deployment.json") {
+export function saveJSON() {
 	const json = JSON.stringify(getDeplyment())
 	const blob = new Blob([json], { type: 'application/json' })
-	download(blob, name)
+	download(blob, "rdtr-deployment.json")
 }
 
 // Returns an array of all units on the map
-export function getDeplyment() {
+function getDeplyment() {
 	let dep = { units: [] }
 	for (const u of unit.units) {
 		if (!u.hex) continue
-		dep.units.push({
-			u: unit.toStr(u), hex: map.hexToRdtr(u.hex)
-		})
+		dep.units.push({ u: unit.toStr(u), hex: u.hex, i:u.i })
 	}
 	return dep
 }
-export function deploy(units, filterOut) {
-	let notFound = []
-	for (const ud of units) {
-		let u = unit.fromStr(ud.u, filterOut)
-		if (!u) {
-			notFound.push(ud.u)
-			continue
-		}
-		unit.placeRdtr(u, ud.hex)
-	}
-	if (notFound.length) {
-		console.log(`Not found: ${notFound}`)
-		return false
-	}
-	return true
-}
 
-// Debug function
-function checkUnits(msg = "") {
-	let ecnt=0, dcnt=0, acnt=0, err=[]
-	for (const u of unit.units) {
-		if (['nu','sp','tu','iq'].includes(u.nat)) continue
-		if (u.hex) {
-			dcnt++
-			if (!u.allowable) {
-				err.push(unit.toStr(u))
-				ecnt++
-			}
-		}
-		if (u.allowable) acnt++
-	}
-	console.log(`${msg}: dcnt=${dcnt}, acnt=${acnt}, ecnt=${ecnt} ${err}`)
-}
-
-// ----------------------------------------------------------------------
-// CombatBox
-// A box with the combat chart, and a die
-
-let theCombatBox
-let combatChartImage
-class CombatBox {
-	x = 400
-	y = 100
-	board			// "this" is placed on this layer
-	#box
-	#text
-	#rollCnt = 0
-	#scale = 0.7
-	constructor(obj) {
-		for (var prop in obj) {
-			if (obj.hasOwnProperty(prop)) {
-				this[prop] = obj[prop];
-			}
-		}
-		if (theCombatBox) {
-			alert("Multiple CombatBox'es NOT allowed")
-			return
-		}
-		theCombatBox = this
-		// We want the pop-up box to be visible on screen even if the
-		// board is dragged. So, compensate for the board position
-		let pos = this.board.position()
-		this.#box = new Konva.Group({
-			x: this.x - pos.x,
-			y: this.y - pos.y,
-			scale: {x: this.#scale, y: this.#scale},
-			draggable: true,
-		})
-		this.#box.on('dragstart', moveToTop)
-		this.#box.add(combatChartImage)
-		let close = box.X.clone({
-			x: combatChartImage.width() - 40,
-			y: 15,
-			scale: {x:0.35,y:0.35},
-		})
-		box.setStrokeX(close, 'black')
-		this.#box.add(close)
-		close.on('click', CombatBox.#destroy)
-		let dieBox = new Konva.Rect({
-			x: 0,
-			y: combatChartImage.height(),
-			width: combatChartImage.width(),
-			height: 50,
-			fill: 'black',
-		})
-		this.#box.add(dieBox)
-		this.#text = new Konva.Text({
-			x: 200,
-			y: dieBox.y() + 6,
-			fontSize: 32,
-			fontStyle: 'bold',
-			fill: 'white',
-		})
-		this.#text.text("Click to roll!")
-		this.#text.on('click', CombatBox.#letsRoll)
-		this.#box.add(this.#text)
-		this.board.add(this.#box)
-	}
-	#roll() {
-		this.#rollCnt++
-		let r = Math.floor(Math.random() * 6) + 1
-		this.#text.text(`Click to roll (${this.#rollCnt}): ${r}`)
-	}
-	// This is a 'click' event callback on the die text
-	static #letsRoll() {
-		theCombatBox.#roll()
-	}
-	destroy() {
-		// Clear the singleton reference
-		theCombatBox = null
-		// Remove the combat chart image
-		combatChartImage.remove()
-		// destroy the group (and all remaining childs)
-		// It is assumed that all eventHandlers are deleted too
-		this.#box.destroy()
-	}
-	// This is a 'click' event callback
-	static #destroy(e) {
-		theCombatBox.destroy()
-	}
-}

@@ -6,10 +6,10 @@
   map array is defined. It is preserved as documentation of the development
   process
  */
-import Konva from 'konva';
-import * as rdtr from './rdtr.js';
-import * as map from './rdtr-map.js';
-import * as box from './textbox.js';
+import Konva from 'konva'
+import * as rdtr from './rdtr.js'
+import * as map from './rdtr-map.js'
+import * as box from './textbox.js'
 
 // {hex: {x:0,y:0}, nat:"", edges:"" prop:""},
 // Properties:

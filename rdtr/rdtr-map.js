@@ -4,17 +4,13 @@
   https://github.com/uablrek/hex-games/tree/main/rdtr
 
   The map-data, nationality, terrain, rivers, etc. is created with
-  "map-maker.js", and stored as json. The map is stored as two
+  "map-maker.js", and stored as "rdtr-map.json". The map is stored as two
   hash-maps, one for offset coordinates (hex), and one for axial
   coordinates (ax).
-
-  This is the procedure on a movement turn
-  * setNatAllowed()
-  * Clear previous player ZOC
-  * Set ZOC for all "enemy" units (own hex + surrounding hexes for pz)
 */
 
 import Konva from 'konva'
+import {grid, map} from './hex-games.js'
 import * as images from './rdtr-images.js'
 
 // Map Hexes:
@@ -77,91 +73,35 @@ import * as images from './rdtr-images.js'
 //   pl - Portugal m
 //   sz - Swizerland x
 
-import mapData from './rdtr-map.json' with {type: "json"}
-const hexHashMap = new Map()
-for (const h of mapData) {
-	if (!h.nat || h.nat == "sz") continue
-	if (h.prop && h.prop.includes('q')) continue
-	const k = h.hex.x + h.hex.y * 1000
-	hexHashMap.set(k, h)
-}
-export function getHex(hex) {
-	const k = hex.x + hex.y * 1000
-	return hexHashMap.get(k)
-}
-const axialHashMap = new Map()
-for (const h of mapData) {
-	if (!h.nat || h.nat == "sz") continue
-	if (h.prop && h.prop.includes('q')) continue
-	const ax = hexToAxial(h.hex)
-	h.ax = ax
-	const k = ax.r + ax.q * 1000
-	axialHashMap.set(k, h)
-}
-export function getAxial(ax) {
-	const k = ax.r + ax.q * 1000
-	return axialHashMap.get(k)
-}
+import mapProperties from './rdtr-map.json' with {type: "json"}
+map.init({ mapProperties: mapProperties })
+
+// Re-export to avoid map-map-map confusion
+export const getHex = map.getHex
+export const getAxial = map.getAxial
+export const removeUnit = map.removeUnit
+export const addUnit = map.addUnit
 
 // Call with "await" to load the map synchronously
 export async function load(board) {
-	const map = await images.map()
-	board.add(map)
+	const _map = await images.map()
+	board.add(_map)
+	// Compute the visible area
+	visibleArea.width = Math.ceil(board.width() / 58.7)
+	visibleArea.height = Math.ceil(board.height()*2 / 58.7/0.988/Math.sqrt(3))
+	console.log(visibleArea)
 }
+export var visibleArea = {width:0, height:0}
+export const mapSize = {width:52, height:41}
 
 // ----------------------------------------------------------------------
-// Hex Coordinate Functions:
-// The pixel functions uses offset coordinates (hex) for "pointy"
-// hexes. They take --scale into account.
+// Hex Coordinate Functions: (most re-exported)
+grid.configure(58.7, 0.988, {x:57, y:23})
+export const pixelToHex = grid.pixelToHex
+export const hexToPixel = grid.hexToPixel
+export const hexToAxial = grid.hexToAxial
+export const axialToHex = grid.axialToHex
 
-const hsize = 58.7;				// --size to hex.py
-const hscale = 0.988;			// --scale to hex.py
-const rsize = hsize * hscale * Math.sqrt(3) / 2;  // row interval
-const grid_offset = {x:57, y:23}  // 0,0 on the map image
-
-export function pixelToHex(pos) {
-	// This function is NOT perfect! A click near the top/bottom of a
-	// hex *may* select an adjacent hex. But for practical use, it's
-	// good enough.
-
-	// Adjust for grid/map offset
-	pos = {x:pos.x + grid_offset.x, y:pos.y + grid_offset.y}
-	let x, y = Math.round(pos.y / rsize - 0.42) // 0.42 ~= 5/12
-	if (y % 2 == 0) {
-		x = Math.round(pos.x / hsize)
-	} else {
-		x = Math.round(pos.x / hsize - 0.5)
-	}
-	return({x:x, y:y});
-}
-export function hexToPixel(hex) {
-	let x, y = Math.round(hex.y * rsize + rsize/3)
-	if (hex.y % 2 == 0) {
-		x = Math.round(hex.x * hsize)
-	} else {
-		x = Math.round(hex.x * hsize + (hsize/2))
-	}
-	// Adjust for grid/map offset
-	return({x:x - grid_offset.x, y:y - grid_offset.y});
-}
-export function hexToAxial(hex) {
-	let q
-	if (hex.y % 2 == 0) {
-		q =  hex.x - hex.y / 2
-	} else {
-		q = hex.x - (hex.y - 1) / 2
-	}
-	return {q: q, r: hex.y}
-}
-export function axialToHex(ax) {
-	let x
-	if (ax.r % 2 == 0) {
-		x = ax.q + ax.r / 2
-	} else {
-		x = ax.q + (ax.r - 1) / 2
-	}
-	return {x:x, y: ax.r}
-}
 // RDTR uses letters A-KK for row, and a positive int for q.
 export function axialToRdtr(ax) {
 	if (ax.r < 27) {
@@ -180,152 +120,55 @@ export function rdtrToAxial(rc) {
 	return {q: rc.q - 15, r: r}
 }
 export function rdtrToHex(rc) {
-	return axialToHex(rdtrToAxial(rc))
+	return grid.axialToHex(rdtrToAxial(rc))
 }
 export function hexToRdtr(hex) {
-	return axialToRdtr(hexToAxial(hex))
+	return axialToRdtr(grid.hexToAxial(hex))
 }
 
 // ----------------------------------------------------------------------
 // Movement and Distance functions
 
-// return a Set of map-hex objects of "N" distance from a hex (axial)
-// https://www.redblobgames.com/grids/hexagons/#range-coordinate
-export function inRangeAxial(N, ax) {
-	let s = new Set()
-	for (let q = -N; q <= N; q++) {
-		for (let r = Math.max(-N, -q-N); r <= Math.min(+N, -q+N); r++) {
-			let h = getAxial({r:ax.r+r, q:ax.q+q})
-			if (h) s.add(h)
-		}
-	}
-	return s
+function blocked(me, h, i) {
+	return (me.edges && me.edges.charAt(i) == 'x')
 }
-
-// https://www.redblobgames.com/grids/hexagons/#neighbors-axial
-const neighbourOffset = [
-	{r:-1, q:1},
-	{r:0, q:1},
-	{r:1, q:0},
-	{r:1, q:-1},
-	{r:0, q:-1},
-	{r:-1, q:0},
-]
-// Get neighbours with respect to "edges"
-export function neighboursAxial(ax) {
-	let n = []
-	let me = getAxial(ax)
-	if (!me) return n
-	for (const [i, o] of neighbourOffset.entries()) {
-		// Check blocked edges
-		if (me.edges && me.edges.charAt(i) == 'x') continue
-		let h = getAxial({r:ax.r+o.r, q:ax.q+o.q})
-		if (h) n.push(h)
-	}
-	return n
+function removeD() {
+	for (const h of map.hexMap.values()) delete h.d
 }
-// Return a set of reachable map-hexes
-export function groundMovementAxial(N, ax) {
-	for (const h of mapData) delete h.d
-	let me = getAxial(ax)
-	let s = new Set()
-	crawl(N, me, s)
-	s.delete(me)
-	return s
+function getMovementCost(h, n, i, ref) {
+	if (!n.nat) return 100
+	if (!natAllowed.has(n.nat)) return 100
+	if (n.zoc && n.units && n.units.size > 0) return 100
+	if (h.zoc) return 3
+	return 1
 }
-function crawl(N, h, s) {
-	if (N < 0) return
-	h.d = N 					// Movement-points left
-	s.add(h)
-	if (N == 0) return
-	let neighbours = neighboursAxial(h.ax)
-	for (const n of neighbours) {
-		if (Object.hasOwn(n, 'd') && n.d > N) continue
-		// Check if allowed territory
-		if (!natAllowed.has(n.nat)) continue
-		// Check if occupied by enemy units
-		if (n.zoc && n.units && n.units.size > 0) continue
-		if (h.zoc) {
-			// It cost 3 mp to leave enemy ZOC
-			crawl(N-3, n, s)
-		} else {
-			crawl(N-1, n, s)
-		}
-	}
-}
+grid.mapFunctions(map.getAxial, blocked, getMovementCost, removeD)
 
 // A Set of allowed nations to move in/to
 let natAllowed
 export function setNatAllowed(a) {
 	natAllowed = a
 }
-
 // delete all .zoc fields
 export function clearZOC() {
-	for (const h of mapData) delete h.zoc
+	for (const h of map.hexMap.values()) delete h.zoc
 }
 export function setZOC(hex, pz) {
-	let h = getHex(hex)
+	let h = map.getHex(hex)
+	if (!h) return				// probably a sea-hex
 	h.zoc = true
-	if (!pz) return
-	for (const n of neighboursAxial(h.ax)) {
-		n.zoc = true
+	if (pz) {
+		for (const n of grid.neighboursAxial(h.ax))
+			if (n) n.zoc = true
 	}
 }
 // (for debugging)
 export function getZOC() {
 	let s = new Set()
-	for (const h of mapData) {
+	for (const h of map.hexMap.values()) {
 		if (h.zoc) s.add(h)
 	}
 	return s
-}
-
-// ----------------------------------------------------------------------
-// Unit functions:
-
-export function unitsTotal() {
-	let t = 0
-	for (const h of mapData) {
-		if (h.units) t += h.units.size
-	}
-	return t
-}
-export function unitsGet(hex) {
-	const h = getHex(hex)
-	if (!h) return null
-	if (Object.hasOwn(h, 'units')) {
-		return h.units
-	}
-	return null
-}
-export function unitAdd(u) {
-	if (!u.hex) {
-		alert("unitAdd without hex")
-		return
-	}
-	const h = getHex(u.hex)
-	if (!h) return				// place a unit at sea?
-	if (!Object.hasOwn(h, 'units')) {
-		h.units = new Set()
-	}
-	h.units.add(u)
-}
-export function unitRemove(u) {
-	if (!u.hex) return			// will happen when dragges from a UnitBox
-	const h = getHex(u.hex)
-	if (!h) return				// placed at sea?
-	if (!Object.hasOwn(h, 'units')) {
-		// This is likely a BUG
-		alert("unitRemove without units")
-		return
-	}
-	h.units.delete(u)
-}
-export function unitMove(u, toHex) {
-	unitRemove(u)
-	u.hex = toHex
-	unitAdd(u)
 }
 
 // ----------------------------------------------------------------------
@@ -337,7 +180,7 @@ const frontNat = {
 }
 
 export function front(hex) {
-	const h = getHex(hex)
+	const h = map.getHex(hex)
 	if (!h || !h.nat) return ""
 	if (h.prop && h.prop.includes('e')) return "east"
 	for (const [f, n] of Object.entries(frontNat)) {

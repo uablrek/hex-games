@@ -3,7 +3,6 @@
   Restore a previously stored deployment
  */
 import Konva from 'konva';
-import * as rdtr from './rdtr.js'
 import * as unit from './rdtr-unit.js'
 
 let stage = new Konva.Stage({
@@ -47,13 +46,5 @@ let save = require('./test-deployment.json')
 	await unit.init(board)
 	await new Promise(resolve => mapImg.onload = resolve)
 	board.add(map)
-	// (we know version==1, but for the sake of completeness...)
-	if (save.version > 1) {
-		alert(`Version not supported ${save.version}`)
-	} else {
-		for (const ud of save.deployment.units) {
-			let u = unit.fromStr(ud.u)
-			unit.placeRdtr(u, ud.hex)
-		}
-	}
+	for (const uh of save.units) unit.place(uh, board)
 })()

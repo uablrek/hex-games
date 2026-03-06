@@ -5,9 +5,9 @@
 
   RDTR has *a lot* of sequences!
 */
-import Konva from 'konva';
-import * as sequence from './sequence.js'
-import * as box from './textbox.js'
+import Konva from 'konva'
+import {sequence, box} from './hex-games.js'
+import shelp from './seq-help.txt'
 
 let stage = new Konva.Stage({
 	container: "container",
@@ -98,18 +98,22 @@ let theInfoBox = box.info({
 	height: 400,
 	destroyable: false,
 })
-function updateInfo() {
+function updateInfo(info) {
 	let txt = "Hit 'Enter' or 'n' to  proceed\n\n"
 	txt += `Turn: ${s.turn.year}, ${s.turn.season}\n`
 	txt += `Player: ${s.player}\n`
 	txt += `Phase: ${s.phase}\n`
 	txt += `Front: ${s.front}, ${s.action}\n`
+	if (info) txt += info
 	box.update(theInfoBox, txt)
 }
 function updatePhase(seq) {
 	s.phase = seq.currentStep.name
-	updateInfo()
+	const key = `${seq.name}/${seq.currentStep.name}`
+	updateInfo(sequence.getSeqHelp(key))
 }
+
+
 // ----------------------------------------------------------------------
 // Sequences
 
@@ -235,7 +239,7 @@ sequence.add(new sequence.Sequence({
 			start: updatePhase
 		},
 		{
-			name: "Remove overstacked/unsupplied units",
+			name: "Remove units",
 			start: updatePhase
 		},
 		{
@@ -359,6 +363,7 @@ sequence.add(new sequence.Sequence({
 // ----------------------------------------------------------------------
 // async main
 ;(async () => {
+	sequence.parseSeqHelp(shelp)
 	await new Promise(resolve => mapImg.onload = resolve)
 	board.add(map)
 	sequence.nextStep()

@@ -7,51 +7,25 @@
 
 import Konva from 'konva'
 import * as map from  './rdtr-map.js'
-import * as unit from './rdtr-unit.js';
-import * as box from './textbox.js';
+import * as unit from './rdtr-unit.js'
+import {setup, grid, box} from './hex-games.js'
 
-const stage = new Konva.Stage({
-	container: 'container',
-	width: window.innerWidth,
-	height: window.innerHeight,
-})
-const board = new Konva.Layer({
-	draggable: true,
-})
-stage.add(board)
-
-stage.container().tabIndex = 1
-stage.container().focus();
-stage.container().addEventListener("keydown", keydown)
+const board = setup.stage()
+const keyFn = [
+	{key:'p', fn:flipPlayer},
+	{key:'z', fn:showZOC},
+	{key:'h', fn:createHelpBox},
+]
+setup.setKeys(keyFn)
 
 // Adjust position so a box is visible even if the board is dragged
 function adjustBoxPos(pos) {
 	return {x: pos.x - board.x(), y: pos.y - board.y()}
 }
-
-function keydown(e) {
-	if (e.key == "p") {
-		if (e.repeat) return
-		flipPlayer()
-		return
-	}
-	if (e.key == "z") {
-		if (e.repeat) return
-		showZOC()
-		return
-	}
-	if (e.key == "h") {
-		if (e.repeat) return
-		createHelpBox()
-		return
-	}
-}
-
 box.destroyCallback((e) => {
 	if (e == helpBox) helpBox = null
 	if (e == turnBox) turnBox = null
 })
-
 let helpBox
 function createHelpBox() {
 	if (helpBox) return
@@ -130,8 +104,8 @@ let markers
 function airMovementRange(hex) {
 	if (markers) markers.destroy()
 	markers = new Konva.Group()
-	const ax = map.hexToAxial(hex)
-	const s = map.inRangeAxial(8, ax)
+	const ax = grid.hexToAxial(hex)
+	const s = grid.inRangeAxial(8, ax)
 	for (const h of s) {
 		// h.prop must have any of "Ccp"
 		if (!h.prop) continue
@@ -149,7 +123,7 @@ function markNeighbours(hex) {
 	if (markers) markers.destroy()
 	markers = new Konva.Group()
 	const ax = map.hexToAxial(hex)
-	for (const h of map.neighboursAxial(ax)) {
+	for (const h of grid.neighboursAxial(ax)) {
 		if (!h) continue
 		let pos = map.hexToPixel(h.hex)
 		markers.add(marker.clone({
@@ -163,7 +137,7 @@ function markGroundMovement(N, hex) {
 	if (markers) markers.destroy()
 	markers = new Konva.Group()
 	const ax = map.hexToAxial(hex)
-	for (const h of map.groundMovementAxial(N, ax)) {
+	for (const h of grid.movementAxial(N, ax)) {
 		let pos = map.hexToPixel(h.hex)
 		markers.add(marker.clone({
 			position: pos,
@@ -173,37 +147,11 @@ function markGroundMovement(N, hex) {
 }
 
 function placeUnits() {
-	let u, rc
-	u = unit.fromStr("ge,pz,4-6")
-	rc = {r:'L', q:31}
-	unit.placeRdtr(u, rc, board)
-	u = unit.fromStr("ge,pz,4-6")
-	rc = {r:'L', q:29}
-	unit.placeRdtr(u, rc, board)
-	u = unit.fromStr("ge,inf,3-3")
-	rc = {r:'L', q:30}
-	unit.placeRdtr(u, rc, board)
-	u = unit.fromStr("fr,pz,3-5")
-	rc = {r:'O', q:22}
-	unit.placeRdtr(u, rc, board)
-	u = unit.fromStr("fr,inf,2-3")
-	rc = {r:'M', q:24}
-	unit.placeRdtr(u, rc, board)
-	u = unit.fromStr("fr,inf,2-3")
-	rc = {r:'N', q:24}
-	unit.placeRdtr(u, rc, board)
-	u = unit.fromStr("fr,inf,2-3")
-	rc = {r:'O', q:24}
-	unit.placeRdtr(u, rc, board)
-	u = unit.fromStr("fr,inf,2-3")
-	rc = {r:'P', q:24}
-	unit.placeRdtr(u, rc, board)
-	u = unit.fromStr("uk,inf,3-4")
-	rc = {r:'K', q:23}
-	unit.placeRdtr(u, rc, board)
-	for (const u of unit.units) {
+	const deployment = JSON.parse(deployJson)
+	for (const uh of deployment.units)
+		unit.place(uh, board, true)
+	for (const u of unit.units)
 		u.img.on('click', showUnitMoves)
-	}
 }
 function showUnitMoves(e) {
 	if (markers) markers.destroy()
@@ -239,6 +187,7 @@ function showZOC() {
 	board.add(zocMarkers)
 }
 
+const deployJson='{"units":[{"u":"fr,inf,2-3,,16","hex":{"x":16,"y":14},"i":9},{"u":"fr,inf,2-3,,18","hex":{"x":15,"y":13},"i":10},{"u":"fr,inf,2-3,,24","hex":{"x":15,"y":12},"i":11},{"u":"fr,pz,3-5,,1","hex":{"x":14,"y":15},"i":16},{"u":"uk,inf,3-4,,5","hex":{"x":13,"y":11},"i":386},{"u":"uk,pz,4-5,,13","hex":{"x":13,"y":12},"i":394},{"u":"ge,inf,3-3,,7","hex":{"x":18,"y":15},"i":483},{"u":"ge,inf,3-3,,8","hex":{"x":18,"y":14},"i":484},{"u":"ge,inf,3-3,,9","hex":{"x":18,"y":13},"i":485},{"u":"ge,pz,4-6,,14","hex":{"x":21,"y":12},"i":528},{"u":"ge,pz,4-6,,19","hex":{"x":22,"y":12},"i":529}]}'
 
 // ----------------------------------------------------------------------
 // "main"
@@ -253,9 +202,8 @@ function showZOC() {
 		let h = map.getHex(hex)
 		if (!h || !h.units || h.units.size == 0) {
 			if (markers) markers.destroy()
+			//airMovementRange(hex)
+			//markNeighbours(hex)
 		}
-		//airMovementRange(h)
-		//markNeighbours(h)
-		//markGroundMovement(4, h)
 	})
 })()

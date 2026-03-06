@@ -219,6 +219,25 @@ cmd_release() {
 	zip -r $TEMP/hex-games.zip .
 	echo "Created [$TEMP/hex-games.zip]"
 }
+##   docker-build (same opts as for "run")
+##     Build a docker container for the app using official "node"
+##     container as base
+##   docker run --tag=tag
+##     Start a container and print the IP-address
+cmd_docker_build() {
+	__bundle=yes
+	cmd_run $@
+	eset __tag="$(basename $src):latest"
+	docker build -t $__tag $__appd
+}
+cmd_docker_run() {
+	test -n "$__tag" || die "No --tag"
+	local id=$(docker run --rm --pull=never -d $__tag)
+	test $? -eq 0 || die "FAILED: docker run -d $1"
+	local jp='.[].NetworkSettings.Networks.bridge.IPAddress'
+	local ip=$(docker inspect $id | jq -r $jp)
+	log "$ip"
+}
 ##   rdtr-build-demos [--appd=dir] [--clean] [--open] page
 ##     Build the "Rise and Decline of the Third Reich" demos.
 ##     Normally invoked with "admin build --demos rdtr"
@@ -233,10 +252,10 @@ cmd_rdtr_build_demos() {
 	mv lib.js hex-games.js
 	local sub
 	cp $src/demos/* $__appd
-	for sub in map-demo units-demo drag-demo deployment-demo restore-demo\
+	for sub in map-demo units-demo deployment-demo restore-demo\
 		map-maker map-demo2 seq-demo; do
 		esbuild --bundle --outfile=$sub-bundle.js --loader:.png=dataurl \
-			--loader:.svg=dataurl --minify $sub.js  || die esbuild
+			--loader:.svg=dataurl $sub.js  || die esbuild
 	done
 	# Clean up
 	rm $(find . -name '*.js' | grep -v bundle) package.json
@@ -340,7 +359,9 @@ cmd_run() {
 		which esbuild > /dev/null || die 'Not in $PATH [esbuild]'
 		esbuild --bundle --outfile=bundle.cjs --platform=node $@ $main \
 			|| die esbuild
-		rm -rf build.sh *.js package.json node_modules
+		# bundle.cjs should contain everything
+		rm -rf *.js node_modules package.json build.sh README.md
+		echo $cmd | grep -q "docker" || node bundle.cjs
 	else
 		node $main
 	fi

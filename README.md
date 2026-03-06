@@ -37,6 +37,7 @@ Dependencies:
 * [esbuild](https://esbuild.github.io/) - Must be in your $PATH
 * [Konva](https://konvajs.org/docs/index.html) - Scripts must be able to import
 * [Inkscape](https://inkscape.org/) - for SVG drawing
+* [ExpressJs](https://expressjs.com/) - for the game server
 
 Most things can be done with the [admin.sh](admin.sh) script.
 ```

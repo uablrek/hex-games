@@ -55,7 +55,7 @@ release:
 
 
 
-## The game
+## The game, version <3.0.0
 
 to play RDTR you need [the rules](
 https://boardgamegeek.com/filepage/246525/third-reich-4th-edition-rulebook-clone)
@@ -127,6 +127,34 @@ Instructions:
 * **Strategic Warfare (SR)** - Including Murmansk Convoy, Lend Lease,
     etc. Is handled by you outside the game
 
+
+## The game, version >=3.0.0
+
+The game is played in `phases` belonging to a `sequence`. For instance
+a "turn" has a sequence, and many sub-sequences, each with many
+`phases`. The `Info` box shows information about the current phase,
+like the phase name, and player. It also shows a help text when
+available, possibly with a reference to the rule book. When done with
+a phase, hit `Enter` to move to the next phase.
+
+## Correction mode
+
+Since the rules are very complex, and faults and misinterpretations
+are expected, there is a "Correction mode". In Correction mode *all*
+units can be dragged anywhere on the map, or added/removed. BRP values
+can be set for any nation. Select nation in the UI under the map. If
+you find that you *must* use Correction mode to follow the rules,
+please write an issue.
+
+## Initial Deployment
+
+The first phase in a new game is "Initial Deployment".
+
+After Initial Deployment a validation is made. If the deployment does
+not follow the rules, you will return to Initial Deployment. If
+possible, violating unit are put back in the UnitBox.
+
+
 ## Contributions
 
 If you find a bug, or want to make a feature request, please write an
@@ -135,12 +163,9 @@ discuss them in an issue first. And, please be aware that I am
 reluctant to bring in too many dependencies (like React). [Konva](
 https://konvajs.org/docs/index.html) though is *absolutely awsome!*
 
-The game logic is almost entirely in [rdtr.js](rdtr.js). This is
-not a very big or complicated program.  Please check the demos. They
-are simpler prototype versions of features in the game.
-
 The following sections are mostly for developers, or people who want
-to learn about the program.
+to learn about the program. Please check the demos. They are simpler
+prototype versions of features in the game.
 
 ## Unit test
 

@@ -39,9 +39,12 @@ stage.container().addEventListener("keydown", (e) => {
 // This is a prototype version. Later use: rdtr.saveGame()
 // Basically, plain JSON can't be used. Please see restore-demo.js.
 function saveGame() {
-	let save = { version: 1 }	// version==1 will never be used again
-	save.deployment = rdtr.getDeplyment()
-	const blob = new Blob([JSON.stringify(save)], { type: 'application/json' })
+	let dep = { units: [] }
+	for (const u of unit.units) {
+		if (!u.hex) continue
+		dep.units.push({ u: unit.toStr(u), hex: u.hex, i:u.i })
+	}
+	const blob = new Blob([JSON.stringify(dep)], { type: 'application/json' })
 	rdtr.download(blob, "rdtr.json")
 }
 

@@ -17,6 +17,7 @@ let crt
 let me
 let attackerFactorsToRemove = 0
 let defenderFactorsToRemove = 0
+let href
 
 const keyFn = [
 	{key:'h', fn:createHelpBox},
@@ -124,7 +125,10 @@ function handleConnectMessage(_msg) {
 		updateTurnBox(`Status: ${msg.status}`)
 		return
 	}
-	me = msg.player
+	if (msg.player == 'A')
+		me = "French"
+	else
+		me = "English"
 	g.player = "English"
 	updateTurnBox(`You are playing as: ${me}`)
 	ws.onclose = brokenConnection
@@ -254,7 +258,11 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Connect to Server",
 			start: function(seq) {
-				openConnection('ws://localhost:8081')
+				let url = 'ws://localhost:8081/ws'
+				if (href.protocol != "file:")
+					url = `ws://${href.host}/ws`
+				console.log(`Connecting to ${url} ...`)
+				openConnection(url)
 			},
 		},
 		{
@@ -907,7 +915,7 @@ function exDone() {
 	for (const h of map.hexMap.values())
 		if (h.prop && h.prop.includes("o")) objectives.add(h)
 	//createHelpBox()
+	href = new URL(location.href)
 	sequence.nextStep()
 	createTurnBox()
 })()
-

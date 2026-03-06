@@ -4,8 +4,436 @@
   https://github.com/uablrek/hex-games/tree/main/rdtr
  */
 import * as map from './rdtr-map.js';
-import {unit, box} from './hex-games.js'
+import {unit, box, grid} from './hex-games.js'
+import {scrollBoard} from './rdtr-ui.js'
 
+// Other files import this file as "unit", so re-export some functions
+export const fromImage = unit.fromImg
+export const toStr = unit.toStr
+export const unselectAll = unit.unselectAll
+export const fromStr = unit.fromStr
+export const place = unit.place
+export const moveTo = unit.moveTo
+export const regretMove = unit.regretMove
+export const rotateStack = unit.rotateStack
+export const snapToHex = unit.unitDragend
+
+let layer						  // The layer where units are placed
+export async function init(_layer) {
+	layer = _layer
+	// Define .stat from .s and .m
+	for (const u of units) {
+		if ('s' in u) {
+			if (u.m)
+				u.stat = `${u.s}-${u.m}`
+			else
+				u.stat = `${u.s}`
+		}
+	}
+	unit.addUnitGenerator('nav', unit.ugenNav)
+    unit.addUnitGenerator('ab', unit.ugenAb)
+	unit.addUnitGenerator('bh', ugenBh)
+	await unit.init(units, nations, 0.88, false)
+	for (const u of units) {
+		u.img.draggable(true)
+		u.img.on('dragstart', function(e) {
+			e.target.moveToTop()
+		})
+		u.img.on('dragend', snapToHex)
+	}
+}
+function ugenBh(conf, u, side) {
+	u.add(new Konva.Circle({
+		stroke: conf.stroke,
+		radius: side*0.33,
+		strokeWidth: 3,
+		x: side/2,
+		y: side/2,
+	}))
+	u.add(new Konva.Text({
+		fill: conf.stroke,
+		text: "BH",
+		fontStyle: 'bold',
+		fontFamily: 'sans-serif',
+		fontSize: side/3,
+		x: side*0.26,
+		y: side*0.32,
+	}))
+	return true
+}
+
+// ----------------------------------------------------------------------
+// UnitBox'es
+
+export const unitBoxConf = {
+	nu: {
+		hex: {x:13,y:8},
+		conf: {
+			text: "Neutrals",
+			unitTypes: [
+				{type:'inf', stat: "2-3"},
+				{type:'inf', stat: "1-3"},
+				{type:'air', stat: "1-4"},
+				{type:'air', stat: "2-4"},
+				{type:'nav', stat: "2"},
+			],
+			destroyable: false,
+		},
+	},
+	it: {
+		hex: {x:22,y:31},
+		conf: {
+ 			text: "Italy",
+			unitTypes: [
+				{type:'inf', stat: "3-3"},
+				{type:'inf', stat: "2-3"},
+				{type:'inf', stat: "1-3"},
+				{type:'pz',  stat: "2-5"},
+				{type:'par', stat: "2-3"},
+				{type:'res', stat: "1"},
+				{type:'air', stat: "5-4"},
+				{type:'nav', stat: "9"},
+				{type:'ab'},
+			],
+			destroyable: false,
+		},
+	},
+	fr: {
+		hex: {x:8,y:9},
+		conf: {
+			text: "France",
+			unitTypes: [
+				{type:'inf', stat: "2-3"},
+				{type:'pz',  stat: "3-5"},
+				{type:'air', stat: "5-4"},
+				{type:'res', stat: "1"},
+				{type:'nav', stat: "9"},
+				{type:'ab'},
+			],
+			destroyable: false,
+		},
+	},
+	uk: {
+		hex: {x:15,y:7},
+		conf: {
+			text: "Britain",
+			unitTypes: [
+				{type:'inf', stat: "3-4"},
+				{type:'inf', stat: "1-3"},
+				{type:'pz',  stat: "4-5"},
+				{type:'pz',  stat: "2-5"},
+				{type:'par', stat: "3-3"},
+				{type:'res', stat: "1"},
+				{type:'air', stat: "5-4"},
+				{type:'air', stat: "1-4"},
+				{type:'nav', stat: "9"},
+				{type:'ab'},
+			],
+			destroyable: false,
+		},
+	},
+	su: {
+		hex: {x:37,y:5},
+		conf: {
+			text: "U.S.S.R",
+			unitTypes: [
+				{type:'inf', stat: "1-3"},
+				{type:'inf', stat: "2-3"},
+				{type:'inf', stat: "3-3"},
+				{type:'pz',  stat: "3-5"},
+				{type:'pz',  stat: "4-5"},
+				{type:'par', stat: "2-3"},
+				{type:'air', stat: "5-4"},
+				{type:'nav', stat: "9"},
+				{type:'ab'},
+			],
+			destroyable: false,
+		},
+	},
+	ge: {
+		hex: {x:22,y:6},
+		conf: {
+			text: "Germany",
+			unitTypes: [
+				{type:'inf', stat: "3-3"},
+				{type:'inf', stat: "1-3"},
+				{type:'pz',  stat: "4-6"},
+				{type:'pz',  stat: "5-6"},
+				{type:'res', stat: "1"},
+				{type:'par', stat: "3-3"},
+				{type:'air', stat: "5-4"},
+				{type:'nav', stat: "9"},
+				{type:'ab'},
+			],
+			destroyable: false,
+		},
+	},
+	us: {
+		hex: {x:5,y:7},
+		conf: {
+			text: "United States",
+			unitTypes: [
+				{type:'inf', stat: "3-4"},
+				{type:'pz',  stat: "5-6"},
+				{type:'par', stat: "3-3"},
+				{type:'res', stat: "1"},
+				{type:'air', stat: "5-4"},
+				{type:'nav', stat: "9"},
+				{type:'ab'},
+			],
+			destroyable: false,
+		},
+	},
+}
+export function mkUnitbox(nat) {
+	const unitbox = new unit.UnitBox(unitBoxConf[nat].conf)
+	for (const u of units) {
+		if (u.nat != nat) continue
+		if (!u.allowable) continue
+		if (u.hex) continue
+		unitbox.addUnit(u)
+	}
+	const hex = unitBoxConf[nat].hex
+	unitbox.box.position(grid.hexToPixel(hex))
+	layer.add(unitbox.box)
+
+	// We want the unitbox to be visible, so the board is scrolled.
+	// X should be around the middle of the window
+	// Y should be around 20% from the top
+	let boardHex = {x:0, y:0}
+	boardHex.x = hex.x - map.visibleArea.width * 0.4
+	boardHex.y = hex.y - map.visibleArea.height * 0.2
+	if (boardHex.x + map.visibleArea.width >= map.mapSize.width)
+		boardHex.x = map.mapSize.width - map.visibleArea.width
+	if (boardHex.y + map.visibleArea.height >= map.mapSize.height)
+		boardHex.y = map.mapSize.height - map.visibleArea.height
+	scrollBoard(boardHex)
+	return unitbox
+}
+
+// ----------------------------------------------------------------------
+// Unit Box
+// A draggable shaded box with units (prototype in "deployment-demo.js")
+// TODO: move UnitBox to "units.js"?
+
+// Singelton for now
+let theUnitBox
+
+// Re-define to avoid cyclic dependency to rdtr.js
+function moveToTop(e) {
+	e.target.moveToTop()
+}
+
+export class UnitBox {
+	rows = 1
+	cols = 4
+	x = 400
+	y = 100
+	text = "Units"
+	box
+	#sizeC = 60
+	#sizeR = 70
+	#offsetX = 50
+	#offsetY = 80
+	#units = new Set()
+	constructor(obj) {
+		for (var prop in obj) {
+			if (obj.hasOwnProperty(prop)) {
+				this[prop] = obj[prop];
+			}
+		}
+		if (theUnitBox) {
+			alert("Multiple UnitBox'es NOT allowed")
+			return
+		}
+		theUnitBox = this
+		// We want the pop-up box to be visible on screen even if the
+		// board is dragged. So, compensate for the board position
+		let pos = layer.position()
+		this.box = new Konva.Group({
+			x: this.x - pos.x,
+			y: this.y - pos.y,
+			draggable: true,
+		})
+		this.box.on('dragstart', moveToTop)
+		let width = this.cols * this.#sizeC + this.#offsetX
+		this.box.add(new Konva.Rect({
+			x: 0,
+			y: 0,
+			width: width,
+			height: this.rows * this.#sizeR + this.#offsetY,
+			fill: 'gray',
+			opacity: 0.75,
+			cornerRadius: 20,
+		}))
+		let close = box.X.clone({
+			x: width - 40,
+			y: 15,
+			scale: {x:0.3,y:0.3},
+		})
+		box.setStrokeX(close, 'white')
+		this.box.add(close)
+		close.on('click', UnitBox.#destroy)
+		this.box.add(new Konva.Text({
+			x: 25,
+			y: 15,
+			fontSize: 22,
+			fill: 'white',
+			text: this.text
+		}))
+		layer.add(this.box)
+	}
+	destroy() {
+		// Clear the singleton reference
+		theUnitBox = null
+		// Hide the group object
+		this.box.hide()
+		// remove all remaining unit images from the group
+		for (const u of this.#units) {
+			u.img.remove()
+		}
+		this.#units.clear()	  // (prevent memory leak)
+		// then destroy the group (and all remaining childs)
+		// It is assumed that all eventHandlers are deleted too
+		this.box.destroy()
+	}
+	// This is a 'click' event callback
+	static #destroy(e) {
+		theUnitBox.destroy()
+	}
+	static #dragstart(e) {
+		theUnitBox.place(e)
+	}
+	place(e) {
+		e.target.moveTo(layer)
+		e.target.moveToTop()
+		e.target.on('dragend', snapToHex)
+		// replace myself! NOTE: you *must* 'off' the old callback!!
+		e.target.off('dragstart')
+		e.target.on('dragstart', moveToTop)
+		let u = fromImage(e.target)
+		this.#units.delete(u)
+	}
+	addUnit(u, col, row) {
+		if (u.hex) {
+			let str = toStr(u)
+			return
+		}
+		if (this.#units.has(u)) return // already added
+		this.#units.add(u)
+		u.img.on('dragstart', UnitBox.#dragstart)
+		let x = col * this.#sizeC + this.#offsetX
+		let y = row * this.#sizeR + this.#offsetY
+		u.img.x(x)
+		u.img.y(y)
+		this.box.add(u.img)
+	}
+}
+
+
+// Shows all undployed air units for all major powers + air-bases
+// Intended for break/buildup of 5-4 airs
+export class UnitBoxAir extends UnitBox {
+	constructor() {
+		super({
+			// ge,it,uk,su,fr,us,nu*
+			rows: 6,
+			// 5-4, 3-4, 2-4, 1-4, ab
+			cols: 5,
+			text: "Air Exchange",
+		})
+
+		for (const u of units) {
+			if (!Object.keys(UnitBoxAir.#layout).includes(u.nat)) continue
+			if (u.hex) continue
+			if (u.type != "air" && u.type != "ab") continue
+			if (u.s == 5 && !u.allowable) continue
+			let rc = UnitBoxAir.getRowCol(u)
+			super.addUnit(u, rc.col, rc.row)
+		}
+	}
+	static #layout = {
+		ge: { row: 0 },
+		it: { row: 1 },
+		uk: { row: 2 },
+		su: { row: 3 },
+		fr: { row: 4 },
+		us: { row: 5 }
+	}
+	// (to make this static allows unit-test)
+	static getRowCol(u) {
+		let l = UnitBoxAir.#layout[u.nat]
+		let col
+		const colLayout = [
+			{type: 'air', s:5},
+			{type: 'air', s:3},
+			{type: 'air', s:2},
+			{type: 'air', s:1},
+			{type: 'ab'},
+		]
+		for (col = 0; col < colLayout.length; col++) {
+			let t = colLayout[col]
+			if (u.type != t.type) continue
+			if (!t.s) break
+			if (u.s != t.s) continue
+			break
+		}
+		return {col:col, row:l.row}
+	}
+}
+// Shows all undployed naval units for all major powers
+// Intended for break/buildup of 9-boats
+export class UnitBoxNav extends UnitBox {
+	constructor(obj) {
+		super({
+			// ge,it,uk,su,fr,us
+			rows: 6,
+			// 9,8,6,4,2,1
+			cols: 6,
+			text: "Fleet Exchange"
+		})
+
+		for (const u of units) {
+			if (!Object.keys(UnitBoxNav.#layout).includes(u.nat)) continue
+			if (u.hex) continue
+			if (u.type != "nav") continue
+			if (u.s == 9 && !u.allowable) continue
+			let rc = UnitBoxNav.getRowCol(u)
+			super.addUnit(u, rc.col, rc.row)
+		}
+	}
+	static #layout = {
+		ge: { row: 0 },
+		it: { row: 1 },
+		uk: { row: 2 },
+		su: { row: 3 },
+		fr: { row: 4 },
+		us: { row: 5 }
+	}
+	// (to make this static allows unit-test)
+	static getRowCol(u) {
+		let l = UnitBoxNav.#layout[u.nat]
+		let col
+		const colLayout = [
+			{type: 'nav', s:9},
+			{type: 'nav', s:8},
+			{type: 'nav', s:6},
+			{type: 'nav', s:4},
+			{type: 'nav', s:2},
+			{type: 'nav'},
+		]
+		for (col = 0; col < colLayout.length; col++) {
+			let t = colLayout[col]
+			if (u.type != t.type) continue
+			if (!t.s) break
+			if (u.s != t.s) continue
+			break
+		}
+		return {col:col, row:l.row}
+	}
+}
+
+// ----------------------------------------------------------------------
 // An array of all units.
 // { type:"inf", nat: "fr", m:2, s:3, lbl:"8",
 //   stat:"3-3", img:Image, hex:{x:,y:}}  // and more, added later
@@ -300,11 +728,11 @@ export const units = [
 	{type:"air", nat:"nu", s:1, m:4},
 	{type:"nav", nat:"nu", s:2},
 	{type:"nav", nat:"nu", s:2},
-	{type:"bh", nat:"nu", color:'white', stroke:'black'},
-	{type:"bh", nat:"nu", color:'white', stroke:'black'},
-	{type:"bh", nat:"nu", color:'white', stroke:'black'},
-	{type:"bh", nat:"nu", color:'white', stroke:'black'},
-	{type:"bh", nat:"nu", color:'white', stroke:'black'},
+	{type:"bh", nat:"al", color:'white', stroke:'black'},
+	{type:"bh", nat:"al", color:'white', stroke:'black'},
+	{type:"bh", nat:"al", color:'white', stroke:'black'},
+	{type:"bh", nat:"al", color:'white', stroke:'black'},
+	{type:"bh", nat:"al", color:'white', stroke:'black'},
 	{type:"inf", nat:"iq", s:1, m:3, lbl:"1 Iraq"},
 	{type:"inf", nat:"iq", s:1, m:3, lbl:"2 Iraq"},
 	{type:"inf", nat:"iq", s:1, m:3, lbl:"3 Iraq"},
@@ -638,696 +1066,4 @@ const nations = {
 	hu: {color:'#CBCBCB',stroke:'black'},
 	ru: {color:'#CBCBCB',stroke:'black'},
 	bu: {color:'#CBCBCB',stroke:'black'},
-}
-
-export async function init(_layer) {
-	layer = _layer
-	// Define .stat from .s and .m
-	for (const u of units) {
-		if ('s' in u) {
-			if (u.m)
-				u.stat = `${u.s}-${u.m}`
-			else
-				u.stat = `${u.s}`
-		}
-	}
-	unit.addUnitGenerator('nav', unit.ugenNav)
-    unit.addUnitGenerator('ab', unit.ugenAb)
-	unit.addUnitGenerator('bh', ugenBh)
-	await unit.init(units, nations, 0.88, false)
-	for (const u of units) {
-		u.img.draggable(true)
-		u.img.on('dragstart', function(e) {
-			e.target.moveToTop()
-		})
-		u.img.on('dragend', snapToHex)
-	}
-}
-function ugenBh(conf, u, side) {
-	u.add(new Konva.Circle({
-		stroke: conf.stroke,
-		radius: side*0.33,
-		strokeWidth: 3,
-		x: side/2,
-		y: side/2,
-	}))
-	u.add(new Konva.Text({
-		fill: conf.stroke,
-		text: "BH",
-		fontStyle: 'bold',
-		fontFamily: 'sans-serif',
-		fontSize: side/3,
-		x: side*0.26,
-		y: side*0.32,
-	}))
-	return true
-}
-
-// ----------------------------------------------------------------------
-// Unit find and user-friendly representation
-
-// For "generic" units, like "ge,air,5-4" where we want *any*
-// unit that match, but NOT the same unit, do:
-//   unselectAll()
-//   u = fromStr("ge,air,5-4", (u)=>u.selected)
-export function unselectAll() {
-	for (const u of units) {
-		delete u.selected
-	}
-}
-export function fromStr(str, filterOut) {
-	// By default no units are filtered. Useful filters may be:
-	//   (u)=>u.selected   - exclude already selected
-	//   (u)=>u.allowable  - exclude allowable's
-	//   (u)=>!u.allowable - include allowable's
-	//   (u)=>u.hex        - exclude placed units
-	if (!filterOut) filterOut=((u) => false)
-	// return the first found unit that matches str
-	let v, nat, type, s, m, lbl, unit
-	v = str.split(',')
-	// The first 2 fields nat,type are mandatory
-	nat = v[0]
-	type = v[1]
-	if (v.length > 2) {
-		// This may be a single number, or something like "3-3"
-		let stat = v[2].split('-')
-		s = stat[0]
-		if (stat.length > 1) m = stat[1]
-	}
-	if (v.length > 2) lbl = v[3]
-	for (const u of units) {
-		if (filterOut(u)) continue
-		if (nat != u.nat) continue
-		if (type != u.type) continue
-		if (!s) {
-			unit = u
-			break
-		}
-		if (s != u.s) continue
-		if (!m) {
-			unit = u
-			break
-		}
-		if (m != u.m) continue
-		if (!lbl) {
-			unit = u
-			break
-		}
-		if (lbl != u.lbl) continue
-		// Perfect match
-		unit = u
-		break
-	}
-	if (unit) unit.selected = true
-	return unit
-}
-export function toStr(u) {
-	switch (u.type) {
-	case "inf":
-	case "pz":
-	case "air":
-	case "par":
-	case "mec":
-		if (u.lbl) {
-			return `${u.nat},${u.type},${u.s}-${u.m},${u.lbl}`
-		} else {
-			return `${u.nat},${u.type},${u.s}-${u.m}`
-		}
-	case "res":
-	case "nav":
-	case "esc":
-	case "bmb":
-	case "sub":
-	case "int":
-		return `${u.nat},${u.type},${u.s}`
-	case "ab":
-	case "bh":
-		return `${u.nat},${u.type}`
-	}
-	return "unknown-unit"
-}
-
-export function fromImage(img) {
-	// The unit-image's unique id is "rdtru#", where '#' is the index
-	// in the "units" array Since u.img is a Konva.Group, the clicked
-	// item may be anything in it
-	let g = img.findAncestor('Group', true)
-	i = Number(g.id().substring(5))
-    return units[i]
-}
-
-// ----------------------------------------------------------------------
-// Unit placement functions:
-
-let layer						  // The layer where units are placed
-
-export function removeFromMap(u) {
-	if (!u.hex) return
-	map.unitRemove(u)
-	u.img.remove()
-	delete u.hex
-}
-
-function pixelPos(hex) {
-	let h = map.hexToPixel(hex)
-	return {x: h.x, y: h.y}
-}
-function place(u, hex) {
-	u.hex = hex
-	map.unitAdd(u)
-	px = pixelPos(hex)
-	if (isStack(hex)) px = stackAdjust(px)
-	u.img.position(px)
-	u.img.on('dragend', snapToHex)
-	layer.add(u.img)
-}
-export function placeRdtr(u, rc) {
-	place(u, map.rdtrToHex(rc))
-}
-// This function should be called after the user has placed a unit,
-// for instance from 'dragend'.
-export function snapToHex(e) {
-	let img = e.target
-	// Get the unit object from the image
-	let u = fromImage(img)
-	// The unit img coordinate is top-left, adjust to center
-	let pos = {x:img.x(), y:img.y()}
-	// Get the hex, and update the unit object
-	map.unitRemove(u)
-	let hex = map.pixelToHex(pos)
-	u.hex = hex
-	map.unitAdd(u)
-	// Snap!
-	pos = pixelPos(hex)		// adjusted pos
-	if (isStack(hex)) pos = stackAdjust(pos)
-	img.position(pos)
-	//console.log(`map: ${map.unitsTotal()}, placed: ${placedUnits()}`)
-}
-function isStack(hex) {
-	const s = map.unitsGet(hex)
-	if (!s) return false
-	return s.size > 1
-}
-function stackAdjust(pos) {
-	let offset = 4
-	return {x:pos.x - offset, y:pos.y - offset}
-}
-
-// for debugging
-function placedUnits() {
-	let t = 0
-	for (const u of units) {
-		if (u.hex) t++
-	}
-	return t
-}
-
-// ----------------------------------------------------------------------
-// Unit Box
-// A draggable shaded box with units (prototype in "deployment-demo.js")
-// TODO: move UnitBox to "units.js"?
-
-// Singelton for now
-let theUnitBox
-
-// Re-define to avoid cyclic dependency to rdtr.js
-function moveToTop(e) {
-	e.target.moveToTop()
-}
-
-export class UnitBox {
-	rows = 1
-	cols = 4
-	x = 400
-	y = 100
-	text = "Units"
-	box
-	#sizeC = 60
-	#sizeR = 70
-	#offsetX = 50
-	#offsetY = 80
-	#units = new Set()
-	constructor(obj) {
-		for (var prop in obj) {
-			if (obj.hasOwnProperty(prop)) {
-				this[prop] = obj[prop];
-			}
-		}
-		if (theUnitBox) {
-			alert("Multiple UnitBox'es NOT allowed")
-			return
-		}
-		theUnitBox = this
-		// We want the pop-up box to be visible on screen even if the
-		// board is dragged. So, compensate for the board position
-		let pos = layer.position()
-		this.box = new Konva.Group({
-			x: this.x - pos.x,
-			y: this.y - pos.y,
-			draggable: true,
-		})
-		this.box.on('dragstart', moveToTop)
-		let width = this.cols * this.#sizeC + this.#offsetX
-		this.box.add(new Konva.Rect({
-			x: 0,
-			y: 0,
-			width: width,
-			height: this.rows * this.#sizeR + this.#offsetY,
-			fill: 'gray',
-			opacity: 0.75,
-			cornerRadius: 20,
-		}))
-		let close = box.X.clone({
-			x: width - 40,
-			y: 15,
-			scale: {x:0.3,y:0.3},
-		})
-		box.setStrokeX(close, 'white')
-		this.box.add(close)
-		close.on('click', UnitBox.#destroy)
-		this.box.add(new Konva.Text({
-			x: 25,
-			y: 15,
-			fontSize: 22,
-			fill: 'white',
-			text: this.text
-		}))
-		layer.add(this.box)
-	}
-	destroy() {
-		// Clear the singleton reference
-		theUnitBox = null
-		// Hide the group object
-		this.box.hide()
-		// remove all remaining unit images from the group
-		for (const u of this.#units) {
-			u.img.remove()
-		}
-		this.#units.clear()	  // (prevent memory leak)
-		// then destroy the group (and all remaining childs)
-		// It is assumed that all eventHandlers are deleted too
-		this.box.destroy()
-	}
-	// This is a 'click' event callback
-	static #destroy(e) {
-		theUnitBox.destroy()
-	}
-	static #dragstart(e) {
-		theUnitBox.place(e)
-	}
-	place(e) {
-		e.target.moveTo(layer)
-		e.target.moveToTop()
-		e.target.on('dragend', snapToHex)
-		// replace myself! NOTE: you *must* 'off' the old callback!!
-		e.target.off('dragstart')
-		e.target.on('dragstart', moveToTop)
-		let u = fromImage(e.target)
-		this.#units.delete(u)
-	}
-	addUnit(u, col, row) {
-		if (u.hex) {
-			let str = toStr(u)
-			return
-		}
-		if (this.#units.has(u)) return // already added
-		this.#units.add(u)
-		u.img.on('dragstart', UnitBox.#dragstart)
-		let x = col * this.#sizeC + this.#offsetX
-		let y = row * this.#sizeR + this.#offsetY
-		u.img.x(x)
-		u.img.y(y)
-		this.box.add(u.img)
-	}
-}
-
-// Shows all "allowable" units for all major powers + neutrals (optional)
-// Intended for initial deployment and later buys
-export class UnitBoxMajor extends UnitBox {
-	#brpText
-	#brp = 0
-	constructor(obj) {
-		// ge,it,uk,su,fr,us,nu*
-		// * either: neutrals OR a "BRP Cost:" text-item
-		obj.rows = 7
-		// inf,inf,inf,pz,pz,pz,res,par,air,air,nav,mec
-		obj.cols = 12
-		super(obj)
-
-		for (const u of units) {
-			if (u.allowable) {
-				let rc = UnitBoxMajor.getRowCol(u)
-				super.addUnit(u, rc.col, rc.row)
-			}
-			if (obj.neutrals) {
-				if (u.nat == 'nu' && u.type != 'bh') {
-					let rc = UnitBoxMajor.getRowCol(u)
-					super.addUnit(u, rc.col, rc.row)
-				}
-			}
-		}
-		if (!obj.neutrals) {
-			// (position hard-coded since #sizeR, etc. are private)
-			this.#brpText = new Konva.Text({
-				x: 20,
-				y: 490,
-				fontSize: 32,
-				fontStyle: 'bold',
-				fill: 'white',
-				text: "BRP cost: 0",
-			})
-			this.box.add(this.#brpText)
-		}
-	}
-	// This function overrides place() in the base class
-	place(e) {
-		if (this.#brpText) {
-			let multiplier = 0
-			let u = fromImage(e.target)
-			switch (u.type) {
-			case "inf":
-			case "res":
-				multiplier = 1
-				break
-			case "pz":
-				multiplier = 2
-				break
-			case "par":
-			case "air":
-			case "nav":
-				multiplier = 3
-				break
-			}
-			this.#brp += u.s * multiplier
-			this.#brpText.text(`BRP Cost: ${this.#brp}`)
-		}
-		super.place(e)
-	}
-	static #layout = {
-		ge: {
-			row: 0,
-			col: [
-				{type: 'inf', s:3},
-				{type: 'pz', s:4},
-				{type: 'res'},
-				{type: 'air'},
-				{type: 'nav'},
-				{type: 'par'},
-				{type: 'pz'},
-				{type: 'inf'},
-				{type: 'mec'},
-			]
-		},
-		it: {
-			row: 1,
-			col: [
-				{type: 'inf', s:3},
-				{type: 'inf', s:2},
-				{type: 'inf'},
-				{type: 'pz'},
-				{type: 'res'},
-				{type: 'air'},
-				{type: 'nav'},
-				{type: 'par'},
-			]
-		},
-		uk: {
-			row: 2,
-			col: [
-				{type: 'inf', s:3},
-				{type: 'inf', s:1},
-				{type: 'inf'},
-				{type: 'pz', s:4},
-				{type: 'pz'},
-				{type: 'res'},
-				{type: 'air', s:5},
-				{type: 'air'},
-				{type: 'nav'},
-				{type: 'par'},
-				{type: 'mec'},
-			]
-		},
-		su: {
-			row: 3,
-			col: [
-				{type: 'inf', s:3},
-				{type: 'inf', s:1},
-				{type: 'inf'},
-				{type: 'pz', s:4, m:5},
-				{type: 'pz',s:3},
-				{type: 'res'},
-				{type: 'air'},
-				{type: 'nav'},
-				{type: 'par'},
-				{type: 'mec'},
-				{type: 'pz'},
-			]
-		},
-		fr: {
-			row: 4,
-			col: [
-				{type: 'inf', s:2},
-				{type: 'inf'},
-				{type: 'pz'},
-				{type: 'res'},
-				{type: 'par'},
-				{type: 'air'},
-				{type: 'nav'},
-			]
-		},
-		us: {
-			row: 5,
-			col: [
-				{type: 'inf'},
-				{type: 'pz'},
-				{type: 'res'},
-				{type: 'air'},
-				{type: 'nav'},
-				{type: 'par'},
-			]
-		},
-		nu: {
-			row: 6,
-			col: [
-				{type: 'inf', s:2},
-				{type: 'inf'},
-				{type: 'air'},
-			]
-		},
-	}
-	// (to make this static allows unit-test)
-	static getRowCol(u) {
-		let l = UnitBoxMajor.#layout[u.nat]
-		let col
-		for (col = 0; col < l.col.length; col++) {
-			let t = l.col[col]
-			if (u.type != t.type) continue
-			if (!t.s) break
-			if (u.s != t.s) continue
-			if (!t.m) break
-			if (u.m != t.m) continue
-			break
-		}
-		return {col:col, row:l.row}
-	}
-}
-
-
-export class UnitBoxNeutrals extends UnitBox {
-	constructor() {
-		super({
-			// nu+iq+bh, sp+tu, fin+bulg, rum+hun
-			rows: 4,
-			// sp+tu: inf,pz,air,nav,(blank),inf,pz,air,nav
-			cols: 9,
-			text: "Neutrals and Minor Allies"
-		})
-
-		for (const u of units) {
-			if (!Object.keys(UnitBoxNeutrals.#layout).includes(u.nat)) continue
-			if (u.hex) continue
-			let rc = UnitBoxNeutrals.getRowCol(u)
-			super.addUnit(u, rc.col, rc.row)
-		}
-	}
-	static #layout = {
-		nu: {
-			row: 0,
-			col: [
-				{type: 'inf', s:2, col: 0},
-				{type: 'inf', col: 1},
-				{type: 'air', col: 2},
-				{type: 'nav', col: 3},
-				{type: 'bh', col: 8},
-			]
-		},
-		iq: {
-			row: 0,
-			col: [
-				{type: 'inf', col: 7},
-			]
-		},
-		sp: {
-			row: 1,
-			col: [
-				{type: 'inf', col: 0},
-				{type: 'pz', col: 1},
-				{type: 'air', col: 2},
-				{type: 'nav', col: 3},
-			]
-		},
-		tu: {
-			row: 1,
-			col: [
-				{type: 'inf', col: 5},
-				{type: 'pz', col: 6},
-				{type: 'air', col: 7},
-				{type: 'nav', col: 8},
-			]
-		},
-		fi: {
-			row: 2,
-			col: [
-				{type: 'inf', col: 0},
-				{type: 'air', col: 1},
-			]
-		},
-		bu: {
-			row: 2,
-			col: [
-				{type: 'inf', col: 5},
-				{type: 'air', col: 6},
-			]
-		},
-		ru: {
-			row: 3,
-			col: [
-				{type: 'inf', s:2, col: 0},
-				{type: 'inf', col: 1},
-				{type: 'air', col: 2},
-			]
-		},
-		hu: {
-			row: 3,
-			col: [
-				{type: 'inf', s:2, col: 5},
-				{type: 'inf', col: 6},
-				{type: 'air', col: 7},
-			]
-		},
-	}
-	// (to make this static allows unit-test)
-	static getRowCol(u) {
-		let l = UnitBoxNeutrals.#layout[u.nat]
-		let t
-		for (t of l.col) {
-			if (u.type != t.type) continue
-			if (!t.s) break
-			if (u.s != t.s) continue
-			break
-		}
-		return {col:t.col, row:l.row}
-	}
-}
-
-// Shows all undployed air units for all major powers + air-bases
-// Intended for break/buildup of 5-4 airs
-export class UnitBoxAir extends UnitBox {
-	constructor() {
-		super({
-			// ge,it,uk,su,fr,us,nu*
-			rows: 6,
-			// 5-4, 3-4, 2-4, 1-4, ab
-			cols: 5,
-			text: "Air Exchange",
-		})
-
-		for (const u of units) {
-			if (!Object.keys(UnitBoxAir.#layout).includes(u.nat)) continue
-			if (u.hex) continue
-			if (u.type != "air" && u.type != "ab") continue
-			if (u.s == 5 && !u.allowable) continue
-			let rc = UnitBoxAir.getRowCol(u)
-			super.addUnit(u, rc.col, rc.row)
-		}
-	}
-	static #layout = {
-		ge: { row: 0 },
-		it: { row: 1 },
-		uk: { row: 2 },
-		su: { row: 3 },
-		fr: { row: 4 },
-		us: { row: 5 }
-	}
-	// (to make this static allows unit-test)
-	static getRowCol(u) {
-		let l = UnitBoxAir.#layout[u.nat]
-		let col
-		const colLayout = [
-			{type: 'air', s:5},
-			{type: 'air', s:3},
-			{type: 'air', s:2},
-			{type: 'air', s:1},
-			{type: 'ab'},
-		]
-		for (col = 0; col < colLayout.length; col++) {
-			let t = colLayout[col]
-			if (u.type != t.type) continue
-			if (!t.s) break
-			if (u.s != t.s) continue
-			break
-		}
-		return {col:col, row:l.row}
-	}
-}
-// Shows all undployed naval units for all major powers
-// Intended for break/buildup of 9-boats
-export class UnitBoxNav extends UnitBox {
-	constructor(obj) {
-		super({
-			// ge,it,uk,su,fr,us
-			rows: 6,
-			// 9,8,6,4,2,1
-			cols: 6,
-			text: "Fleet Exchange"
-		})
-
-		for (const u of units) {
-			if (!Object.keys(UnitBoxNav.#layout).includes(u.nat)) continue
-			if (u.hex) continue
-			if (u.type != "nav") continue
-			if (u.s == 9 && !u.allowable) continue
-			let rc = UnitBoxNav.getRowCol(u)
-			super.addUnit(u, rc.col, rc.row)
-		}
-	}
-	static #layout = {
-		ge: { row: 0 },
-		it: { row: 1 },
-		uk: { row: 2 },
-		su: { row: 3 },
-		fr: { row: 4 },
-		us: { row: 5 }
-	}
-	// (to make this static allows unit-test)
-	static getRowCol(u) {
-		let l = UnitBoxNav.#layout[u.nat]
-		let col
-		const colLayout = [
-			{type: 'nav', s:9},
-			{type: 'nav', s:8},
-			{type: 'nav', s:6},
-			{type: 'nav', s:4},
-			{type: 'nav', s:2},
-			{type: 'nav'},
-		]
-		for (col = 0; col < colLayout.length; col++) {
-			let t = colLayout[col]
-			if (u.type != t.type) continue
-			if (!t.s) break
-			if (u.s != t.s) continue
-			break
-		}
-		return {col:col, row:l.row}
-	}
 }
