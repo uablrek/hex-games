@@ -29,6 +29,25 @@ in your browser. No dependencies needed!
 In `2.1.0` a playable (sort of) example game is included:
 [The battle for The Hill](./the-hill/README.md)
 
+#### Docker container
+
+Or play the [The battle for The Hill](./the-hill-mp/README.md)
+multi-player version from a docker container:
+```
+docker pull uablrek/the-hill:latest
+docker run -d -p 8081:8081 uablrek/the-hill:latest
+# Both players opens http://<host-ip>:8081
+```
+**WARNING**: This container has no security. Anyone with the
+  ip-address can access it!
+
+This container is generic, it just connects player A with player
+B. So, it can be used as base for other games. Dockerfile:
+```
+FROM uablrek/the-hill:latest
+COPY --chown=0:0 / /html/
+CMD ["node", "/bundle.cjs"]
+```
 
 ## Development
 

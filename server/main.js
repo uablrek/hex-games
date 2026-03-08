@@ -2,10 +2,16 @@
 
 import express from 'express'
 import expressWs from 'express-ws'
+import fs from 'fs'
 
 const port = 8081
 let A
 let B
+let log = console.log
+//let log = functio(){}
+
+const saved = "saves"
+if (!fs.existsSync(saved)) fs.mkdirSync(saved)
 
 const app = express()
 expressWs(app)
@@ -16,15 +22,53 @@ app.ws('/ws', function(ws, req) {
 app.listen(port, () => {
 	console.log(`Server listening on port ${port}`)
 })
+let saves = {}
+
+// Saves are stored at the server. Message format:
+//   {"type":"save", "name":"save-name", "game": {...}}
+//   {"type":"restore", "name":"save-name", "game": {...}}
+// The "game" object may be anything, and is omitted in a restore request.
+function isSaveRestore(message) {
+	const msg = JSON.parse(message)
+	if (msg.type == "save") {
+		saves[msg.name] = msg.game
+		const savef = `${saved}/${msg.name}`
+		fs.writeFileSync(savef, JSON.stringify(msg.game))
+		log("Game saved", message)
+		return true
+	}
+	if (msg.type == "restore") {
+		if (msg.name in saves)
+			msg.game = saves[msg.name]
+		else {
+			const savef = `${saved}/${msg.name}`
+			if (fs.existsSync(savef)) {
+				const data = fs.readFileSync(savef, 'utf8')
+				saves[msg.name] = JSON.parse(data)
+				msg.game = saves[msg.name]
+			}
+		}
+		const reply = JSON.stringify(msg)
+		if (A) A.send(reply)
+		if (B) B.send(reply)
+		log("Game restored", reply)
+		return true
+	}
+	return false
+}
 
 // https://stackoverflow.com/questions/69485407/why-is-received-websocket-data-coming-out-as-a-buffer
 function messageFromA(message) {
-	if (B) B.send(message.toString())
-	console.log(message.toString())
+	const msg = message.toString()
+	if (isSaveRestore(msg)) return
+	if (B) B.send(msg)
+	log(msg)
 }
 function messageFromB(message) {
-	if (A) A.send(message.toString())
-	console.log(message.toString())
+	const msg = message.toString()
+	if (isSaveRestore(msg)) return
+	if (A) A.send(msg)
+	log(msg)
 }
 function closeA() {
 	A = null

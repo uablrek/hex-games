@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CC0-1.0.
 /*
   This is the main module for:
-  https://github.com/uablrek/hex-games/tree/main/the-hill
+  https://github.com/uablrek/hex-games/tree/main/the-hill-mp
 
   This file contains the game setup, and the sequences.
 */
@@ -18,6 +18,8 @@ let me
 let attackerFactorsToRemove = 0
 let defenderFactorsToRemove = 0
 let href
+//let log = console.log
+let log = function(){}
 
 const keyFn = [
 	{key:'h', fn:createHelpBox},
@@ -26,9 +28,13 @@ const keyFn = [
 	{key:'x', fn:nextStep },
 	{key: 'r', fn:regretMove },
 	{key:'a', fn:attack},
+	{key:'l', fn:loadGame},
 ]
 setup.setKeys(keyFn)
 
+function loadGame(e) {
+	if (me) sendMsg({type: "restore", name: "the-hill"})
+}
 function rotateStack(e) {
 	let pos = board.getRelativePointerPosition()
 	let hex = grid.pixelToHex(pos)
@@ -118,8 +124,7 @@ function retryConnection() {
 	setTimeout(openConnection, 2000, url)
 }
 function handleConnectMessage(_msg) {
-	// This should be a json-status message. These are the only
-	// messages sent by the server itself
+	// This should be a json-status message
 	let msg = JSON.parse(_msg.data)
 	if (msg.status != "connected") {
 		updateTurnBox(`Status: ${msg.status}`)
@@ -146,7 +151,6 @@ function handlePeerMessage(_msg) {
 		break
 	case "deployment":
 		for (const uh of msg.units) {
-			console.log(uh)
 			unit.place(uh, board)
 		}
 		break
@@ -187,7 +191,30 @@ function handlePeerMessage(_msg) {
 	case "exdone":
 		exDone()
 		break
+	case "restore":
+		restore(msg)
+		break
 	}
+}
+function restore(msg) {
+	// Clean up the current map
+	removeMarkers()
+	if (unitBox) unitBox.destroy()
+	for (const u of units) {
+		map.removeUnit(u)
+		unit.removeMark1(u)
+		u.ohex = null
+		u.img.on('click', unitClick)
+	}
+	// Restore the map
+	g = msg.game
+	for (const uh of g.deployment) unit.place(uh, board)
+	g.deployment = null
+	// Restore the sequence
+	let seq = sequence.restore(g.seq)
+	g.seq = null
+	log("restore", g)
+	seq.nextStep()
 }
 function brokenConnection() {
 	me = null
@@ -212,14 +239,16 @@ function sendMsg(msg) {
 
 // ----------------------------------------------------------------------
 // Game related
-export let theGame = {
+let g = {
 	turn: {h:10, m:0},
 	player: '',
 	phase: '',
 	nat: '',
 	winner: '',
+	//deployment: [],
+	//seq: [],
 }
-let g = theGame
+
 // Returns false at end-of-game
 function stepTurn() {
 	if (g.turn.m >= 45) {
@@ -256,7 +285,7 @@ sequence.add(new sequence.Sequence({
 	name: "game",
 	steps: [
 		{
-			name: "Connect to Server",
+			name: "Connect to Server", // 0
 			start: function(seq) {
 				let url = 'ws://localhost:8081/ws'
 				if (href.protocol != "file:")
@@ -266,7 +295,7 @@ sequence.add(new sequence.Sequence({
 			},
 		},
 		{
-			name: "English Deployment",
+			name: "English Deployment", // 1
 			start: function(seq) {
 				g.player = "English"
 				g.nat = 'en'
@@ -281,7 +310,7 @@ sequence.add(new sequence.Sequence({
 			}
 		},
 		{
-			name: "Validate English Deployment",
+			name: "Validate English Deployment", // 2
 			start: function(seq) {
 				if (g.player == me) {
 					if (validDeployment()) {
@@ -294,7 +323,7 @@ sequence.add(new sequence.Sequence({
 			},
 		},
 		{
-			name: "French Deployment",
+			name: "French Deployment", // 3
 			start: function(seq) {
 				g.player = "French"
 				g.nat = 'fr'
@@ -309,7 +338,7 @@ sequence.add(new sequence.Sequence({
 			}
 		},
 		{
-			name: "Validate French Deployment",
+			name: "Validate French Deployment", // 4
 			start: function(seq) {
 				if (g.player == me) {
 					if (validDeployment()) {
@@ -322,7 +351,7 @@ sequence.add(new sequence.Sequence({
 			},
 		},
 		{
-			name: "Prepare",
+			name: "Prepare", // 5
 			start: function(seq) {
 				for (const u of units)
 					u.img.on('click', unitClick)
@@ -330,7 +359,7 @@ sequence.add(new sequence.Sequence({
 			}
 		},
 		{
-			name: "French Turn",
+			name: "French Turn", // 6
 			start: function(seq) {
 				g.player = "French"
 				g.nat = 'fr'
@@ -338,7 +367,7 @@ sequence.add(new sequence.Sequence({
 			}
 		},
 		{
-			name: "English Turn",
+			name: "English Turn", // 7
 			start: function(seq) {
 				g.player = "English"
 				g.nat = 'en'
@@ -385,12 +414,33 @@ sequence.add(new sequence.Sequence({
 	name: "player",
 	steps: [
 		{
+			//name: "Snapshot",
+			start: function(seq) {
+				if (g.player == me) {
+					g.phase = "Snapshot"
+					g.seq = sequence.snapshot()
+					let d = []
+					for (const u of units) {
+						if (!u.hex) continue
+						d.push({hex: u.hex, i:u.i})
+					}
+					g.deployment = d
+					let msg = {type: "save", name: "the-hill", game: g}
+					ws.send(JSON.stringify(msg))
+					g.deployment = null
+					g.seq = null
+				}
+				seq.nextStep()
+			},
+		},
+		{
 			name: "Movement",
 			start: function(seq) {
 				updatePhase(seq)
 				recomputeZOC()
 			},
 			end: function(seq) {
+				log("Movement:end", me, g)
 				for (const u of units) {
 					if (u.nat != g.nat) continue
 					unit.removeMark1(u)
@@ -474,6 +524,7 @@ function deployEnglish() {
 			{type:'cav', stat: "3-6"},
 		],
 		destroyCallback: (ub) => unitBox = null,
+		destroyable: false,
 	})
 	for (const u of units) {
 		if (u.nat != 'en') continue
@@ -494,6 +545,7 @@ function deployFrench() {
 			{type:'art', stat: "6-2"},
 		],
 		destroyCallback: (ub) => unitBox = null,
+		destroyable: false,
 	})
 	for (const u of units) {
 		if (u.nat != 'fr') continue
@@ -556,7 +608,8 @@ function createHelpBox() {
 		  'Enter,x - Next phase\n' +
 		  'r - Regret move\n' +
 		  'a - Attack\n' +
-		  'Space - Rotate Stack\n'
+		  'Space - Rotate Stack\n' +
+		  'l - Load snapshot\n'
 	if (theHelpBox) return
 	theHelpBox = box.info({
 		x: 400,

@@ -13,6 +13,7 @@ import sc1939 from './scenario-1939.json'
 import sc1942 from './scenario-1942.json'
 import sc1944 from './scenario-1944.json'
 import scTEST from './scenario-test.json'
+export var href
 
 ;(async () => {
 	// The "await" here ensures that the map is displayed before we
@@ -20,7 +21,7 @@ import scTEST from './scenario-test.json'
 	// isn't wrong, but looks weird
 	await ui.init('container')
 
-	var href = new URL(location.href)
+	href = new URL(location.href)
 	let sc = href.searchParams.get("scenario");
 	if (sc == "save") {
 		if (typeof rdtrSaveData !== 'undefined') {

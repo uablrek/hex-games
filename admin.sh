@@ -219,20 +219,28 @@ cmd_release() {
 	zip -r $TEMP/hex-games.zip .
 	echo "Created [$TEMP/hex-games.zip]"
 }
-##   docker-build (same opts as for "run")
-##     Build a docker container for the app using official "node"
-##     container as base
+##   docker-build [--tag=tag] [--client] (+same opts as for "run")
+##     Build a docker container for the app. --appd must contain a
+##     Dockerfile. --client assumes that the application is a
+##     web client
 ##   docker run --tag=tag
 ##     Start a container and print the IP-address
 cmd_docker_build() {
 	__bundle=yes
-	cmd_run $@
+	if test "$__client" = "yes"; then
+		__open=no
+		cmd_build $@
+	else
+		cmd_run $@
+	fi
+	test -r $src/Dockerfile || die "No Dockerfile"
 	eset __tag="$(basename $src):latest"
-	docker build -t $__tag $__appd
+	cd $__appd
+	docker build -f $src/Dockerfile -t $__tag .
 }
 cmd_docker_run() {
 	test -n "$__tag" || die "No --tag"
-	local id=$(docker run --rm --pull=never -d $__tag)
+	local id=$(docker run --rm -p 8081:8081 --pull=never -d $__tag)
 	test $? -eq 0 || die "FAILED: docker run -d $1"
 	local jp='.[].NetworkSettings.Networks.bridge.IPAddress'
 	local ip=$(docker inspect $id | jq -r $jp)
@@ -360,8 +368,7 @@ cmd_run() {
 		esbuild --bundle --outfile=bundle.cjs --platform=node $@ $main \
 			|| die esbuild
 		# bundle.cjs should contain everything
-		rm -rf *.js node_modules package.json build.sh README.md
-		echo $cmd | grep -q "docker" || node bundle.cjs
+		rm -rf *.js node_modules package.json build.sh README.md Dockerfile
 	else
 		node $main
 	fi

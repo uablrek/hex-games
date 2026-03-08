@@ -137,6 +137,21 @@ like the phase name, and player. It also shows a help text when
 available, possibly with a reference to the rule book. When done with
 a phase, hit `Enter` to move to the next phase.
 
+## Game server
+
+The game server is started in a docker container:
+```
+# (stop any already running servers)
+export __tag=rdtr:latest
+admin docker-build --client .
+admin docker-run
+```
+Port 8081 is exported.
+
+**WARNING**: There is no security for the server! I recommend using it
+  in LANs only, or behind a reversed proxy
+
+
 ## Correction mode
 
 Since the rules are very complex, and faults and misinterpretations

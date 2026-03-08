@@ -14,6 +14,7 @@ import * as images from './rdtr-images.js'
 import * as ui from './rdtr-ui.js'
 import {box, setup, sequence} from './hex-games.js'
 import {board} from './rdtr-ui.js'
+import {href} from './rdtr-game.js'
 
 // Globals
 const version = 5				// The version of scenario/save files
@@ -356,7 +357,11 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Connecting...",
 			start: function(seq) {
-				openConnection("ws://localhost:8081")
+				let url = 'ws://localhost:8081/ws'
+				if (href.protocol != "file:")
+					url = `ws://${href.host}/ws`
+				console.log(`Connecting to ${url} ...`)
+				openConnection(url)
 				updatePhase(seq)
 			}
 		},

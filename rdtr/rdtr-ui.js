@@ -15,7 +15,7 @@ import * as images from './rdtr-images.js'
 import {box, setup, sequence, grid} from './hex-games.js'
 import shelp from './seq-help.txt'
 
-export correctionMode = false
+//export var correctionMode = false
 export var board
 export async function init() {
 	// Init Konva

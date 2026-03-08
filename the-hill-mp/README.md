@@ -12,12 +12,15 @@ The rules are the same, but the start is different:
 When connections are established, the English player starts with
 initial deployment.
 
+A "snapshot" is saved at the start of every player turn (French or
+English) and can be restored with `l` (load).
+
 Start the server:
 ```
 eval $(admin env | grep HEX_GAMES_WORKSPACE)
 serverd=$HEX_GAMES_WORKSPACE/server
 admin build --open=no ./the-hill-mp # Build the client
-admin run --appd=$serverd ./the-hill-mp/server/
+admin run --appd=$serverd ./server/
 # Open http://localhost:8081/ with your browswe twice
 ```
 Or start the server in a docker container:
@@ -25,9 +28,9 @@ Or start the server in a docker container:
 eval $(admin env | grep HEX_GAMES_WORKSPACE)
 admin build --open=no ./the-hill-mp # Build the client
 serverd=$HEX_GAMES_WORKSPACE/server
-admin docker-build --appd=$serverd --tag=the-hill:latest ./the-hill-mp/server/
-admin docker-run --tag=the-hill:latest
+export __tag=the-hill:latest
+admin docker-build --appd=$serverd ./server/
+admin docker-run
 ```
-
 
 
