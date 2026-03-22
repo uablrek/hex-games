@@ -12,7 +12,7 @@ import * as rdtr from './rdtr.js'
 import * as unit from './rdtr-unit.js'
 import * as map from './rdtr-map.js'
 import * as images from './rdtr-images.js'
-import {box, ui, sequence, grid} from 'hex-games'
+import {box, ui, sequence, grid} from '@uablrek/hex-games'
 import shelp from './seq-help.txt'
 
 //export var correctionMode = false

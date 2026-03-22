@@ -8,7 +8,7 @@
 import Konva from 'konva'
 import * as map from  './rdtr-map.js'
 import * as unit from './rdtr-unit.js'
-import {ui, grid, box} from 'hex-games'
+import {ui, grid, box} from '@uablrek/hex-games'
 
 const board = ui.stage()
 const keyFn = [

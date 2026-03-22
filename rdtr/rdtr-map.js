@@ -10,7 +10,7 @@
 */
 
 import Konva from 'konva'
-import {grid, map} from 'hex-games'
+import {grid, map} from '@uablrek/hex-games'
 import * as images from './rdtr-images.js'
 
 // Map Hexes:

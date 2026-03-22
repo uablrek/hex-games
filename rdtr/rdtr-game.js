@@ -6,7 +6,7 @@
 import Konva from 'konva';
 import * as rdtr from './rdtr.js';
 import * as ui from './rdtr-ui.js';
-import {sequence} from 'hex-games'
+import {sequence} from '@uablrek/hex-games'
 
 // These will be included in the bundle
 import sc1939 from './scenario-1939.json'

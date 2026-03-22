@@ -10,7 +10,7 @@
  */
 
 import Konva from 'konva'
-import {unit} from 'hex-games'
+import {unit} from '@uablrek/hex-games'
 
 // ----------------------------------------------------------------------
 // The UnitSheet class is made complicated by the "layout" element. It

@@ -6,7 +6,7 @@
   RDTR has *a lot* of sequences!
 */
 import Konva from 'konva'
-import {sequence, box} from 'hex-games'
+import {sequence, box} from '@uablrek/hex-games'
 import shelp from './seq-help.txt'
 
 let stage = new Konva.Stage({
