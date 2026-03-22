@@ -84,7 +84,8 @@ cmd_env() {
 		FLEX=apache-flex-sdk-4.16.1-bin \
 		mapgen2_as=$GITHUBD/amitp/mapgen2_as \
 		mapgen2=$GITHUBD/redblobgames/mapgen2 \
-		__appd=$WS/appd
+		__appd=$WS/appd \
+		WS=''
 
 	if test "$cmd" = "env"; then
 		set | grep -E "^($opts)="
@@ -201,6 +202,18 @@ cmd_unit_test() {
 	npm link --silent konva || "die npm link konva"
 	node test-rdtr.js || die "RDTR tests failed"
 }
+##   build-lib
+##     Build the hex-games library module (.tgz)
+cmd_build_lib() {
+	local wd=$WS/hex-games
+	rm -rf $wd
+	mkdir -p $wd
+	cd $wd
+	npm pack $dir
+	local ver=$(cat $dir/package.json | jq -r .version)
+	local f=hex-games-$ver.tgz
+	ln -s $f $wd/hex-games.tgz
+}
 ##   release
 ##     Create a release zip-file
 cmd_release() {
@@ -257,6 +270,7 @@ cmd_rdtr_build_demos() {
 		$src/figures/rdtr-combat-chart.png .
 	cp $src/*.json $src/*.js $src/demos/* .
 	cp $dir/lib/* .
+	cp $src/scenario/scenario-* .
 	mv lib.js hex-games.js
 	local sub
 	cp $src/demos/* $__appd
@@ -275,19 +289,15 @@ cmd_rdtr_build_demos() {
 cmd_build() {
 	which esbuild > /dev/null || die 'Not in $PATH [esbuild]'
 	src $1
-	if test -r $src/rdtr-game.jsX; then
-		log "rdtr-build..."
-		shift
-		cmd_rdtr_build $@
-		return
-	fi
 	shift
 	appdir
-	cp $dir/lib/* $__appd
-	cp $src/* $__appd 2> /dev/null # silently ignore dir's
 	cd $__appd
+	local hg=$WS/hex-games/hex-games.tgz
+	test -r "$hg" || die "hex-games.tgz not built"
+	npm install $hg
+	npm link konva
+	cp $src/* $__appd 2> /dev/null # silently ignore dir's
 	test -r ./index.html || generateIndex
-	mv lib.js hex-games.js
 	test -r build.sh && . ./build.sh
 	esbuild --bundle --outfile=bundle.js --loader:.svg=dataurl \
 		--loader:.png=dataurl --loader:.jpg=dataurl \
@@ -297,6 +307,7 @@ cmd_build() {
 	for f in $(find . -maxdepth 1 -type f); do
 		echo $f | grep -qE '^./(.*.html|bundle.js)$' || rm $f
 	done
+	rm -rf node_modules
 	test "$__open" != "yes" && return 0
 	cmd_open "$2"
 }
