@@ -4,7 +4,7 @@
   https://github.com/uablrek/hex-games/tree/main/rdtr
  */
 import * as map from './rdtr-map.js';
-import {unit, box, grid} from './hex-games.js'
+import {unit, box, grid} from 'hex-games'
 import {scrollBoard} from './rdtr-ui.js'
 
 // Other files import this file as "unit", so re-export some functions

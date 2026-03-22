@@ -7,14 +7,14 @@
 */
 
 import Konva from 'konva'
-import {setup, grid, box, unit, sequence, rdata, map} from './hex-games.js'
+import {ui, grid, box, unit, sequence, lsave, map} from 'hex-games'
 import mapData from './example-map.svg'
 import crtData from './crt.svg'
 import mapProperties from './map-data.json'
 import deployment from './the-hill.json'
 
 const passiveBrits = true
-let board = setup.stage()
+let board = ui.stage()
 let crt
 let attackerFactorsToRemove = 0
 let defenderFactorsToRemove = 0
@@ -29,7 +29,7 @@ const keyFn = [
 	}},
 	{key:'a', fn:attack},
 ]
-setup.setKeys(keyFn)
+ui.setKeys(keyFn)
 function rotateStack(e) {
 	let pos = board.getRelativePointerPosition()
 	let hex = grid.pixelToHex(pos)
@@ -97,8 +97,8 @@ function checkFrenchVictory() {
 	return occupied == 3
 }
 function saveJson() {
-	let deployment = rdata.getDeplyment(units)
-	rdata.saveJSON(deployment, "the-hill.json")
+	let deployment = unit.getDeplyment(units)
+	lsave.saveJSON(deployment, "the-hill.json")
 }
 function deployPreset() {
 	for (const uh of deployment) {
@@ -742,7 +742,7 @@ function removeAttackers() {
 // ----------------------------------------------------------------------
 // Main
 ;(async () => {
-	let mapImage = await map.mapImage(mapData)
+	let mapImage = await ui.mapImage(mapData)
 	let crtImg = new Image()
 	crtImg.src = crtData
 	await new Promise(resolve => crtImg.onload = resolve)

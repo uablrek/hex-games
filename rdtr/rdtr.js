@@ -12,7 +12,7 @@ import * as unit from './rdtr-unit.js'
 import * as map from './rdtr-map.js'
 import * as images from './rdtr-images.js'
 import * as ui from './rdtr-ui.js'
-import {box, setup, sequence} from './hex-games.js'
+import {box, sequence} from 'hex-games'
 import {board} from './rdtr-ui.js'
 import {href} from './rdtr-game.js'
 

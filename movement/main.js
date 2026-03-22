@@ -5,12 +5,12 @@
  */
 
 import Konva from 'konva'
-import {setup, grid, box, unit, map} from './hex-games.js'
+import {ui, grid, box, unit, map} from 'hex-games'
 import mapData from './example-map.svg'
 import mapProperties from './map-data.json'
 import * as gen from './unit-gen.js'
 
-let board = setup.stage()
+let board = ui.stage()
 const keyFn = [
     {key: 'h', fn:createHelpBox},
     {key: ' ', fn:removeMarkers},
@@ -21,7 +21,7 @@ const keyFn = [
 	{key:'ArrowLeft', fn: rotateStack},
 	{key:'ArrowRight', fn: rotateStack},
 ]
-setup.setKeys(keyFn)
+ui.setKeys(keyFn)
 
 
 const marker = new Konva.Circle({
@@ -323,7 +323,7 @@ function rotateStack(e) {
 	unit.addUnitGenerator('nav', unit.ugenNav)
 	await unit.init(units, nations, 0.75)
 
-	let mapImage = await map.mapImage(mapData)
+	let mapImage = await ui.mapImage(mapData)
 	grid.configure(50)
 	map.init({
         width: 28,

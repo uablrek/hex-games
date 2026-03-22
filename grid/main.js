@@ -1,19 +1,10 @@
 // SPDX-License-Identifier: CC0-1.0.
 import Konva from 'konva'
-import {grid } from './hex-games.js'
+import {grid, ui} from 'hex-games'
 // Imports image data to the bundle. Must be on top level
 import gridData from './grid.svg'
 
-const stage = new Konva.Stage({
-	container: 'container',
-	width: window.innerWidth,
-	height: window.innerHeight,
-});
-const board = new Konva.Layer({
-	draggable: true,
-});
-stage.add(board);
-
+const board = ui.stage()
 const href = new URL(location.href)
 const p = href.searchParams.get("pattern")
 if (p == "svg") {
@@ -67,7 +58,7 @@ board.add(marker)
 // Create an "info" layer that stays in place (on top, to the left)
 // when the map (grid) is dragged.
 const info = new Konva.Layer()
-stage.add(info);
+board.getStage().add(info);
 info.add(new Konva.Rect({
 	x: 0,
 	y: 0,
@@ -135,7 +126,7 @@ axialBox = textBox({
 axialText = axialBox.findOne('.txt')
 info.add(axialBox)
 axial = grid.hexToAxial(initMarker)
-axialText.text(`${axial.q}, ${axial.r}`)
+axialText.text(`r:${axial.r}, q:${axial.q}`)
 
 posBox = textBox({
 	x: 10,
@@ -152,7 +143,7 @@ board.on('click', function() {
 	h = grid.pixelToHex(pos)
 	hexText.text(`${h.x}, ${h.y}`)
 	axial = grid.hexToAxial(h)
-	axialText.text(`${axial.q}, ${axial.r}`)
+	axialText.text(`r:${axial.r}, q:${axial.q}`)
 	ph = grid.hexToPixel(h)
 	marker.x(ph.x)
 	marker.y(ph.y)

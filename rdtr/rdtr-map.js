@@ -10,7 +10,7 @@
 */
 
 import Konva from 'konva'
-import {grid, map} from './hex-games.js'
+import {grid, map} from 'hex-games'
 import * as images from './rdtr-images.js'
 
 // Map Hexes:
@@ -104,6 +104,7 @@ export const axialToHex = grid.axialToHex
 
 // RDTR uses letters A-KK for row, and a positive int for q.
 export function axialToRdtr(ax) {
+	let r
 	if (ax.r < 27) {
 		r = String.fromCharCode(ax.r + 64)
 	} else {
@@ -113,7 +114,7 @@ export function axialToRdtr(ax) {
 	return {q: ax.q + 15, r: r}
 }
 export function rdtrToAxial(rc) {
-	r = rc.r.charCodeAt(0) - 64
+	let r = rc.r.charCodeAt(0) - 64
 	if (rc.r.length > 1) {
 		r += 26
 	}

@@ -6,7 +6,7 @@
   RDTR has *a lot* of sequences!
 */
 import Konva from 'konva'
-import {sequence, box} from './hex-games.js'
+import {sequence, box} from 'hex-games'
 import shelp from './seq-help.txt'
 
 let stage = new Konva.Stage({
@@ -33,6 +33,38 @@ function keydown(e) {
 		sequence.nextStep()
 		return
 	}
+}
+
+// ----------------------------------------------------------------------
+// Sequence trace
+
+let traceBox
+function seqTrace(seq) {
+	if (!traceBox) return
+	let name = "no-name"
+	if ('name' in seq) name = seq.name
+	if (!seq.currentStep) {
+		box.update(traceBox, `Seq ${name}: End Reached`)
+		return
+	}
+	let s = seq.currentStep
+	let i = seq.index
+	let str = `Seq ${name}: step ${i}`
+	if (s.name) str += `, ${s.name}`
+	if (typeof seq.userRef == 'string') str += `, ${seq.userRef}`
+	box.update(traceBox, str)
+}
+function traceOn(board) {
+	if (traceBox) return
+	traceBox = box.info({
+		label: "Trace",
+		x: 1100,
+		width: 600,
+		destroyable: false,
+	})
+	sequence.setTrace(seqTrace)
+	board.add(traceBox)
+	seqTrace(sequence.currentSequence())
 }
 
 // ----------------------------------------------------------------------
@@ -74,20 +106,6 @@ let s = {
 	front: "West",
 	action: "",
 	i: 0,
-}
-
-
-let theTraceBox
-function traceOn(board) {
-	if (theTraceBox) return
-	theTraceBox = box.info({
-		label: "Trace",
-		x: 1100,
-		width: 600,
-		destroyable: false,
-	})
-	board.add(theTraceBox)
-	sequence.traceOn(theTraceBox)
 }
 
 let theInfoBox = box.info({

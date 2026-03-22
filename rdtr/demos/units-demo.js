@@ -9,8 +9,8 @@
   then chopped to individual unit-counters as shown in this demo.
  */
 
-import Konva from 'konva';
-import * as genunit from './units.js'
+import Konva from 'konva'
+import {unit} from 'hex-games'
 
 // ----------------------------------------------------------------------
 // The UnitSheet class is made complicated by the "layout" element. It
@@ -998,10 +998,10 @@ function ugenBh(conf, u, side) {
 		units.push({nat:'ge', type:'bh'})
 		units.push({nat:'ge', type:'bh'})
 		units.push({nat:'ge', type:'bh'})
-		genunit.addUnitGenerator('nav', genunit.ugenNav)
-		genunit.addUnitGenerator('ab', genunit.ugenAb)
-		genunit.addUnitGenerator('bh', ugenBh)
-		await genunit.init(units, nations, 0.88, false)
+		unit.addUnitGenerator('nav', unit.ugenNav)
+		unit.addUnitGenerator('ab', unit.ugenAb)
+		unit.addUnitGenerator('bh', ugenBh)
+		await unit.init(units, nations, 0.88, false)
 		generatedUnits()
 	} else {
 		byIndex()

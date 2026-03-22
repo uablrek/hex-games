@@ -8,15 +8,15 @@
 import Konva from 'konva'
 import * as map from  './rdtr-map.js'
 import * as unit from './rdtr-unit.js'
-import {setup, grid, box} from './hex-games.js'
+import {ui, grid, box} from 'hex-games'
 
-const board = setup.stage()
+const board = ui.stage()
 const keyFn = [
 	{key:'p', fn:flipPlayer},
 	{key:'z', fn:showZOC},
 	{key:'h', fn:createHelpBox},
 ]
-setup.setKeys(keyFn)
+ui.setKeys(keyFn)
 
 // Adjust position so a box is visible even if the board is dragged
 function adjustBoxPos(pos) {

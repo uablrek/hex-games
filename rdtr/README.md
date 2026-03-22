@@ -42,11 +42,14 @@ https://boardgamegeek.com/profile/John_AHfan). Here are his conditions:
 I am using JavaScript and the [Konva](https://konvajs.org/docs/index.html)
 framework. Bundles are created with [esbuild](https://esbuild.github.io/).
 
-This is a Work In Progress (WIP). I will document the development
-process for myself, and others. I will include dead-ends, abandoned
-ideas, new ideas, mess-up's, etc. I am new at JavaScript, so there may
-be many of them. I will create relases on
-[github](https://github.com/uablrek/hex-games/releases). To test a
+**This is a Work In Progress (WIP).** The released versions can be
+  played in a manual way, but the current code is in limbo. I plan to
+  make a server for PvP eventually
+
+I will document the development process for myself, and others. I will
+include dead-ends, abandoned ideas, new ideas, mess-up's, etc. I am
+new at JavaScript, so there may be many of them. I will create relases
+on [github](https://github.com/uablrek/hex-games/releases). To test a
 release:
 
 1. Download `hex-games.zip` release Asset

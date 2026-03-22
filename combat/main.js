@@ -5,12 +5,12 @@
  */
 
 import Konva from 'konva'
-import {setup, grid, box, unit, map} from './hex-games.js'
+import {ui, grid, box, unit, map} from 'hex-games'
 import mapData from './example-map.svg'
 import crtData from './crt.svg'
 import mapProperties from './map-data.json'
 
-let board = setup.stage()
+let board = ui.stage()
 const keyFn = [
 	{key: 'h', fn:createHelpBox},
 	{key: ' ', fn:removeMarkers},
@@ -18,7 +18,7 @@ const keyFn = [
 	{key:'ArrowLeft', fn: rotateStack},
 	{key:'ArrowRight', fn: rotateStack},
 ]
-setup.setKeys(keyFn)
+ui.setKeys(keyFn)
 let crt
 
 const targetMarker = new Konva.Group()
@@ -267,7 +267,7 @@ function updateHexInfo(h, hex) {
 // ----------------------------------------------------------------------
 // Main
 ;(async () => {
-	let mapImage = await map.mapImage(mapData)
+	let mapImage = await ui.mapImage(mapData)
 	let crtImg = new Image()
 	crtImg.src = crtData
 	await new Promise(resolve => crtImg.onload = resolve)

@@ -8,8 +8,7 @@
  */
 import Konva from 'konva'
 import * as rdtr from './rdtr.js'
-import * as map from './rdtr-map.js'
-import * as box from './textbox.js'
+import {map, box} from 'hex-games'
 
 // {hex: {x:0,y:0}, nat:"", edges:"" prop:""},
 // Properties:

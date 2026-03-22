@@ -6,7 +6,7 @@
 
 import Konva from 'konva'
 import hussarData from './hussar.svg'
-import {unit} from './hex-games.js'
+import {unit} from 'hex-games'
 
 let hussarImg
 function ugenGen(conf, u, side) {

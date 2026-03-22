@@ -5,15 +5,15 @@
  */
 
 import Konva from 'konva'
-import {setup, grid, box, rdata} from './hex-games.js'
+import {ui, grid, box, lsave} from 'hex-games'
 import mapData from './example-map.svg'
 import mapProperties from './map-data.json'
 
-let board = setup.stage()
+let board = ui.stage()
 
 const keyFn = [
 	{key: 'j', fn: function (e) {
-		rdata.saveJSON(mapProperties, 'map-data.json')
+		lsave.saveJSON(mapProperties, 'map-data.json')
 	}},
 	{key: 'h', fn: createHelpBox},
 	{key: '.', fn:setEdge},
@@ -48,7 +48,7 @@ function setFunc(e) {
 	updateFunc()
 	updateHexInfo()
 }
-setup.setKeys(keyFn)
+ui.setKeys(keyFn)
 
 // {hex: {x:0,y:0}, edges:"...uu." prop:"f"},
 // Properties:
@@ -414,22 +414,8 @@ function setEdge(e) {
 // ----------------------------------------------------------------------
 // Main
 ;(async () => {
-	let mapImg = new Image()
-	mapImg.src = mapData
-	await new Promise(resolve => mapImg.onload = resolve)
-	let map = new Konva.Image({
-		image: mapImg,
-	})
+	let map = await ui.mapImage(mapData, true)
 	grid.configure(50)
-	// Lesson to learn:
-	// An SVG map seems to be re-rendered on drag, which burns a lot
-	// of CPU. Pre-render the map-image - and drag seem more or less free
-	if (true) {
-		mapImg = await map.toImage()
-		map = new Konva.Image({
-			image: mapImg,
-		})
-	}
 	board.add(map)
 	createHelpBox()
 	createHexInfoBox()

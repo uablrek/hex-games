@@ -6,10 +6,10 @@
   to prevent frequent rendering.
  */
 import Konva from 'konva'
-import { unit, grid, box, setup } from './hex-games.js'
+import {unit, grid, box, ui} from 'hex-games'
 import * as gen from './unit-gen.js'
 
-let board = setup.stage()
+let board = ui.stage()
 
 const nations = {
 	ge: {color:'black', stroke:'white'},

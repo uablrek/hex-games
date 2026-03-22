@@ -10,6 +10,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-	  "konva": "^10.0.12"
+	  "konva": "^10.0.12",
+	  "hex-games":"1.0.0"
   }
 }
