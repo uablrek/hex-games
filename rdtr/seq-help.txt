@@ -1,0 +1,40 @@
+|game/Connect to server|
+Select "Connect" for multi-player, or "Local" to play both sides.
+The first to connect becomes "Axis", and the second "Allies"
+
+|turn/Declaration of War (DoW)|
+Players announce Declaration of War on major (35brp) or minor (10brp)
+countries.
+
+|turn/Announce front action|
+Players announce which of: Offensive (15brp), Attrition or Pass action,
+for all fronts.
+
+|turn/Movement|
+All ground units may move, air units may stage, and naval unit may
+change base. In Pass option units may only move within controlled
+territory. Naval units providing supply are marked.
+
+|offensive/Attacker naval+air|
+14.11 Attacker announces all naval and air missions. All Counterair
+missions (28.43) are resolved.
+
+|offensive/Defender inteception+DAS|
+14.12 Defender announces any allocations of Defensive Air Support,
+any air attacks on naval forces at sea, and any naval Interception
+attempts.
+
+|offensive/Sea Transport Missions|
+14.14 Successful Sea Transport missions (29.42) are concluded and the
+naval units returned to their base.
+
+|offensive/Airborne drops|
+14.15 Attacker may make airborne drops.
+
+|offensive/Combat|
+Resolve combat in any order. Move exploiting units to breakthrough
+hexes.
+
+|offensive/Exploitation|
+Exploiting units move, and have a combat phase
+
