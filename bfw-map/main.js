@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CC0-1.0.
 import Konva from 'konva';
-import {grid} from 'hex-games'
+import {grid} from '@uablrek/hex-games'
 // Imports image data to the bundle. Must be on top level
 import wn2Data from './wn2.png'
 

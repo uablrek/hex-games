@@ -2,7 +2,7 @@
   "name": "map-maker",
   "version": "1.0.0",
   "description": "Hex-Grid Map Maker",
-  "main": "map-maker.js",
+  "main": "main.js",
   "scripts": {
   },
   "keywords": [],

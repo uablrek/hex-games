@@ -6,7 +6,7 @@
   to prevent frequent rendering.
  */
 import Konva from 'konva'
-import {unit, grid, box, ui} from 'hex-games'
+import {unit, grid, box, ui} from '@uablrek/hex-games'
 import * as gen from './unit-gen.js'
 
 let board = ui.stage()

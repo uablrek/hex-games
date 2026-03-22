@@ -288,6 +288,8 @@ appropriate. Anyway, this is game specific.
 [The Battle for The Hill](./the-hill/README.md) example game. A dumb
 server is used since the client already have all functions.
 
+
+
 ## Red Blob Games
 
 [Red Blob Games](https://www.redblobgames.com/)

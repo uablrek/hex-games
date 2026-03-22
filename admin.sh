@@ -211,7 +211,7 @@ cmd_build_lib() {
 	cd $wd
 	npm pack $dir
 	local ver=$(cat $dir/package.json | jq -r .version)
-	local f=hex-games-$ver.tgz
+	local f=uablrek-hex-games-$ver.tgz
 	ln -s $f $wd/hex-games.tgz
 }
 ##   release

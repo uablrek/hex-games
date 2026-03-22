@@ -5,7 +5,7 @@
  */
 
 import Konva from 'konva'
-import {ui, grid, box, unit, map} from 'hex-games'
+import {ui, grid, box, unit, map} from '@uablrek/hex-games'
 import mapData from './example-map.svg'
 import mapProperties from './map-data.json'
 import * as gen from './unit-gen.js'

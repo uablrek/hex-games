@@ -5,7 +5,7 @@
  */
 
 import Konva from 'konva'
-import {ui, grid, box, lsave} from 'hex-games'
+import {ui, grid, box, lsave} from '@uablrek/hex-games'
 import mapData from './example-map.svg'
 import mapProperties from './map-data.json'
 
