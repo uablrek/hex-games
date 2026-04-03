@@ -1,0 +1,38 @@
+|game/Initial Deplyment|
+Welcome to the Napoleon at Waterloo game. The French starts first. Hit
+'Enter' to move to the next phase. Hit 'h' for more keyboard help.
+
+|player/Reinforcements|
+Reinforcements are available
+
+|player/Movement|
+Click on a friendly unit to mark all possible moves. Click on a marker
+to move the unit there. Moved units have a red mark. Regret a move by
+hitting 'r'. Unit maybe temporary stacked during movement, hit 'Space'
+to rotate the stack.
+
+|player/Combat|
+Click on an enemy unit to select it as a target for attack. It will be
+marked with a cross-hair. Select friendly units to attack the
+target. Check the odds at the CRT. When ready, hit 'a' to commence the
+attack.
+^^NOTE: All marked unit must attack or be attacked! The game can
+*not* check this during the combat phase, but friendly units adjacent
+to a non-attacked enemy unit will be removed after the combat phase!!
+
+|game/Declare Winner|
+The current player is the winner. If the current player is 'None' the
+game is a tie
+
+|overstacked|
+There are overstacked counters. You can either remove units, or
+regret/redo moves until the stacking rules are obeyed.
+
+|kbd-help|
+Keyboard help:
+^Enter - Next phase
+^Esc - Clear markers
+^Space - Rotate stack
+^a - Attack
+^r - Regret move
+^d - Delete unit

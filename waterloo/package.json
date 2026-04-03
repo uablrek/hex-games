@@ -1,0 +1,9 @@
+{
+  "name": "waterloo1",
+  "version": "1.0.0",
+	"description": "Waterloo Board Game - Basic",
+  "license": "CC0-1.0",
+  "author": "",
+  "type": "module",
+  "main": "main.js"
+}
