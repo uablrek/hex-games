@@ -7,7 +7,7 @@
 */
 
 import Konva from 'konva'
-import {setup, grid, box, unit, sequence, rdata, map} from './hex-games.js'
+import {ui, grid, box, unit, sequence, map} from '@uablrek/hex-games'
 import mapData from './example-map.svg'
 import crtData from './crt.svg'
 import mapProperties from './map-data.json'
@@ -30,7 +30,7 @@ const keyFn = [
 	{key:'a', fn:attack},
 	{key:'l', fn:loadGame},
 ]
-setup.setKeys(keyFn)
+ui.setKeys(keyFn)
 
 function loadGame(e) {
 	if (me) sendMsg({type: "restore", name: "the-hill"})
@@ -941,9 +941,9 @@ function exDone() {
 
 // ----------------------------------------------------------------------
 ;(async function() {
-	board = setup.stage()
+	board = ui.stage()
 	board.on('click', boardOnClick)
-	let mapImage = await map.mapImage(mapData)
+	let mapImage = await ui.mapImage(mapData)
 	let crtImg = new Image()
 	crtImg.src = crtData
 	await new Promise(resolve => crtImg.onload = resolve)

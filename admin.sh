@@ -299,6 +299,9 @@ cmd_build() {
 	cp $src/* $__appd 2> /dev/null # silently ignore dir's
 	test -r ./index.html || generateIndex
 	test -r build.sh && . ./build.sh
+	if test "$__check_deps" = "yes"; then
+		npm ls || die "FAILED: check-deps"
+	fi
 	esbuild --bundle --outfile=bundle.js --loader:.svg=dataurl \
 		--loader:.png=dataurl --loader:.jpg=dataurl \
 		$@ . || die esbuild
