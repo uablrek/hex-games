@@ -1,5 +1,8 @@
 # Waterloo - Basic
 
+**[Work in Progress]** Combat, PvP (server) and reinforcements are
+not yet implemented. Map and movement works
+
 A browser version of the [Napoleon at Waterloo game](
 https://en.wikipedia.org/wiki/Napoleon_at_Waterloo_(board_wargame))
 (NaW). No installation needed, just unpack the "waterloo.zip" asset

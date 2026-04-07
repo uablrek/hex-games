@@ -217,20 +217,12 @@ cmd_build_lib() {
 ##   release
 ##     Create a release zip-file
 cmd_release() {
-	mkdir -p $tmp
-	cp $dir/hex-games.html $tmp/index.html
-	export __open=no
-	local app
-	for app in grid units map-maker movement rdtr combat the-hill\
-		the-hill-mp; do
-		$me build --appd=$tmp/$app $dir/$app
-	done
-	$me run --bundle --appd=$tmp/the-hill-server the-hill-mp/server
-	cd $tmp
-	rm -f rdtr/rdtrSaveData.js
-	rm -f $TEMP/hex-games.zip
-	zip -r $TEMP/hex-games.zip .
-	echo "Created [$TEMP/hex-games.zip]"
+	$me build-lib || die build-lib
+	$me build --open=no $dir/waterloo || die "build $dir/waterloo"
+	cd $__appd
+	zip waterloo.zip *
+	cp -L ../hex-games/hex-games.tgz .
+	echo "Result in $__appd"
 }
 ##   docker-build [--tag=tag] [--client] (+same opts as for "run")
 ##     Build a docker container for the app. --appd must contain a
@@ -294,8 +286,11 @@ cmd_build() {
 	cd $__appd
 	local hg=$WS/hex-games/hex-games.tgz
 	test -r "$hg" || die "hex-games.tgz not built"
+	if npm ls -g konva > /dev/null; then
+		# Use locally installed Konva
+		npm link konva
+	fi
 	npm install $hg
-	npm link konva
 	cp $src/* $__appd 2> /dev/null # silently ignore dir's
 	test -r ./index.html || generateIndex
 	test -r build.sh && . ./build.sh
