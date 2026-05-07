@@ -21,7 +21,6 @@ const keyFn = [
 	{key: ' ', fn:setEdge},
 	{key: 'r', fn:setEdge},
 	{key: 'x', fn:setEdge},
-	{key: 'n', fn:setEdge},
 	{key: 'c', fn:setFunc},
 	{key: 'C', fn:setFunc},
 	{key: 'h', fn:setFunc},
@@ -30,6 +29,8 @@ const keyFn = [
 	{key: 'F', fn:setFunc},
 	{key: 's', fn:setFunc},
 	{key: 'S', fn:setFunc},
+	{key: 'b', fn:setFunc},
+	{key: 'B', fn:setFunc},
 	{key: 'e', fn:setFunc},
 	{key: 'E', fn:setFunc},
 	{key: '-', fn:setFunc},
@@ -131,6 +132,7 @@ const helpTxt =
 	  'f,F - Forrest set/delete\n' +
 	  'h,H - Houses set/delete\n' +
 	  's,S - Stout houses set/delete\n' +
+	  'b,B - Exit hex set/delete\n' +
 	  'x,X - Forbidden set/delete\n' +
 	  'e,E - Edge set/delete\n' +
 	  'r,.,sp - Edge definition\n' +
@@ -185,6 +187,16 @@ function updateFunc() {
 		break
 	case 'S':
 		funcText = "Clear Stout Houses"
+		propMarkFn = markProp
+		funcFn = clearProp
+		break
+	case 'b':
+		funcText = "Set Exit Hex"
+		propMarkFn = markProp
+		funcFn = setProp
+		break
+	case 'B':
+		funcText = "Clear Exit Hex"
 		propMarkFn = markProp
 		funcFn = clearProp
 		break

@@ -1,11 +1,12 @@
 # Waterloo - Basic
 
-**[Work in Progress]** Combat, PvP (server) and reinforcements are
-not yet implemented. Map and movement works
+**[Work in Progress]** PvP (server) and displacement on retreat is
+not yet implemented.
 
 A browser version of the [Napoleon at Waterloo game](
 https://en.wikipedia.org/wiki/Napoleon_at_Waterloo_(board_wargame))
-(NaW). No installation needed, just unpack the "waterloo.zip" asset
+(NaW) ([BGG](https://boardgamegeek.com/boardgame/3573/napoleon-at-waterloo)).
+No installation needed, just unpack the "waterloo.zip" asset
 and open `index.html` in your browser.
 
 The game is built with the work of [Christian Holm Christensen](
@@ -16,15 +17,16 @@ https://creativecommons.org/licenses/by-sa/4.0/) license on [gitlab](
 https://gitlab.com/wargames_tex/naw_tex), and on [BGG](
 https://boardgamegeek.com/filepage/278514/printn-play-pdf-including-board-counters-rules-and).
 
-Christian also provide an excellent [Vassal module](
-https://vassalengine.org/library/projects/napoleon_at_waterloo_cholmcc),
-so a fair question is "Why do I bother?". The answer is that, as a
-retired programmer, I code hobby projects for fun and to learn.
-[Hex-games](https://github.com/uablrek/hex-games) is my first
+There are many Vassal modules, [Christians module](
+https://vassalengine.org/library/projects/napoleon_at_waterloo_cholmcc)
+is excellent. So, a fair question is "Why do I bother?". The answer
+is that, as a retired programmer, I code hobby projects for fun and to
+learn.  [Hex-games](https://github.com/uablrek/hex-games) is my first
 JavaScript project, and "Napoleon at Waterloo" is a good game to start
 with. My first attempt was [Rise and Decline of the Third
 Reich](https://github.com/uablrek/hex-games/blob/main/rdtr/README.md),
-but it is *far, far* too complex.
+but it is *far, far* too complex. I am also thinking of trying to build
+an AI opponent, and an own game in the future.
 
 This game use the [Basic rules](
 https://gitlab.com/wargames_tex/naw_tex/-/jobs/12248823149/artifacts/file/NapoleonAtWaterloo-A4-master/NapoleonAtWaterlooBasicA4.pdf).
@@ -33,6 +35,18 @@ https://gitlab.com/wargames_tex/naw_tex/-/jobs/12248823149/artifacts/file/Napole
 ## Development
 
 I document the development process for myself and others.
+
+### Test mode
+
+In a solitarie game the "test mode" can be enabled. I added test mode
+when implementing combat. A sub-program for combat got too many
+dependencies, so a test mode made sense.
+
+In test mode all units are draggable during Movement phase. This let
+you setup any complicated situation for test. Units can also be
+deleted, for instance to test demoralisation.
+
+In test mode you decide the die-roll yourself during Combat Resolution.
 
 ### The map
 
@@ -57,16 +71,16 @@ this (there may better ways):
 Size `71.6` gives a good result. But we must also have an offset, and
 functions to compute the game hex identifiers, like `1204`, from
 internal coordinates. I do this by writing a short program in
-`grid/`. Final grid config:
+[grid/](./grid). Final grid config:
 
 ```js
   grid.configure(71.6, 1.0, {x:12, y:26}, true)
 ```
 
 The big challenge is to define all hexes. This is done with the
-`map-maker/` program. It let you define terrain and edges by clicking
-on the map. The result is the `map-data.json` file containing records
-for hexes like:
+[map-maker/](./map-maker) program. It let you define terrain and edges
+by clicking on the map. The result is the `map-data.json` file
+containing records for hexes like:
 
 ```json
 {"hex": {"x":15,"y":5}, "prop":"c", "edges":"r.r..."}
@@ -92,7 +106,7 @@ type (inf-du) and be defined by this program. The colors are taken
 from the pdf manual using `gpick`.
 
 It is nice to see the result, so a small program that shows Order of
-Battle (OoB) is in `units/`.
+Battle (OoB) is in [units/](./units).
 
 ### Sequences
 
@@ -101,13 +115,13 @@ Sequences are the engine of the game, and goes into
 The active player moves to the next phase by pressing `Enter`. Help
 for the phases can be written in a separate plain-text file.
 
-The "top" sequence is (roughly):
+Some sequences (simplified):
 
 1. Initial Deployment
 2. French turn
-3. Check French winner
+3. Check winner
 4. Allied turn
-5. Check Allied winner
+5. Check winner
 6. Step turn and check end of game
 7. Goto 2
 
@@ -115,7 +129,8 @@ The "turn" sequence is:
 
 1. Check Reinforcements
 2. Movement
-3. Combat
+3. Combat Assignment
+4. Combat resolution
 
 For PvP (or AI) more steps are added. When the sequences are
 defined, the game starts by calling:
@@ -154,21 +169,25 @@ handled already by `Konva`.
 
 The game state: phase, turn, current player, etc. is shown in an
 "InfoBox". The InfoBox is in a fixed position (when the board is
-dragged), and can't be closed. Other boxes, like a HelpBox or a CRT
-(Combat Result Table), may be opened on demand, and can be closed.
-
-### First test
-
-Movement and Combat are not implemented, but you may test initial
-deployment, and sequences.
+dragged), and can't be closed. The Combat Result Table (CRT) is taken
+from the rule-book.
 
 ### Movement
 
 The movement rules in NaW are simple, so the `grid.movementAxial`
-function can be used. As before a test program is in `movement/`.
+function can be used. As before a test program is in
+[movement/](./movement).
 
-The Zone of Control (ZOC) must be computed before movement.
+In the movement phase the active player can click on a unit and the
+possible movements are marked, and then click on a marked hex to move
+the unit. The sliding effect is provided by [Konva.Tween](
+https://konvajs.org/api/Konva.Tween.html).
 
-### Combat
+During movement over-stacking is allowed, but at the end of the
+movement phase no stacks are allowed.
 
-Combat is made harder because units may attack multiple hexes.
+The player is allowed to "regret" moves at any time during the
+movement phase.
+
+The Enemy Zone of Control (EZOC) is computed before movement.
+

@@ -10,6 +10,7 @@ import mapData from './waterloo.png'
 const board = ui.stage()		// (board is a draggable Konva.Layer)
 const info = new Konva.Layer({name: "info"})
 let infoBox
+let ref							// Axial coordinate of La Haye Sainte
 
 // ----------------------------------------------------------------------
 // InfoBox
@@ -40,7 +41,11 @@ function updateInfoBox(e) {
 	const id = hexToNaw(hex)
 	txt += `Id: ${id}\n`
 	const hx = nawToHex(id)
-	txt += `Hex from id: ${hx.x}, ${hx.y}`
+	txt += `Hex from id: ${hx.x}, ${hx.y}\n`
+	const ax = grid.hexToAxial(hex)
+	txt += `Axial: q:${ax.q}, r:${ax.r}\n`
+	const dist = grid.axialDistance(ref, ax)
+	txt += `Dist: ${dist}`
 	box.update(infoBox, txt)
 	placeMarker(hex)
 }
@@ -76,6 +81,7 @@ function placeMarker(hex) {
 	const mapImage = await ui.mapImage(mapData)
 	board.add(mapImage)
 	grid.configure(71.6, 1.0, {x:12, y:26}, true)
+	ref	= grid.hexToAxial(nawToHex('1310'))
 	board.getStage().add(info)
 	createInfoBox()
 	board.on('click', updateInfoBox)

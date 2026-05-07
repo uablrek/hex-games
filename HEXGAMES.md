@@ -8,16 +8,18 @@ times. A problem has been what language and graphic environment to
 use. This take I use HTML5/canvas, SVG and JavaScript.
 
 Much inspiration (and code) is taken from [Red Blob Games](
-https://www.redblobgames.com/). An excellent site! [Konva](
+https://www.redblobgames.com/). [Konva](
 https://konvajs.org/docs/index.html) is used for most canvas
-manipulations.
+manipulations. Both are *absolutely excellent*"
 
-I am also trying to get the old (1974) board game [Rise and Decline of
-the Third Reich](rdtr/README.md) (RDTR) to run in a browser.
+I was trying to get the old (1974) board game [Rise and Decline of
+the Third Reich](rdtr/README.md) (RDTR) to run in a browser. It turned
+out to be far too complex to start with. So, instead I am working with
+[Napoleon at Waterloo](waterloo/README.md).
 
 #### Try a release
 
-Unzip the release-asset `hex-games.zip` and open `index.html`
+Unzip the release-asset `waterloo.zip` and open `index.html`
 in your browser. No dependencies needed!
 
 **WARNING:** On Ubuntu Linux, Firefox may run in a "snap sandbox", so
@@ -25,9 +27,6 @@ in your browser. No dependencies needed!
 
 **WARNING:** On Windows you can click on the zip-file without
   unpacking it. This is **not sufficient**. The zip-file must be extracted.
-
-In `2.1.0` a playable (sort of) example game is included:
-[The battle for The Hill](./the-hill/README.md)
 
 #### Docker container
 
@@ -55,7 +54,6 @@ Dependencies:
 
 * [esbuild](https://esbuild.github.io/) - Must be in your $PATH
 * [Konva](https://konvajs.org/docs/index.html) - Scripts must be able to import
-* [Inkscape](https://inkscape.org/) - for SVG drawing
 * [ExpressJs](https://expressjs.com/) - for the game server
 
 Most things can be done with the [admin.sh](admin.sh) script.
@@ -81,20 +79,18 @@ admin env | grep __appd        # the application is built in $__appd
 admin build --open the-hill    # build "the-hill" and open it with $BROWSER
 ```
 
-
-
 ### Versioning
 
 [Semantic versioning](https://semver.org/) is used in the defined way.
 
 A non-pre-relase, i.e. with a major version >0, is not guaranteed to
-be "stable" (whatever that means). What *is* guaranteed is
+be "stable" (whatever that means). What *is* guaranteed is library
 compatibility. If I make an incompatible update, I will step the major
 version.
 
-For now, an incompatible update means an incompatible change of
-[RDTR](rdtr/README.md) save/scenario file format.
-
+The example games (e.g. [NaW](waterloo/README.md)) are updated
+indepent of versioning. The major version is only for library
+compatibility.
 
 ## Hex grid
 

@@ -122,4 +122,3 @@ export async function unitInit() {
 	}
 	return unit.init(units, nations, 1.0)
 }
-

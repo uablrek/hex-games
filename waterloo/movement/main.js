@@ -129,7 +129,7 @@ function unitOnClick(e) {
 	u.img.moveToTop()
 	clearMoves()
 	selectedUnit = u
-	if (selectedUnit.nat == nat) showMoves()
+	if (selectedUnit.nat == nat) showMoves(u)
 }
 function unitDragEnd(e) {
 	clearMoves()
@@ -209,12 +209,13 @@ const movTemplate = new Konva.Circle({
 	fill: 'green',
 })
 let reachableHexes = null
-function showMoves() {
+function showMoves(u, hexes) {
 	clearMoves()
-	if (selectedUnit.nat != nat) return
-	if (selectedUnit.ohex) return
-	reachableHexes = grid.movementAxial(
-		selectedUnit.m, grid.hexToAxial(selectedUnit.hex), selectedUnit)
+	if (u.ohex) return
+	if (hexes)
+		reachableHexes = hexes
+	else
+		reachableHexes = grid.movementAxial(u.m, grid.hexToAxial(u.hex))
 	movMarkers = new Konva.Group()
 	for (h of reachableHexes.values()) {
 		const m = movTemplate.clone()

@@ -5,7 +5,7 @@
 */
 
 import Konva from 'konva'
-import {ui, unit} from 'hex-games'
+import {ui, unit} from '@uablrek/hex-games'
 import {units, unitInit} from './naw-units.js'
 let board = ui.stage()
 

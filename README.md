@@ -45,11 +45,13 @@ If you clone this repository:
 ```
 #apt install esbuild
 #export TEMP=/tmp/tmp/$USER    # (this is the default build directory)
-export BROWSER=/opt/google/chrome/chrome
+#export BROWSER=/opt/google/chrome/chrome
 git clone --depth 1 https://github.com/uablrek/hex-games.git
+cd hex-games
 ./admin.sh build-lib
 ./admin.sh build waterloo/grid
-ls /tmp/tmp/$USER/hex-games
+ls /tmp/tmp/$USER/hex-games/appd
+# open "index.html" in your browser
 ```
 
 There is a dependency to `esbuild`. The example shows how to install
