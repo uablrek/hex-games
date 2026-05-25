@@ -215,14 +215,19 @@ cmd_build_lib() {
 	ln -s $f $wd/hex-games.tgz
 }
 ##   release
-##     Create a release zip-file
+##     Create a release with application zip-files
 cmd_release() {
 	$me build-lib || die build-lib
-	$me build --open=no $dir/waterloo || die "build $dir/waterloo"
-	cd $__appd
-	zip waterloo.zip *
-	cp -L ../hex-games/hex-games.tgz .
-	echo "Result in $__appd"
+	rm -rf $WS/release
+	mkdir -p $WS/release
+	local app
+	for app in waterloo ws-im; do
+		$me build --open=no --appd=$WS/$app $dir/$app || die "build $dir/$app"
+		cd $WS/$app
+		zip ../release/$app.zip *
+	done
+	cp -L $WS/hex-games/hex-games.tgz $WS/release
+	echo "Result in $WS/release"
 }
 ##   docker-build [--tag=tag] [--client] (+same opts as for "run")
 ##     Build a docker container for the app. --appd must contain a

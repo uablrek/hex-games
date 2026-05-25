@@ -1,0 +1,30 @@
+|Welcome|
+Welcome to a browser version of the Avalon Hill board game
+"Wooden Ships & Iron Men".
+^
+^NOTE: If you reload or close the page, your progress is lost!
+If you want to adjust the zoom-level in your browser, do that now,
+and then reload.
+^
+^The map is draggable, but not scrollable.
+You can click on any ship to bring up it's stats.
+^
+^Enter - Start the game
+^Esc - Un-select ship
+^i - Toggle hex id's
+^s - Save the map as png
+
+|Planning|
+Select a ship by clicking it, then add movement steps.
+^
+^Enter - Movement Execution
+^c - Clear Movement
+^Space - Copy last movement
+^arrowL - Turn Left
+^arrowR - Turn Right
+^arrowUp - Forward
+^arrowDn - Backing sails
+
+|Movement Execution|
+All vessels move. Collisions may occur.
+

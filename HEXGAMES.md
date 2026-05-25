@@ -12,15 +12,17 @@ https://www.redblobgames.com/). [Konva](
 https://konvajs.org/docs/index.html) is used for most canvas
 manipulations. Both are *absolutely excellent*"
 
-I was trying to get the old (1974) board game [Rise and Decline of
-the Third Reich](rdtr/README.md) (RDTR) to run in a browser. It turned
-out to be far too complex to start with. So, instead I am working with
-[Napoleon at Waterloo](waterloo/README.md).
+I was trying to get the old (1974) board game [Rise and Decline of the
+Third Reich](rdtr/README.md) (RDTR) to run in a browser. It turned out
+to be far too complex to start with. So, instead I tried [Napoleon at
+Waterloo](waterloo/README.md), but I got stuck on displacement on
+retreat, and AI. Now I am working with [Wooden Ships & Iron Men](
+ws-im/README.md)
 
 #### Try a release
 
-Unzip the release-asset `waterloo.zip` and open `index.html`
-in your browser. No dependencies needed!
+Unzip release-asset `waterloo.zip` or `ws-im.zip` and open
+`index.html` in your browser. No dependencies needed!
 
 **WARNING:** On Ubuntu Linux, Firefox may run in a "snap sandbox", so
   you can't browse local files. If so, I suggest to switch to Chrome.
