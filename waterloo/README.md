@@ -1,13 +1,20 @@
 # Waterloo - Basic
 
-**[Work in Progress]** PvP (server) and displacement on retreat is
+**[Work in Progress]** PvP (server), AI and displacement on retreat is
 not yet implemented.
 
 A browser version of the [Napoleon at Waterloo game](
-https://en.wikipedia.org/wiki/Napoleon_at_Waterloo_(board_wargame))
-(NaW) ([BGG](https://boardgamegeek.com/boardgame/3573/napoleon-at-waterloo)).
-No installation needed, just unpack the "waterloo.zip" asset
-and open `index.html` in your browser.
+https://en.wikipedia.org/wiki/Napoleon_at_Waterloo_(board_wargame)) (NaW)
+([BGG](https://boardgamegeek.com/boardgame/3573/napoleon-at-waterloo)).
+
+No installation needed, just unpack the "waterloo.zip" asset and open
+`index.html` in your browser for a solitarie game. For AI, add:
+
+```
+index.html?mode=ai-fr
+# Or
+index.html?mode=ai-al
+```
 
 The game is built with the work of [Christian Holm Christensen](
 https://boardgamegeek.com/profile/cholmcc), and my own JavaScript
@@ -34,7 +41,8 @@ https://gitlab.com/wargames_tex/naw_tex/-/jobs/12248823149/artifacts/file/Napole
 
 ## Development
 
-I document the development process for myself and others.
+I document the development process for myself and others. If you want
+to examine the code, I suggest to start with the sequences.
 
 ### Test mode
 

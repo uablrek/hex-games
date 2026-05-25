@@ -130,10 +130,17 @@ function handleConnectMessage(_msg) {
 		updateTurnBox(`Status: ${msg.status}`)
 		return
 	}
-	if (msg.player == 'A')
-		me = "French"
-	else
-		me = "English"
+	// First player to connect becomes player 'A' and French
+	if (!me) {
+		if (msg.player == 'A') {
+			me = "French"
+			// We must wait for the English player
+			updateTurnBox("Waiting for English player...")
+			return
+		} else
+			// Here we know that player 'A' is already connected as French
+			me = "English"
+	}
 	g.player = "English"
 	updateTurnBox(`You are playing as: ${me}`)
 	ws.onclose = brokenConnection

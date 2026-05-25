@@ -17,20 +17,15 @@ English) and can be restored with `l` (load).
 
 Start the server:
 ```
-eval $(admin env | grep HEX_GAMES_WORKSPACE)
-serverd=$HEX_GAMES_WORKSPACE/server
-admin build --open=no ./the-hill-mp # Build the client
-admin run --appd=$serverd ./server/
+#eval $(./admin.sh alias)  # (assumed)
+cd the-hill-mp
+admin server-app .
 # Open http://localhost:8081/ with your browswe twice
-```
-Or start the server in a docker container:
-```
-eval $(admin env | grep HEX_GAMES_WORKSPACE)
-admin build --open=no ./the-hill-mp # Build the client
-serverd=$HEX_GAMES_WORKSPACE/server
-export __tag=the-hill:latest
-admin docker-build --appd=$serverd ./server/
-admin docker-run
+# Or start the server in a docker container:
+admin docker-app .
+admin docker-run --tag=the-hill-mp:latest
+# Use the printed address. Example: http://172.17.0.2:8081/, or
+# http://localhost:8081/ (port 8081 is exported)
 ```
 
 

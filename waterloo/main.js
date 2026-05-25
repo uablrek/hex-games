@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: CC0-1.0.
 /*
   This is the main module for:
-  https://github.com/uablrek/hex-games/tree/main/waterloo1
+  https://github.com/uablrek/hex-games/tree/main/waterloo
 */
 
 import {ui, grid, sequence, map, unit, box} from '@uablrek/hex-games'
 import {units, unitInit} from './naw-units.js'
+import * as client from './naw-client.js'
+import * as ai from './naw-ai.js'
 import mapData from './waterloo.png'
 import crtData from './crt.png'
 import mapProperties from './map-data.json'
@@ -33,6 +35,10 @@ function createInfoBox() {
 }
 function updateInfoBox(info) {
 	let txt = `Turn: ${g.turn}, time: ${g.turn+12}:00\n`
+	if (client.mode == "ai" || client.mode == "pvp") {
+		txt += `Mode: ${client.mode}. You are ${playerStr[client.nat]}\n`
+	} else
+		txt += "Mode: Solitarie game\n"
 	txt += `Current player: ${playerStr[g.nat]}\n`
 	txt += `Phase: ${g.phase}\n`
 	txt += `Elim al/fr (exited): ${g.al.elim}/${g.fr.elim} (${g.fr.exited})\n`
@@ -79,7 +85,7 @@ async function createCrt() {
 }
 let selectedUnit
 function unitOnClick(e) {
-	if (!isActive()) return
+	if (client.waiting || !isActive()) return
 	const u = unit.fromImg(e.target)
 	switch (g.phase) {
 	case "Movement":
@@ -186,6 +192,16 @@ ui.setKeys([
 ])
 function nextStep(e) {
 	if (theAlertBox) return
+	if (client.mode == "ai" && g.nat == "none") {
+		// Allow start-game in ai-mode
+		sequence.nextStep()
+		return
+	}
+	if (client.mode == "pvp" && g.nat == "none" && client.side == 'A') {
+		// Allow side A to start-game in pvp-mode
+		sequence.nextStep()
+		return
+	}
 	// This is a no-op if we are not the attacking player
 	if (me && me != g.nat) return
 	switch (g.phase) {
@@ -262,7 +278,7 @@ function deleteUnit(e) {
 		}
 		break
 	case "Remove Attackers":
-		if (selectedUnit && cg.attackers.has(selectedUnit)) {
+		if (selectedUnit && advancingUnits.has(selectedUnit)) {
 			remainingEX -= selectedUnit.s
 			if (remainingEX < 0) remainingEX = 0
 			removeUnit(selectedUnit)
@@ -298,7 +314,7 @@ function setTestMode() {
 // ----------------------------------------------------------------------
 // Sequences
 
-function updatePhase(seq, info) {
+export function updatePhase(seq, info) {
 	g.phase = seq.currentStep.name
 	updateInfoBox(info)
 }
@@ -313,11 +329,20 @@ sequence.add(new sequence.Sequence({
 	name: "game",
 	steps: [
 		{
+			start: function(seq) {
+				sequence.jump(seq, "server-connect")
+			},
+			end: function(seq) {
+				if (client.mode == "ai") ai.init()
+				me = client.nat
+			}
+		},
+		{
 			name: "Initial Deployment",
 			start: function(seq) {
 				initialDeployment()
-				if (!me) {
-					// Allow test mode in solitarie games
+				if (client.mode == "sol" && client.side != 'A') {
+					// Allow test mode in stand-alone solitarie games
 					updatePhase(seq, '\n' + sequence.getSeqHelp("test-mode"))
 				} else
 					updatePhase(seq)
@@ -328,7 +353,10 @@ sequence.add(new sequence.Sequence({
 			start: function(seq) {
 				g.nat = "fr"
 				g.onat = "al"
-				sequence.jump(seq, "player")
+				if (client.mode == "ai" && me == "al")
+					sequence.jump(seq, "ai-player")
+				else
+					sequence.jump(seq, "player")
 			}
 		},
 		{
@@ -339,7 +367,10 @@ sequence.add(new sequence.Sequence({
 			start: function(seq) {
 				g.nat = "al"
 				g.onat = "fr"
-				sequence.jump(seq, "player")
+				if (client.mode == "ai" && me == "fr")
+					sequence.jump(seq, "ai-player")
+				else
+					sequence.jump(seq, "player")
 			},
 		},
 		{
@@ -396,7 +427,7 @@ sequence.add(new sequence.Sequence({
 			},
 			end: function(seq) {
 				removeExitedUnits()
-				computeZOC() // re-compute .zoc
+				computeZOC() // re-compute after movement
 				for (const u of units) u.consumedMF = 0
 				unmarkSelected()
 				if (g.testMode) setDraggable(false)
@@ -505,6 +536,7 @@ sequence.add(new sequence.Sequence({
 				}				
 				if (advancingUnits.size == 0) {
 					// This may happen as cause of an EX result
+					computeZOC()
 					seq.nextStep()
 					return
 				}
@@ -527,8 +559,9 @@ sequence.add(new sequence.Sequence({
 			},
 			end: function(seq) {
 				// Un-mark the current combat-group
-				for (const u of cg.defenders.values()) unit.removeMark1(u)
-				for (const u of cg.attackers.values()) unit.removeMark1(u)
+				for (const u of cg.defenders) unit.removeMark1(u)
+				for (const u of cg.attackers) unit.removeMark1(u)
+				computeZOC()
 				cg = null
 				clearMoves()
 				oddsMarker.remove()
@@ -545,12 +578,6 @@ sequence.add(new sequence.Sequence({
 sequence.add(new sequence.Sequence({
 	name: "retreat",
 	steps: [
-		{
-			//name: "init",
-			start: function(seq) {
-				seq.nextStep()
-			}
-		},
 		{
 			name: "Retreat",
 			start: function(seq) {
@@ -603,7 +630,7 @@ sequence.add(new sequence.Sequence({
 
 // ----------------------------------------------------------------------
 // Game related
-let g = {
+export let g = {
 	turn: 1,
 	nat: "none",				// Active player
 	onat: "none",				// "other" player
@@ -661,7 +688,7 @@ function removeUnit(u) {
 // ----------------------------------------------------------------------
 // Movement
 
-function computeZOC() {
+export function computeZOC() {
 	clearMoves()
 	removeMarks()
 	// Tag ZOC hexes
@@ -804,17 +831,17 @@ function unitDragEnd(e) {
 function advanceSelected(h) {
 	if (!selectedUnit) return
 	// ZOC may be ignored, but normal movement rules apply
-	// We can go to this hex if it's clear or if we have a road to it
+	// We can go to this hex if it's non-forrest, or if we have a road to it
 	const f = map.getHex(selectedUnit.hex) // ("from" hex)
 	const neig = grid.neighboursAxial(f.ax)
 	for (const [i, n] of neig.entries()) {
 		if (n == h) {
-			if (h.prop.includes('c') || f.edges && f.edges.charAt(i) == 'r') {
-				moveSelectedUnit(h)
-				selectedUnit = null
-				sequence.nextStep()
-				// TODO: send to server
-			}
+			if (h.prop.includes('f') && !f.edges && f.edges.charAt(i) == 'r')
+				return
+			moveSelectedUnit(h)
+			selectedUnit = null
+			sequence.nextStep()
+			// TODO: send to server
 			break
 		}
 	}
@@ -844,22 +871,31 @@ function prepareRetreat(u) {
 	if (!retreatingUnits.has(u)) return
 	markSelected(u)
 	let hexes = grid.movementAxial(1, grid.hexToAxial(u.hex), u)
+	if (hexes.size == 0) {
+		// the unit can't retreat
+		reachableHexes = hexes
+		return
+	}
 	let emptyHexes = false
 	for (const h of hexes)
 		if (!h.units || h.units.size == 0) emptyHexes = true
 	if (emptyHexes) {
 		for (const h of hexes)
 			if (h.units && h.units.size > 0) hexes.delete(h)
+		showMoves(u, hexes)
 	} else {
 		// We have no empty hexes. Check displacement
 	}
-	showMoves(u, hexes)
 	/*
-	  There is a complex edge-case here when an artillery that is assigned
+	  There is a edge-case here when an artillery that is assigned
 	  for bombardement is to be displaced. Please see:
 	  https://boardgamegeek.com/thread/569103/retreat-chain-question
 	  If the bombardement is required to satisfy the engagement rules,
-	  then it can NOT be displaced
+	  then it can NOT be displaced.
+	  Put differently, the combat-group must have only bombardement
+	  attackers AND the defender (must be just one) must be adjacent
+	  to other friendly ground units.
+	  TODO: implement this.
 	*/
 }
 
@@ -875,7 +911,7 @@ let advancingUnits
 let retreatingUnits
 let remainingEX = 0
 
-function prepareCombatAssignment() {
+export function prepareCombatAssignment() {
 	combatGroups = []
 	cg = null
 	removeTargetMarkers()
@@ -935,7 +971,7 @@ targetMarkerTemplate.add(new Konva.Path({
 	data: "M 0 -20 l 0 10 m 0 20 l 0 10 M -20 0 l 10 0 m 20 0 l 10 0",
 }))
 let targetMarkers
-function setTargetMarker(u) {
+export function setTargetMarker(u) {
 	let pos = grid.hexToPixel(u.hex)
 	if (!targetMarkers) {
 		targetMarkers = new Konva.Group()
@@ -946,7 +982,7 @@ function setTargetMarker(u) {
 	targetMarkers.add(targetMarker)
 	targetMarkers.moveToTop()
 }
-function removeTargetMarkers() {
+export function removeTargetMarkers() {
 	if (targetMarkers) {
 		targetMarkers.destroy()
 		targetMarkers = null
@@ -1139,7 +1175,7 @@ function findCombatGroup(u) {
 	}
 	return null
 }
-function markCombatUnits() {
+export function markCombatUnits() {
 	for (const u of units) u.engaged = false
 	// Engaged units are either friendly units in EZOC of enemy units
 	// in friendly ZOC
@@ -1165,12 +1201,12 @@ function combatRulesOK() {
 // ----------------------------------------------------------------------
 // Reinforcements
 
-const undeployed = new Set()
+export const undeployed = new Set()
 let unitBox
 
 function createUnitBox() {
 	unitBox = new unit.UnitBox({
-		text: "Preussians",
+		text: "Prussians",
 		cols: 5,
 		destroyable: false,
 		unitTypes: [
@@ -1183,6 +1219,7 @@ function createUnitBox() {
 	})
 	for (const u of units) {
 		if (u.nat != 'pu') continue
+		if (u.t != 3) continue
 		undeployed.add(u)
 		unitBox.addUnit(u)
 	}
@@ -1226,7 +1263,7 @@ function nawToHex(id) {
 	const y = parseInt(id.substring(2), 10)
 	return {x:x,y:y}
 }
-function nat(u) {
+export function nat(u) {
 	if (u.nat == "pu") return "al"
 	return u.nat
 }
@@ -1252,8 +1289,8 @@ function nat(u) {
 	}
 	grid.mapFunctions(map.getAxial)
 	for (const h of map.hexMap.values()) {
-		// ZOC is never blocked (under basic rules), so pre-compute
-		// *before* the "blocked" function is defined.
+		// ZOC is never blocked by terrain (under basic rules), so
+		// pre-compute *before* the "blocked" function is defined.
 		h.neighZoc = grid.neighboursAxial(h.ax)
 	}
 	// *Now* define the mapFunctions!

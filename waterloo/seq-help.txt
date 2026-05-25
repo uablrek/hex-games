@@ -1,14 +1,17 @@
 |Initial Deployment|
 Welcome to the Napoleon at Waterloo game.
 ^
+^If you want to zoom in/out, NOW is the time! Adjust your browser and
+reload this page (F5) before you start the game.
+^
 ^Enter - Start game
 
 |test-mode|
-t - Start game in test mode
+t - Start game in Test Mode
 ^
-^In test mode all units becomes draggable during movement phase. The
-movement phase is reset if a unit is dragged. During Combat Resolution
-you will select the die roll.
+^Test Mode:
+^All units becomes draggable during movement phase, which let you
+setup any situation. During Combat Resolution you will select the die roll.
 
 |Reinforcements|
 Reinforcements are available. Drag units from the UnitBox to a

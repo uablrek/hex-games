@@ -228,14 +228,16 @@ cmd_release() {
 ##     Build a docker container for the app. --appd must contain a
 ##     Dockerfile. --client assumes that the application is a
 ##     web client
-##   docker run --tag=tag
+##   docker-run --tag=tag
 ##     Start a container and print the IP-address
+##   docker-app [--tag=tag] <dir>
+##     Build a container with an app (a game server)
 cmd_docker_build() {
-	__bundle=yes
 	if test "$__client" = "yes"; then
 		__open=no
 		cmd_build $@
 	else
+		__bundle=yes
 		cmd_run $@
 	fi
 	test -r $src/Dockerfile || die "No Dockerfile"
@@ -250,6 +252,23 @@ cmd_docker_run() {
 	local jp='.[].NetworkSettings.Networks.bridge.IPAddress'
 	local ip=$(docker inspect $id | jq -r $jp)
 	log "$ip"
+}
+cmd_docker_app() {
+	cd $rdir
+	local src=$(readlink -f $1)
+	$me build --open=no $src || die build
+	eset __tag="$(basename $src):latest"
+	export __tag
+	export APPD=$__appd
+	$me docker-build --appd=$WS/server $dir/server
+	test "$__run" = "yes" && $me docker_run --tag=$tag
+}
+cmd_server_app() {
+	cd $rdir
+	local src=$(readlink -f $1)
+	$me build --open=no $src || die build
+	export APPD=$__appd
+	$me run --appd=$WS/server $dir/server
 }
 ##   rdtr-build-demos [--appd=dir] [--clean] [--open] page
 ##     Build the "Rise and Decline of the Third Reich" demos.
@@ -309,26 +328,26 @@ cmd_build() {
 	test "$__open" != "yes" && return 0
 	cmd_open "$2"
 }
-##   open [--appd=dir] [page]
-##     Opens a page in $BROWSER. The "page" must be an url relative to
-##     --appd. Example: "units.html?scenario=1"
+##   open [--appd=dir] [--close] [--page=]
+##     Opens a page in $BROWSER. The --page must be an url relative to
+##     --appd. Example: --page="units.html?scenario=1"
+##     --close tries to close an old window. Doesn't work with Chrome
 cmd_open() {
 	test -n "$BROWSER" || die 'Not set [$BROWSER]'
 	cd $__appd || die "Failed [cd $__appd]"
-	local page=index.html
-	test -n "$1" && page="$1"
-	local file=$(echo "$page" | cut -d'?' -f1)
-	test -r "./$file" || die "Not readable [$__appd/$file]"
-	if which xdotool > /dev/null && test "$__keep" != "yes"; then
+	eset __page=index.html
+	if which xdotool > /dev/null && test "$__close" = "yes"; then
 		# Try to close the old window
 		# https://askubuntu.com/questions/616738/how-do-i-close-a-new-firefox-window-from-the-terminal
 		# TODO: examine why this works with Firefox, but not with Chrome
+		local file=$(echo "$__page" | cut -d'?' -f1)
+		test -r "./$file" || die "Not readable [$__appd/$file]"
 		local title=$(grep -F '<title>' ./$file | cut -d'>' -f2 | cut -d'<' -f1)
 		local window=$(xdotool search --name "$title")
 		test -n "$window" && xdotool key --window $window Ctrl+Shift+w
 	fi
 	cd $dir
-	GTK_MODULES= $BROWSER --new-window "file://$__appd/$page"
+	GTK_MODULES= $BROWSER --new-window "file://$__appd/$__page"
 }
 appdir() {
 	echo $__appd | grep -q "^$TEMP" && eset __clean=yes

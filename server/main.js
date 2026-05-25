@@ -62,13 +62,13 @@ function messageFromA(message) {
 	const msg = message.toString()
 	if (isSaveRestore(msg)) return
 	if (B) B.send(msg)
-	log(msg)
+	log("A->B", msg)
 }
 function messageFromB(message) {
 	const msg = message.toString()
 	if (isSaveRestore(msg)) return
 	if (A) A.send(msg)
-	log(msg)
+	log("B->A", msg)
 }
 function closeA() {
 	A = null
@@ -93,18 +93,26 @@ function onConnection(socket) {
 		return
 	}
 	if (A) {
+		// A connection with 'A' exist. This connection becomes 'B',
+		// and we must inform 'A' that both players are now connected
 		B = socket
 		B.on('message', messageFromB)
 		B.on('close', closeB)
-		B.on('error', closeB)		
-		A.send('{"status":"connected", "player":"A"}')
-		B.send('{"status":"connected", "player":"B"}')
+		B.on('error', closeB)
+		const msg = '{"status":"connected", "player":"B"}'
+		log("S->B", msg)
+		B.send(msg)
+		log("S->A", msg)
+		A.send(msg)
 	} else {
+		// The first to connect becomes player 'A'
 		A = socket
 		A.on('message', messageFromA)
 		A.on('close', closeA)
 		A.on('error', closeA)
-		A.send('{"status":"waiting"}')
+		const msg = '{"status":"connected", "player":"A"}'
+		log("S->A", msg)
+		A.send(msg)
 	}
 	socket.addEventListener('error', error => {
 		console.error('WebSocket error:', error)
