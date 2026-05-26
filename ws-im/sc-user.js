@@ -1,7 +1,7 @@
 const scUser = `{
 	"id": "user",
 	"name": "User Defined",
-    "description": "A user defined scenario"
+    "description": "A user defined scenario",
 	"wind": {
 		"d": 1,
 		"v": 3,
