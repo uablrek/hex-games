@@ -35,6 +35,7 @@ function updateInfoBox(info) {
 		const s = selectedShip
 		txt += `\n\nSHIP: ${s.name} (${s.pv})\n`
 		txt += `${s.class}, ${s.nguns} guns\n`
+		txt += `Hull: ${s.s.hull}\n`
 		if (s.car)
 			txt += `Guns: L ${s.s.guns.l}(${s.s.car.l}), R ${s.s.guns.r}(${s.s.car.r})\n`
 		else
@@ -213,8 +214,16 @@ sequence.add(new sequence.Sequence({
 
 ;(async () => {
 	// Load scenario (do this early)
+	let scName = "trafalgar"
+	const href = new URL(location.href)
+	const param = href.searchParams.get("sc")
+	if (param) scName = param
 	scenario.init()
-	sc = scenario.get("trafalgar")
+	sc = scenario.get(scName)
+	if (!sc) {
+		alert(`Scenario not found: ${scName}`)
+		return
+	}
 	g.wind = sc.wind
 	// Boxes 
 	createInfoBox()

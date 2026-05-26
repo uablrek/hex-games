@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CC0-1.0.
 
-import scTest1 from './sc-test1.json'
 import scTrafalgar from './sc-trafalgar.json'
+import scNymCle from './sc-nym-cle.json'
 
 const scenario = new Map()
 
@@ -10,6 +10,7 @@ export function get(id) {
 }
 
 export function init() {
-	scenario.set(scTest1.id, scTest1)
+	if (typeof scUser !== 'undefined') scenario.set("user", JSON.parse(scUser))
 	scenario.set(scTrafalgar.id, scTrafalgar)
+	scenario.set(scNymCle.id, scNymCle)
 }

@@ -17,9 +17,11 @@ const classTable_ah_napoleonic = [
 	{cid:"br-sol2-74-l", class:"SOL2", nguns: 74, nat:"br", ii:"sol", hull:14, crew:"5-4-4", guns:9, car:2, rigging:"7-7-7", pv:[30,29,23,21,19], depth: 22},
 	{cid:"br-sol2-74", class:"SOL2", nguns: 74, nat:"br", ii:"sol", hull:14, crew:"4-4-4", guns:8, car:2, rigging:"7-7-7", pv:[29,27,22,20,18], depth: 20},
 	{cid:"br-sol2-64", class:"SOL2", nguns: 64, nat:"br", ii:"sol", hull:11, crew:"4-3-3", guns:6, car:2, rigging:"7-7-7", pv:[22,20,17,15,13], depth: 19},
+	{cid:"br-f3-36", class:"F3", nguns: 36, nat:"br", ii:"f", hull:7, crew:"2-2-1", guns:2, car:1, rigging:"5-5-5-5", pv:[13,11,10,9,8], depth: 13},
 
     {cid:"fr-sol2-80", class:"SOL2", nguns: 80, nat:"fr", ii: "sol", hull:16, crew:"6-6-5", guns:11, car:1, rigging:"7-7-7", pv:[36,33,27,25,23], depth: 23},
     {cid:"fr-sol2-74", class:"SOL2", nguns: 74, nat:"fr", ii: "sol", hull:14, crew:"5-5-4", guns:10, car:1, rigging:"7-7-7", pv:[32,29,24,22,20], depth: 21},
+    {cid:"fr-f3-36", class:"F3", nguns: 36, nat:"fr", ii: "f", hull:8, crew:"3-2-2", guns:2, car:1, rigging:"5-5-5-5", pv:[17,15,13,12,10], depth: 17},
 
     {cid:"sp-sol1-130", class:"SOL1", nguns: 130, nat:"sp", ii: "sol", hull:20, crew:"8-7-7", guns:13, rigging:"10-10-10", pv:[42,38,32,30,27], depth: 25},
     {cid:"sp-sol1-112", class:"SOL1", nguns: 112, nat:"sp", ii: "sol", hull:18, crew:"6-6-6", guns:12, rigging:"9-9-9", pv:[38,35,29,27,25], depth: 23},

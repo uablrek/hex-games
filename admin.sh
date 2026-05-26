@@ -330,6 +330,7 @@ cmd_build() {
 		echo $f | grep -qE '^./(.*.html|bundle.js)$' || rm $f
 	done
 	rm -rf node_modules
+	test -r $src/post-build.sh && . $src/post-build.sh
 	test "$__open" != "yes" && return 0
 	cmd_open "$2"
 }

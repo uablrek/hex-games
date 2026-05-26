@@ -6,6 +6,7 @@ import * as map from './map.js'
 import {board, sc, g} from './main.js'
 import {shipClasses} from './tables.js'
 import solData from './sol.svg'
+import fData from './f.svg'
 import brflagData from './gb.svg'
 import frflagData from './fr.svg'
 import spflagData from './es.svg'
@@ -117,6 +118,13 @@ function defineMovementAllowance(s) {
 			full: mAspect.f5,
 		}
 		break
+	case "F3":
+		s.mov = {
+			turn: 3,
+			battle: mAspect.b4,
+			full: mAspect.f6,
+		}
+		break
 	}
 }
 // Returns a Konva.Group (ii = image identifier)
@@ -172,6 +180,7 @@ export async function init(_ships, _scale = 1.0) {
 	ships = _ships
 	// Load and await images
 	shipImage.sol = await loadImage(solData)
+	shipImage.f = await loadImage(fData)
 	flagImage.br = await loadImage(brflagData)
 	flagImage.fr = await loadImage(frflagData)
 	flagImage.sp = await loadImage(spflagData)

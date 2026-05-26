@@ -27,10 +27,11 @@ the 1975 AH version (which I own).
 ## Scenarios
 
 Scenarios are defined in separate [json](
-https://en.wikipedia.org/wiki/JSON) files, but must be included in
-`bundle.js`, so a rebuild is required when adding or modifying
-scenarios. To define a scenario is tedious and error prone, so
-contributions (issues or PRs) are appreciated.
+https://en.wikipedia.org/wiki/JSON) files. Scenarios are included in
+`bundle.js` (except the user defined scenario), so a rebuild is
+required when adding or modifying scenarios. To define a scenario is
+tedious and error prone, so contributions (issues or PRs) are
+appreciated.
 
 To understand how to define a scenario, please look at
 [sc-trafalgar.json](./sc-trafalgar.json). The `id` must be unique, and
@@ -41,16 +42,31 @@ file:///tmp/ws-im/ws-im.html?sc=trafalgar
 The ship classes are defined in [tables.js](./tables.js). The Spanish
 `SOL2-64` has no pre-defined class, and must be fully defined.
 
+### User defined scenario
+
+To define a scenario replace the the `sc-user.js` file in the WS&IM
+directory (where `index.html` is), and then select "User Defined",
+or:
+```
+// (assuming WS&IM directory /tmp/ws-im)
+cp sc-my-scenario.js /tmp/ws-im/sc-user.js
+file:///tmp/ws-im/ws-im.html?sc=user
+```
+
+Please note that [sc-user.js](./sc-user.js) is a javascript file,
+*not* JSON! The only difference though is that the json data is
+enclosed in a javascript string. I recommend to edit the json data to
+get aid from your editor, and add the javascript string when done.
 
 
 ## Development
 
-General process and dependencies, please see [hex-games](
+For general development process and dependencies, please see [hex-games](
 https://github.com/uablrek/hex-games/blob/main/HEXGAMES.md).
 
 A full Ship definition may look like:
-```
-let ship = {
+```js
+const ship = {
 	name: "Victory",
 	nat: "br",
 	class: "SOL1",
