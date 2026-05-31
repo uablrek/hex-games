@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CC0-1.0.
 
 import {grid} from '@uablrek/hex-games'
-import {board, info} from './main.js'
+import {board, info, g} from './main.js'
 
 // Grid sizes
 const sz = 60			// Vertical size (flattop)
@@ -105,9 +105,9 @@ const windArrow = new Konva.Path({
 	position: {x:100, y:100},
 	scale: {x:2.0, y:2.0},
 })
-export function updateWindIndicator(cfg) {
+export function updateWindIndicator() {
 	if (!windArrow.getParent()) info.add(windArrow)
-	windArrow.rotation((cfg.d - 1) * 60)
+	windArrow.rotation(g.wind.d * 60)
 }
 
 function focus(hexid) {

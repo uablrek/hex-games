@@ -1,6 +1,6 @@
 {
 	"name": "@uablrek/hex-games",
-	"version": "3.0.0",
+	"version": "3.3.0",
 	"description": "A library for creating turn-based games on hex grids",
 	"main": "lib/index.js",
 	"keywords": ["game","hex"],

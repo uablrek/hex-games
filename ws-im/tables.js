@@ -29,6 +29,8 @@ const classTable_ah_napoleonic = [
     {cid:"sp-sol2-80", class:"SOL2", nguns: 80, nat:"sp", ii: "sol", hull:15, crew:"5-5-4", guns:10, rigging:"7-7-7", pv:[34,31,24,23,21], depth: 21},
     {cid:"sp-sol2-74-l", class:"SOL2", nguns: 74, nat:"sp", ii: "sol", hull:14, crew:"5-4-4", guns:8, car:2, rigging:"7-7-7", pv:[33,30,22,20,18], depth: 22},
     {cid:"sp-sol2-74", class:"SOL2", nguns: 74, nat:"sp", ii: "sol", hull:13, crew:"4-4-4", guns:8, rigging:"7-7-7", pv:[29,26,20,18,16], depth: 21},
+
+	{cid:"us-f4-38", class:"F4", nguns: 38, nat:"us", ii:"f", hull:9, crew:"3-3-3", guns:3, car:3, rigging:"5-5-5-5", pv:[18,15,14,13,11], depth: 17},
 ]
 export const shipClasses = {
 	ah_napoleonic: classTable_ah_napoleonic,

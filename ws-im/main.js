@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CC0-1.0.
 
 import Konva from 'konva'
-import {ui, box, sequence} from '@uablrek/hex-games'
+import {ui, box, sequence, grid} from '@uablrek/hex-games'
 import * as map from './map.js'
 import * as ship from './ship.js'
 import * as scenario from './scenario.js'
@@ -23,13 +23,13 @@ function createInfoBox() {
         x: window.innerWidth - 370,
         y: 30,
         width: 350,
-        height: 600,
+        height: 640,
         destroyable: false,
     })
 	info.add(infoBox)
 }
 let helpTxt = ""
-function updateInfoBox(info) {
+function updateInfoBox() {
 	let txt = helpTxt
 	if (selectedShip) {
 		const s = selectedShip
@@ -41,7 +41,12 @@ function updateInfoBox(info) {
 		else
 			txt += `Guns: L ${s.s.guns.l}, R ${s.s.guns.r}\n`
 		txt += `Crew: ${s.cq}  ${s.s.crew.join('-')}, Rigging: ${s.s.rigg.join('-')}\n`
-		txt += `Mov T:${s.mov.turn} A:${s.mov.battle.A}(${s.mov.full.A}) B:${s.mov.battle.B}(${s.mov.full.B}) C:${s.mov.battle.C}(${s.mov.full.C}) D:0(0)\n`
+		txt += `Mov A:${s.mov.battle.A}(${s.mov.full.A}) B:${s.mov.battle.B}(${s.mov.full.B}) C:${s.mov.battle.C}(${s.mov.full.C}) D:0(0) t:${s.mov.turn}\n`
+		if (g.phase == "Planning") {
+			const mp = ship.mp(s)
+			txt += `Movement: [${s.m}] (${mp.mp} t:${mp.t})\n`
+			if (s.setSails) txt += `Set ${s.setSails} Sails`
+		}
 		//const hex = map.hexToId(s.hex)
 		//txt += `Hex: ${hex}, direction: ${s.d}\n`
 	}
@@ -74,14 +79,23 @@ function shipOnClick(e) {
 // Keyboard
 ui.setKeys([
 	{key:'i', fn:map.toggleHexId},
-	{key:'s', fn:map.save},
+	{key:'p', fn:map.save},
 	{key:'Enter', fn:sequence.nextStep},
 	{key:'Escape', fn:keyEscape},
 	{key:'ArrowLeft', fn:keyMovement},
 	{key:'ArrowRight', fn:keyMovement},
 	{key:'ArrowUp', fn:keyMovement},
 	{key:'ArrowDown', fn:keyMovement},
+	{key:'a', fn:keyMovement},
+	{key:'d', fn:keyMovement},
+	{key:'w', fn:keyMovement},
+	{key:'s', fn:keyMovement},
+	{key:'c', fn:keyMovement},
+	{key:'Backspace', fn:keyMovement},
 	{key:' ', fn:keyMovement},
+	{key:'=', fn:keyMovement},
+	{key:'b', fn:keySails},
+	{key:'f', fn:keySails},
 ])
 
 function keyEscape(e) {
@@ -91,37 +105,85 @@ function keyEscape(e) {
 		updateInfoBox()
 	}
 }
-let savedMovement
+let savedMovement = ""
 function keyMovement(e) {
-	console.log("keyMovement", g.phase, e)
-	if (g.phase != "Movement Notation" || !selectedShip) return
-	const s = selectedShip
-	if (s.mleft == 0) {
-		// TODO: handle the special case when the ship start in
-		// direction D, and get a free turn
+	if (g.phase != "Planning" || !selectedShip) return
+	if (e.key == '=') {
+		// Copy the movement of the selectedShip to all friendly ships.
+		// If the movement can't be applied, those ships are left as-is.
+		// This should simplify ships-in-line movement.
+		const m = selectedShip.m
+		const n = nat(selectedShip)
+		for (const s of ships) {
+			if (nat(s) != n) continue
+			if (s.m) continue	// already have movement orders
+			s.m = m
+			const mp = ship.mp(s)
+			if (mp.mp < 0) s.m = ""
+		}
 		return
 	}
-	s.mleft--
+	const s = selectedShip
+	const oldm = s.m
 	switch (e.key) {
 	case 'ArrowLeft':
+	case 'a':
 		s.m += 'L'
 		break
 	case 'ArrowRight':
+	case 'd':
 		s.m += 'R'
 		break
 	case 'ArrowUp':
+	case 'w':
 		s.m += '1'
 		break
 	case 'ArrowDown':
+	case 's':
 		s.m += 'B'
 		break
+	case 'c':
+	case 'Backspace':
+		s.m = ""
+		break
 	case ' ':
-		// TODO: verify that savedMovement is allowed
 		s.m = savedMovement
 		break
 	}
-	savedMovement = s.m
+	const mp = ship.mp(s)
+	if (mp.mp < 0 || mp.t < 0)
+		s.m = oldm
+	else
+		savedMovement = s.m
 	updateInfoBox()
+}
+function keySails(e) {
+	if (g.phase != "Planning" || !selectedShip) return
+	selectedShip.setSails = e.key == 'f' ? "Full" : "Battle"
+	updateInfoBox()
+}
+
+const collisionMarkerTemplate = new Konva.Star({
+	numPoints: 9,
+	innerRadius: 10,
+	outerRadius: 15,
+	fill: 'red',
+})
+let collisionMarkers = null
+function addCollision(chex) {
+	if (!collisionMarkers) collisionMarkers = new Konva.Group()
+	const pos = grid.hexToPixel(chex)
+	const marker = collisionMarkerTemplate.clone({
+		position: pos,
+	})
+	console.log("addCollision")
+	collisionMarkers.add(marker)
+}
+function removeCollisionMarkers() {
+	if (collisionMarkers) {
+		collisionMarkers.destroy()
+		collisionMarkers = null
+	}
 }
 
 // ----------------------------------------------------------------------
@@ -133,17 +195,36 @@ export const g = {
 	wind: {},
 }
 
+let maxMov = 0
+function moveAll(i) {
+	if (i >= maxMov) {
+		sequence.nextStep()
+		return
+	}
+	ship.moveAll(i)
+	setTimeout(moveAll, 600, i+1)
+}
+
+function nat(s) {
+	if (!sc.players) return s.nat
+	// We have alliances
+	for (const [key, value] of Object.entries(sc.players)) {
+		if (value.includes(s.nat)) return key
+	}
+	return s.nat				// (fallback. should not happen)
+}
+
 // ----------------------------------------------------------------------
 // Sequences
 
-export function updatePhase(seq, info) {
+export function updatePhase(seq) {
 	g.phase = seq.currentStep.name
 	helpTxt = sequence.getSeqHelp(g.phase)
 	if (selectedShip) {
 		ship.unmark(selectedShip)
 		selectedShip = null
 	}
-	updateInfoBox(info)
+	updateInfoBox()
 }
 
 // This is the top sequence
@@ -153,7 +234,16 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Welcome",
 			start: function(seq) {
-				updatePhase(seq)
+				g.phase = seq.currentStep.name
+				helpTxt = sequence.getSeqHelp(g.phase)
+				let txt = sequence.getSeqHelp("Welcome0")
+				txt += `\n\nSenario:\n${sc.name}\n`
+				if (sc.description) txt += `${sc.description}\n`
+				txt += '\n'
+				txt += helpTxt
+				txt += '\n\n'
+				txt += sequence.getSeqHelp("zoom")
+				box.update(infoBox, txt, g.phase)
 			}
 		},
 		{
@@ -164,17 +254,41 @@ sequence.add(new sequence.Sequence({
 			name: "Planning",
 			start: function(seq) {
 				savedMovement = ""
+				removeCollisionMarkers()
 				for (const s of ships) {
 					s.m = ""
-					s.idir = s.d
-					s.mleft = 3
+					s.setSails = ""
 				}
 				updatePhase(seq)
 			},
 		},
 		{
+			//name: "Collision check",
+			start: function(seq) {
+				for (let i = 0; i < 7; i++) {
+					let chex = ship.collisionCheck(i)
+					while (chex) {
+						addCollision(chex)
+						chex = ship.collisionCheck(i)
+					}
+				}
+				seq.nextStep()
+			}
+		},
+		{
 			name: "Movement",
-			start: updatePhase,
+			start: function(seq) {
+				updatePhase(seq)
+				maxMov = 0
+				for (const s of ships) {
+					const l = s.m.length
+					if (l > maxMov) maxMov = l
+				}
+				moveAll(0)
+			},
+			end: function(seq) {
+				if (collisionMarkers) board.add(collisionMarkers)
+			}
 		},
 		{
 			name: "Grappling/Ungrappling",
@@ -186,15 +300,26 @@ sequence.add(new sequence.Sequence({
 		},
 		{
 			name: "Combat",
-			start: sequence.proceed,
+			start: function(seq) {
+				updatePhase(seq)
+			},
 		},
 		{
 			name: "Melee",
 			start: sequence.proceed,
 		},
 		{
-			name: "Reoad",
+			name: "Reload",
 			start: sequence.proceed,
+		},
+		{
+			name: "Full Sails",
+			start: function(seq) {
+				for (const s of ships) {
+					if (s.setSails) ship.fullSails(s, s.setSails == "Full")
+				}
+				seq.nextStep()
+			},
 		},
 		{
 			name: "Transfer",
@@ -225,17 +350,18 @@ sequence.add(new sequence.Sequence({
 		return
 	}
 	g.wind = sc.wind
+	g.wind.d--					// internal representation 0-5
 	// Boxes 
 	createInfoBox()
 	updateInfoBox()
 	// Map
 	await map.init(sc.map)
-	map.updateWindIndicator(g.wind)
+	map.updateWindIndicator()
 	// Add ships
 	ships = sc.ships
 	await ship.init(ships)
 	for (const s of ships) {
-		ship.place(s, board)
+		ship.place(s, s.ih)
 		s.img.on('click', shipOnClick)
 	}
 	// Start game

@@ -14,3 +14,4 @@ export function init() {
 	scenario.set(scTrafalgar.id, scTrafalgar)
 	scenario.set(scNymCle.id, scNymCle)
 }
+

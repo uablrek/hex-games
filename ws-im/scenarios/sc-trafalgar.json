@@ -7,6 +7,10 @@
 		"v": 2,
 		"change": 6
 	},
+	"players": {
+		"br": ["br"],
+		"fr": ["fr", "sp"]
+	},
 	"classTable": "ah_napoleonic",
 	"ships": [
 		{"cid":"br-sol1-100", "name": "Victory", "crew":"5-5-4", "cq": "El", "ih": {"hex":"HH19", "d":4}, "pv": 33},

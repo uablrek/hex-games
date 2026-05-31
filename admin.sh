@@ -222,7 +222,8 @@ cmd_release() {
 	mkdir -p $WS/release
 	local app
 	for app in waterloo ws-im; do
-		$me build --open=no --appd=$WS/$app $dir/$app || die "build $dir/$app"
+		$me build --open=no --appd=$WS/$app $dir/$app --minify \
+			|| die "build $dir/$app"
 		cd $WS/$app
 		zip ../release/$app.zip *
 	done

@@ -9,8 +9,19 @@ This is a Work in Progress (WIP)
 
 * Download the `ws-im.zip` asset from the latest [release](
   https://github.com/uablrek/hex-games/releases)
-* Unpack `ws-im.zip` (you **must** unpack, even on Windows)
+* Unpack `ws-im.zip` (you **must** unpack/extract, even on Windows)
 * Open `index.html` in your browser
+
+**NOTE: You can't save!** If you close your browser/page all progress
+  is lost. If you reload the page, you go back to the start. So, if
+  you want to zoom in/out in your browser do that *before* starting
+  the game, and reload the page (F5).
+
+Keys that works in any phase:
+
+* **i** - Toggle hex id's
+* **p** - Save the map locally as png. The entire map that is, not only what you see in your browser ([example](https://boardgamegeek.com/image/9598691/uablrek))
+
 
 ## Rules
 
@@ -19,10 +30,16 @@ Since the original rules are copyrighted and hard to come by, I use the
 
 However, these rules are intended for experienced players, and the
 "Beginners Rules" ("Basic Game Rules" in the original) are not
-complete. For example combat charts are missing, and some sections are
-doubled as in the "Advanced Rules". I intend to implement the Basic
-rules first so I complement the rules when necessary with the ones in
-the 1975 AH version (which I own).
+complete. For example combat charts are missing, and some ship
+sections are doubled as in the "Advanced Rules". I intend to implement
+the Basic rules first, so I complement the rules when necessary with
+the ones in the 1975 AH version (which I own).
+
+I allow "full sails" and "backing sails" from the Advanced Rules.
+
+The game is played in sequences of "phases", same as the board game.
+An "infoBox" is displayed to the right and will show relevant info for
+the phase, e.g. keys, ship data and a brief help.
 
 ## Scenarios
 
@@ -58,11 +75,19 @@ Please note that [sc-user.js](./sc-user.js) is a javascript file,
 enclosed in a javascript string. I recommend to edit the json data to
 get aid from your editor, and add the javascript string when done.
 
+The "id" in the user defined scenario file can be anything, it is
+always loaded as "sc=user" anyway.
 
 ## Development
 
 For general development process and dependencies, please see [hex-games](
 https://github.com/uablrek/hex-games/blob/main/HEXGAMES.md).
+
+Ship graphics are my own, created with [Inkscape](
+https://inkscape.org/), and not very pretty (I am no artist). But the
+small size of the ship counters make them OK (IMHO). Flags are taken
+from https://flagicons.lipis.dev/, except the [us flag](
+https://sv.wikipedia.org/wiki/Fil:Flag_of_the_United_States_(1795%E2%80%931818).svg).
 
 A full Ship definition may look like:
 ```js
@@ -82,9 +107,9 @@ const ship = {
 	guns: 11,
 	car: 1,
 	pv: 33,              // point value
-	ih: {"hex":"HH19", "d":4}, // initial hex
+	ih: {hex:"HH19",d:4}, // initial hex.'d' is 1-6
 	hex: {x:34, y:12},   // current position
-	d: 4,                // current direction
+	d: 3,                // current direction (internal rep 0-5 NOT 1-6!)
 	mov: {
 		 turn: 1,
 		 battle: {
@@ -106,6 +131,12 @@ const ship = {
 		rigg: [8,8,8],
 		guns: {l:11, r:11},
 		car: {l:1, r:1},
+		fullSails: false,
+		setSails: "Full",
+		collided: false,
+		fouled: [],       // array of ships
+		grappled: [],     // array of ships
+		turnsUnmoved: 0,  // for drifting
 	},
 	m: "L11",             // movement notation
 }
