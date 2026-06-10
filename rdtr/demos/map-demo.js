@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC0-1.0.
+// SPDX-License-Identifier: CC-BY-4.0.
 import Konva from 'konva';
 import * as map from './rdtr-map.js';
 

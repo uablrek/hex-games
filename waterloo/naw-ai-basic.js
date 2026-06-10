@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC0-1.0.
+// SPDX-License-Identifier: CC-BY-4.0.
 /*
   This is the Basic AI module for:
   https://github.com/uablrek/hex-games/tree/main/waterloo

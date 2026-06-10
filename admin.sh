@@ -236,7 +236,7 @@ cmd_release() {
 ##     web client
 ##   docker-run --tag=tag
 ##     Start a container and print the IP-address
-##   docker-app [--tag=tag] <dir>
+##   docker-app [--tag=tag] [--run] <dir>
 ##     Build a container with an app (a game server)
 cmd_docker_build() {
 	if test "$__client" = "yes"; then

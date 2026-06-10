@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC0-1.0.
+// SPDX-License-Identifier: CC-BY-4.0.
 /*
   Basic unit deployment. The idea is to use a Konva.Group with a Rect
   and unit images. The Group is draggable so it can be moved to an

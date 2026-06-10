@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC0-1.0.
+// SPDX-License-Identifier: CC-BY-4.0.
 
 import Konva from 'konva'
 import {ui, box, sequence, grid} from '@uablrek/hex-games'
@@ -81,6 +81,7 @@ ui.setKeys([
 	{key:'i', fn:map.toggleHexId},
 	{key:'p', fn:map.save},
 	{key:'Enter', fn:sequence.nextStep},
+	{key:'q', fn:sequence.nextStep},
 	{key:'Escape', fn:keyEscape},
 	{key:'ArrowLeft', fn:keyMovement},
 	{key:'ArrowRight', fn:keyMovement},
@@ -92,10 +93,10 @@ ui.setKeys([
 	{key:'s', fn:keyMovement},
 	{key:'c', fn:keyMovement},
 	{key:'Backspace', fn:keyMovement},
-	{key:' ', fn:keyMovement},
 	{key:'=', fn:keyMovement},
 	{key:'b', fn:keySails},
 	{key:'f', fn:keySails},
+	{key:' ', fn:keySpace},
 ])
 
 function keyEscape(e) {
@@ -105,7 +106,28 @@ function keyEscape(e) {
 		updateInfoBox()
 	}
 }
-let savedMovement = ""
+function keySpace(e) {
+	if (g.phase == "Planning") {
+		// Next unmoved&unfouled&ungrappled ship
+		let i = 0
+		if (selectedShip) {
+			i = selectedShip.i
+			ship.unmark(selectedShip)
+			selectedShip = null
+		}
+		const stop = i
+		do {
+			i = (i + 1) % ships.length
+			const s = ships[i]
+			if (!s.m) {
+				selectedShip = s
+				ship.mark(s, board)
+				break
+			}
+		} while (i != stop)
+		updateInfoBox()
+	}
+}
 function keyMovement(e) {
 	if (g.phase != "Planning" || !selectedShip) return
 	if (e.key == '=') {
@@ -119,7 +141,7 @@ function keyMovement(e) {
 			if (s.m) continue	// already have movement orders
 			s.m = m
 			const mp = ship.mp(s)
-			if (mp.mp < 0) s.m = ""
+			if (mp.mp < 0) s.m = "" // not allowed for this ship
 		}
 		return
 	}
@@ -145,9 +167,6 @@ function keyMovement(e) {
 	case 'c':
 	case 'Backspace':
 		s.m = ""
-		break
-	case ' ':
-		s.m = savedMovement
 		break
 	}
 	const mp = ship.mp(s)
@@ -176,7 +195,6 @@ function addCollision(chex) {
 	const marker = collisionMarkerTemplate.clone({
 		position: pos,
 	})
-	console.log("addCollision")
 	collisionMarkers.add(marker)
 }
 function removeCollisionMarkers() {
@@ -185,7 +203,9 @@ function removeCollisionMarkers() {
 		collisionMarkers = null
 	}
 }
-
+function markFouled() {
+	
+}
 // ----------------------------------------------------------------------
 // Game related
 
@@ -248,7 +268,14 @@ sequence.add(new sequence.Sequence({
 		},
 		{
 			name: "Unfouling",
-			start: sequence.proceed,
+			start: function(seq) {
+				for (const s of ships)
+					if (s.s.fouled.length) {
+						updatePhase(seq)
+						return
+					}
+				seq.nextStep()
+			},
 		},
 		{
 			name: "Planning",
@@ -288,11 +315,22 @@ sequence.add(new sequence.Sequence({
 			},
 			end: function(seq) {
 				if (collisionMarkers) board.add(collisionMarkers)
+				for (const s of ships) markFouled(s)
 			}
 		},
 		{
 			name: "Grappling/Ungrappling",
-			start: sequence.proceed,
+			start: function(seq) {
+				// Any grappled ships?
+				for (const u of ships) {
+					if (s.grappled.length) {
+						updatePhase(seq)
+						return
+					}
+				}
+				// Any adjacent enemy ships that can grapple?
+				seq.nextStep()	// NYI
+			},
 		},
 		{
 			name: "Boarding Preparation",
@@ -301,7 +339,10 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Combat",
 			start: function(seq) {
-				updatePhase(seq)
+				if (collisionMarkers)
+					updatePhase(seq)
+				else
+					seq.nextStep()
 			},
 		},
 		{

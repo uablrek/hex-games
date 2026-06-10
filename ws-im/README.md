@@ -25,8 +25,10 @@ Keys that works in any phase:
 
 ## Rules
 
-Since the original rules are copyrighted and hard to come by, I use the
-[Tournament Rules](https://boardgamegeek.com/filepage/224145/wsim-tournament-rules-30-june-2019-complete).
+A scan of the original rules with page 7 missing is [here](
+https://www.hasbro.com/common/instruct/7090001.PDF). For this game
+I use the [Tournament Rules](
+https://boardgamegeek.com/filepage/224145/wsim-tournament-rules-30-june-2019-complete)
 
 However, these rules are intended for experienced players, and the
 "Beginners Rules" ("Basic Game Rules" in the original) are not
@@ -110,6 +112,7 @@ const ship = {
 	ih: {hex:"HH19",d:4}, // initial hex.'d' is 1-6
 	hex: {x:34, y:12},   // current position
 	d: 3,                // current direction (internal rep 0-5 NOT 1-6!)
+	h: {hex:{x:34, y:12}, d:3}
 	mov: {
 		 turn: 1,
 		 battle: {

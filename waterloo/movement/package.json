@@ -2,7 +2,7 @@
 	"name": "naw-movement",
 	"version": "1.0.0",
 	"description": "Movement test program",
-	"license": "CC0-1.0",
+	"license": "CC-BY-4.0",
 	"type": "module",
 	"main": "main.js"
 }

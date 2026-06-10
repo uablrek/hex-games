@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC0-1.0.
+// SPDX-License-Identifier: CC-BY-4.0.
 /*
   This demo shows the original way of generating rdtr units using the
   PDF counter sheets from:

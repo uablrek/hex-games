@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC0-1.0.
+// SPDX-License-Identifier: CC-BY-4.0.
 
 import {grid} from '@uablrek/hex-games'
 import {board, info, g} from './main.js'
@@ -137,7 +137,7 @@ export async function init(obj) {
 	const sea = new Konva.Rect({
 		width: width * oz,
 		height: height * sz,
-		fill: '#2020aa',
+		fill: '#2030aa',
 	})
 	board.add(sea)
 	const pattern = new Image()

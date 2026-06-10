@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC0-1.0.
+// SPDX-License-Identifier: CC-BY-4.0.
 
 import Konva from 'konva'
 import {grid, die} from '@uablrek/hex-games'
@@ -78,6 +78,7 @@ export function place(s, ih) {
 	const hex = map.idToHex(ih.hex)
 	s.hex = hex					// always {x,y}
 	s.d = s.ih.d - 1			// internal representation 0-5
+	s.h = {hex:hex, d:s.ih.d - 1}
 	if (s.ih.fullSails) fullSails(s, s.ih.fullSails)
 	s.img.position(grid.hexToPixel(hex))
 	s.img.rotation(s.d * 60)
@@ -251,6 +252,7 @@ function moveShip(s, i) {
 		}).play()
 		s.d = (s.d + dd + 6) % 6
 	}
+	s.h = {hex: s.hex, d: s.d}
 }
 // Check collision in movement step i. Rule 8.3.
 // If two ships occupy the same hex (the collision-hex) after
@@ -258,38 +260,19 @@ function moveShip(s, i) {
 // collision-hex, and the other will have it's move-step cancelled.
 // Both ships must stop, and may not make any more moves this turn.
 //
-// 1. If one ship doesn't move in this step (including B),
-//    it occupies (stays in) the collision-hex (freeze)
-// 2. If both ships turn, a random ship occupy the collision-hex (stern)
-// 3. If both go forward:
-//    3.1. The ship with the stern in the collision-hex occupies (stays in) it
-//    3.2. If both have the bow in the collision-hex, a random ship occupies it
-// 4. One ship go forward, and the other turns:
-//    4.1. If both has the bow in the collision-hex, the ship that turns
-//         occupies (stays in) it (freeze)
-//    4.2. If both has the stern in the collision-hex, the ship that go
-//         forward occupies (stays in) it
-//    4.3. If the ship that go forward has the bow in the collision-hex,
-//         and the turning ship the stern, the turning ship occupies
-//         the collision-hex
-//    4.x  NOT possible: The ship that turns has the bow in the collision-hex,
-//         and the ship that go forward, the stern
-//
 // This function must be called repeatedly until no collision occur
 // (return null). This will cover "cascading" collisions, in a
 // line-of-ships for instance.
-//
-// The collision-hex is returned, and a check for fouling is made.
 export function collisionCheck(step) {
 	// Make a "fake" movement up to and including 'step'. We can
 	// assume that all collisions has been taken care of for previous
 	// steps.
-	for (const s of ships) s.th = {hex:s.hex, d:s.d} // temp-hex
+	for (const s of ships) s.th = s.h // temp-hex
 	for (let i = 0; i <= step; i++) {
 		for (const s of ships) {
+			s.ph = s.th			// previous hex
 			const c = s.m.charAt(i)
 			if (!c) continue
-			s.ph = s.th			// previous hex
 			switch (c) {
 			case 'B':
 				break
@@ -305,116 +288,128 @@ export function collisionCheck(step) {
 			}
 		}
 	}
-	// Check if two ships occupies the same hex: a collision-hex.
-	// A Set is used, but we compare hex-objects, so use a key
+	// Check if two ships occupies the same hex: a collision-hex (chex).
+	// A Set is used, but we can't compare objects, so use a key
 	function key(h) {return h.x + 1000 * h.y}
 	let chex = null
 	const ohexes = new Set()
 	let s1, s2
 	for (const s of ships) {
 		const bow = s.th.hex
-		const b = (s.th.d + 3) % 6
-		const stern = adjacentHex(bow, b)
-		if (ohexes.has(key(bow))) {
-			chex = bow
+		let k = key(s.th.hex)
+		if (ohexes.has(k)) {
+			chex = s.th.hex
 			s1 = s
 			break
 		}
-		ohexes.add(key(bow))
-		if (ohexes.has(key(stern))) {
-			chex = stern
+		ohexes.add(k)
+		const st = stern(s.th)
+		k = key(st)
+		if (ohexes.has(k)) {
+			chex = st
 			s1 = s
 			break
 		}
-		ohexes.add(key(stern))
+		ohexes.add(k)
 	}
 	if (!chex) return null
 	// We have a collision-hex, and one ship. Get the other ship
 	for (const s of ships) {
 		if (s == s1) continue
-		if (key(s.th.hex) == key(chex)) {
-			s2 = s
-			break
-		}
-		const b = (s.th.d + 3) % 6
-		const stern = adjacentHex(s.th.hex, b)
-		if (key(stern) == key(chex)) {
+		if (hexEq(s.th.hex, chex) || hexEq(stern(s.th), chex)) {
 			s2 = s
 			break
 		}
 	}
-	
-	// Cut "s.m" for the involved ships according to the rules
-	// above, and return the collision-hex immediately! (no checks for
-	// more collisions)
+	// Cut "s.m" for the involved ships according to the rules, and
+	// return the collision-hex immediately! (no checks for more
+	// collisions)
 	function freeze(h, s1, s2, info) {
 		// No ship moves
-		console.log("mov chex", map.hexToId(h), info)
+		//console.log("freeze chex", map.hexToId(h), info)
 		s1.m = s1.m.substring(0, step)
 		s2.m = s2.m.substring(0, step)
+		s1.th = s1.ph
+		s2.th = s2.ph
 		return h
 	}		
 	function mov(h, s1, s2, info) {
 		// s1 moves, s2 stays
-		console.log("mov chex", map.hexToId(h), info)
+		//console.log("mov chex", map.hexToId(h), info)
 		s1.m = s1.m.substring(0, step+1)
 		s2.m = s2.m.substring(0, step)
+		s2.th = s2.ph
 		return h
 	}
 	function rand(h, s1, s2, info) {
 		// Random ship moves, the other stays
-		console.log("rand chex", map.hexToId(h), info)
+		//console.log("rand chex", map.hexToId(h), info)
 		if (die.roll() < 4) {
 			s1.m = s1.m.substring(0, step+1)
 			s2.m = s2.m.substring(0, step)
+			s2.th = s2.ph
 		} else {
 			s2.m = s2.m.substring(0, step+1)
 			s1.m = s1.m.substring(0, step)
+			s1.th = s1.ph
 		}
 		return h
 	}
+	// For fouling we want the ships and a hex (bow or stern) in the
+	// first ship that is in touch with a hex of the other ship, and
+	// the direction
+	function fouling(s1, s2) {
+		if (die.roll() > 2) return
+		// Prerquisite: '.th' is the ship positions
+		let h = s1.h
+		for (const h of [s1.th.hex, stern(s1.th)]) {
+			for (let i = 0; i < 6; i++) {
+				const n = adjacentHex(h, i)
+				if (hexEq(n, s2.th.hex) || hexEq(n, stern(s2.th))) {
+					s1.s.fouled.push({s:s2, m:{hex: h, d: i}})
+					s2.s.fouled.push({s:s1})
+				}
+			}
+		}
+	}
+	// 8.3.2. If the bow or stern of a ship is in the hex at the same
+	// point in movement when one or more other ships attempt to enter
+	// the hex, the occupying ship remains. The other ship is placed
+	// in the hex(es) occupied just prior to the collision.
+	if (hexEq(s1.ph.hex, chex) || hexEq(s2.ph.hex, chex))
+		return freeze(chex, s1, s2, "chex occupied by bow")
+	if (hexEq(stern(s1.ph), chex) || hexEq(stern(s2.ph), chex))
+		return freeze(chex, s1, s2, "chex occupied by stern")
+	// (now we know that chex is empty before this step)
+	// 8.3.2. If the stern of a ship enters a hex in a turning
+	// maneuver at the same point in the phase as the bow of another
+	// ship, the bow enters the hex. The turning ship returns to its
+	// previous position.
 	const c1 = s1.m.charAt(step)
 	const c2 = s2.m.charAt(step)
-	// 1. If one ship doesn't move in this step (including B),
-	//    it occupies (stays in) the collision-hex
-	if ((!c1 || c1 == 'B') || (!c2 || c2 == 'B'))
-		return freeze(chex, s1, s2, "1.")
-	// ('B' is taken care of)
-	// 2. If both ships turn, a random ship occupy the collision-hex (stern)
-	if (c1 != '1' && c2 != '1') return rand(chex, s1, s2, "2.")
-	// 3. If both go forward
-	if (c1 == '1' && c2 == '1') {
-		// 3.2. If both have the bow in the collision-hex, a random
-		//      ship occupies it
-		if (key(s1.th.hex) == key(chex) && key(s2.th.hex) == key(chex))
-			return rand(chex, s1, s2, "3.2")
-		// 3.1. The ship with the stern in the collision-hex occupies
-		// (stays in) it
-		if (key(s1.th.hex) == key(chex))
-			return mov(chex, s2, s1, "3.1")
-		else
-			return mov(chex, s1, s2, "3.1")
+	if (c1 == '1' && (c2 == 'L' || c2 == 'R'))
+		return mov(chex, s1, s2, "Turn cancelled")
+	if (c2 == '1' && (c1 == 'L' || c1 == 'R'))
+		return mov(chex, s2, s1, "Turn cancelled")
+	// 8.3.2. In other cases, the ship that was plotted to move the
+	// higher number of hexes in forward movement gets the hex. If
+	// that number is tied, each player rolls a die. The high roller
+	// occupies the hex.
+	function countOnes(str) {
+		let cnt = 0
+		for (const c of str) if (c == '1') cnt++
+		return cnt
 	}
-	// 4. One ship go forward, and the other turns
-	if (key(s1.th.hex) == key(chex) && key(s2.th.hex) == key(chex))
-		// 4.1. If both has the bow in the collision-hex, the ship
-		// that turns occupies (stays in) it
-		return freeze(chex, s1, s2, "4.1")
-	if (key(s1.th.hex) != key(chex) && key(s2.th.hex) != key(chex)) {
-		// 4.2. If both has the stern in the collision-hex, the ship that go
-		// forward occupies (stays in) it
-		if (c1 == '1')
-			return mov(chex, s1, s2, "4.2")
-		else
-			return mov(chex, s2, s1, "4.2")
-	}
-	// 4.3. If the ship that go forward has the bow in the collision-hex,
-	// and the turning ship the stern, the turning ship occupies
-	// the collision-hex
-	if (c1 == '1') return mov(chex, s2, s1, "4.3")
-	return mov(chex, s1, s2, "4.3")
-	// 4.x  NOT possible: The ship that turns has the bow in the collision-hex,
-	// and the ship that go forward, the stern
+	const f1 = countOnes(s1.m)
+	const f2 = countOnes(s2.m)
+	if (f1 == f2) return rand(chex, s1, s2, "equal speed")
+	if (f1 > f2)
+		return mov(chex, s1, s2, `${s1.name} is faster`)
+	else
+		return mov(chex, s2, s1, `${s2.name} is faster`)
+}
+function hexEq(h1, h2) {
+	return h1.x == h2.x && h1.y == h2.y
 }
 function adjacentHex(hex, d) {
 	const ax = grid.hexToAxial(hex)
@@ -422,10 +417,15 @@ function adjacentHex(hex, d) {
 	const i = (d + 5) % 6
 	return grid.axialToHex(n[i])
 }
-export function sternHex(s) {
-	if (!s.hex) return null
-	const b = (s.d + 3) % 6
-	return adjacentHex(s.hex, b)
+function stern(hd) {
+	// hd is {hex:{x:0,y:0}, d:0}
+	const b = (hd.d + 3) % 6
+	return adjacentHex(hd.hex, b)
+}
+function logHex(hd) {
+	if (!hd) return
+	// hd is {hex:{x:0,y:0}, d:0}
+	console.log(map.hexToId(hd.hex), hd.d)
 }
 
 // Returns a Konva.Group (ii = image identifier)

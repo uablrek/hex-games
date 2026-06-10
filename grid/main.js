@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC0-1.0.
+// SPDX-License-Identifier: CC-BY-4.0.
 import Konva from 'konva'
 import {grid, ui} from '@uablrek/hex-games'
 // Imports image data to the bundle. Must be on top level

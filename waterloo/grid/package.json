@@ -2,7 +2,7 @@
 	"name": "naw-grid",
 	"version": "1.0.0",
 	"description": "Grid test program",
-	"license": "CC0-1.0",
+	"license": "CC-BY-4.0",
 	"type": "module",
 	"main": "main.js"
 }

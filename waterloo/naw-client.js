@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC0-1.0.
+// SPDX-License-Identifier: CC-BY-4.0.
 /*
   Client module for for:
   https://github.com/uablrek/hex-games/tree/main/waterloo
@@ -102,7 +102,7 @@ sequence.add(new sequence.Sequence({
 					if (wsurl)
 						seq.nextStep()						
 					else {
-						// PvP requires a server. Resort to "sol"
+						alert('PvP requires a server. Resort to solitarie')
 						mode = "sol"
 						sequence.back(seq)
 					}

@@ -2,7 +2,7 @@
   "name": "ws-im",
   "version": "1.0.0",
 	"description": "Wooden Ships and Iron Men",
-  "license": "CC0-1.0",
+  "license": "CC-BY-4.0",
   "author": "",
   "type": "module",
   "main": "main.js"
