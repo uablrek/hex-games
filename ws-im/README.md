@@ -135,9 +135,9 @@ The original "Enemy Ship Movement Table" (ESMT) is optimized for SOL2
 ships. There seem to be an interest (well, it [was](
 https://boardgamegeek.com/thread/3310722/mark-hunters-solo-rules)) to
 extend this for other classes. This can be done without altering the
-program, in a similar way as for user defined programs. Write an own
+program, in a similar way as for user-defined scenarios. Write an own
 version of [solo-tables.js](./solo-tables.js) and copy it to the ws-im
-directory (where index.html is).
+directory (where index.html is) before start.
 
 ## User defined scenario
 
