@@ -4,3 +4,5 @@ if test -n "$SC_USER"; then
 else
 	cp $src/scenarios/sc-user.js .
 fi
+cp $src/solo-tables.js .
+

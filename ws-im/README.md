@@ -72,7 +72,7 @@ Keys that works in any phase:
 * **i** - Toggle hex id's
 * **p** - Save the map locally as png. The entire map that is, not only what you see in your browser ([example](https://boardgamegeek.com/image/9598691/uablrek))
 
-You may open "Developmer Tools" in your browser to see program
+You may open "Developer Tools" in your browser to see program
 printouts (log). Ctrl-Shift-I on Firefox and Chrome.
 
 ## Rules
@@ -130,6 +130,14 @@ The **big** table is derived from `woodsolo.txt` found [here](
 https://boardgamegeek.com/filepage/277738/woodenship-solo-program).
 Thanks to [clonea](https://boardgamegeek.com/profile/clonea) for
 this work.
+
+The original "Enemy Ship Movement Table" (ESMT) is optimized for SOL2
+ships. There seem to be an interest (well, it [was](
+https://boardgamegeek.com/thread/3310722/mark-hunters-solo-rules)) to
+extend this for other classes. This can be done without altering the
+program, in a similar way as for user defined programs. Write an own
+version of [solo-tables.js](./solo-tables.js) and copy it to the ws-im
+directory (where index.html is).
 
 ## User defined scenario
 

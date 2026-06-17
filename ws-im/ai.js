@@ -68,6 +68,7 @@ let hexToShip
 function soloInit(aiPlayer) {
 	ai = aiPlayer
 	hixMap = new Map(hixData)
+	loadTables()
 }
 function soloPlay() {
 	if (g.phase == "Planning") {
@@ -169,9 +170,9 @@ function getMovement(ns, as, forceLongDist=false) {
 		const vs = getHixValue(ns, st)
 		key = `${vb}-${vs}`
 	}
-	const a = mm.get(key)		// (should always work)
-	if (!a) {					// (but then again...)
-		g.log("Key not found", key)
+	const a = getTable(as).get(key)			// (should always work)
+	if (!a) {								// (but then again...)
+		g.log("Key not found", key, "for class", as.class)
 		return '0'
 	}
 	// compute the wind aspect for as
@@ -301,10 +302,40 @@ function getLine(from, to) {
 
 // ----------------------------------------------------------------------
 // Tables
+// We want to allow users to re-define the original table, which is
+// optimized for SOL2 ships, and define new tables for other types
+// like SOL1, F3 and F4. The procedure is the same as for user defined
+// games: add a JavaScript file in the ws-im directory with a JSON
+// string.
 
+function loadTable(tableData) {
+	const m = new Map()
+	for (let a of tableData) {
+		const key = a.shift()
+		m.set(key, a)
+	}
+	return m
+}
+function loadTables() {
+	if (typeof soloTableSOL1 !== 'undefined')
+		soloTables.SOL1 = loadTable(soloTableSOL1)
+	if (typeof soloTableSOL2 !== 'undefined')
+		soloTables.SOL2 = loadTable(soloTableSOL2)
+	if (typeof soloTableF3 !== 'undefined')
+		soloTables.F3 = loadTable(soloTableF3)
+	if (typeof soloTableF4 !== 'undefined')
+		soloTables.F4 = loadTable(soloTableF4)
+	for (let k in soloTables)
+		if (soloTables[k] != mmOriginal) g.log("Solo-table loaded for", k)
+}
+function getTable(s) {
+	if (!s.class) return mmOriginal
+	if (s.class in soloTables) return soloTables[s.class]
+	return mmOriginal
+}
 // The 'woodsolo.txt' parsed. Basically unmodified
 // Wind aspect: B, Al, Cl, D, Cr, Ar
-const mm = new Map([
+const mmOriginal = new Map([
 	["1-2", ['L1', 'L', 'L', 'L', 'L', 'BBB-2L']],
 	["1-8", ['1R', 'BBB-2R', 'R', 'R', '1', '2L']],
 	["1-9", ['R1-L1', 'L1', 'R', '0', 'L', 'L1']],
@@ -584,3 +615,9 @@ const mm = new Map([
 	["F5", ['BB-2', 'R2', '1', 'R', '1', '3-BBB']],
 	["F6", ['1L', '2L', 'R', 'R', '1-R', '3-2L']],
 ])
+const soloTables = {
+	SOL1: mmOriginal,
+	SOL2: mmOriginal,
+	F3: mmOriginal,
+	F4: mmOriginal,
+}
