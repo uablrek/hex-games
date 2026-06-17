@@ -1,0 +1,9 @@
+{
+  "name": "ws-im-solo-test",
+  "version": "1.0.0",
+	"description": "Test of the solo AI",
+  "license": "CC-BY-4.0",
+  "author": "",
+  "type": "module",
+  "main": "main.js"
+}

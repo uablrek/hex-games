@@ -18,7 +18,7 @@ and then reload.
 |Planning|
 Select a ship by clicking it, then add movement steps.
 ^
-^Enter,q - Movement phase
+^Enter,q - Proceed
 ^c,Backspace - Clear Movement
 ^Space - Next unmoved Ship
 ^= - Copy to all friendly ships
@@ -38,4 +38,8 @@ All vessels move. Collisions may occur.
 |Combat|
 Ships fires broadsides. Click on a friendly ship to mark possible targets.
 ^
-^COMBAT IS NOT YET IMPLEMENTED
+^Enter,q - Proceed
+^f - Toggle field-of-fire
+^h - Fire guns at hull (range <= 5)
+^r - Fire guns at rigging
+^Space - Select target (if many)

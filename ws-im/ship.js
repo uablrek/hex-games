@@ -55,9 +55,34 @@ export function unmark(s) {
 		s.mark = null
 	}
 }
+// Simplified! Will likely move to 'main.js'
+function willSurrender(s) {
+	if (s.s.hull <= 0) return true
+	if (s.s.guns.l == 0 && s.s.guns.r == 0) return true
+	let surrendered = true
+	for (const v of s.s.crew) if (v) surrendered = false
+	if (surrendered) return true
+	for (const v of s.s.rigg) if (v) return false
+	return true
+}
+const surrenderTemplate = new Konva.Path({
+	data: "M 0 0 L 40 70 M 40 0 L 0 70",
+	stroke: 'gray',
+	strokeWidth: 6,
+	offsetX: 20,
+})
+export function checkSurrender(s) {
+	if (s.surrendered) return true // once is enough
+	if (!willSurrender(s)) return
+	fullSails(s, false)
+	s.surrendered = true
+	s.img.add(surrenderTemplate.clone())
+	s.img.cache()
+}
+
 let fullSailsTemplate			// A Konva.Image. Defined in "main"
 export function fullSails(s, set) {
-	s.s.fullSails = set
+	s.fullSails = set
 	const fsImage = s.img.findOne(".fullsails")
 	if (set) {
 		if (fsImage) return		// already set (don't re-cache)
@@ -78,7 +103,6 @@ export function place(s, ih) {
 	const hex = map.idToHex(ih.hex)
 	s.hex = hex					// always {x,y}
 	s.d = s.ih.d - 1			// internal representation 0-5
-	s.h = {hex:hex, d:s.ih.d - 1}
 	if (s.ih.fullSails) fullSails(s, s.ih.fullSails)
 	s.img.position(grid.hexToPixel(hex))
 	s.img.rotation(s.d * 60)
@@ -153,12 +177,34 @@ function defineMovementAllowance(s) {
 // If either m or t is negative, the move order is invalid
 export function mp(s) {
 	const fail = {mp:-1,t:-1}
-	const maspect = s.s.fullSails ? s.mov.full : s.mov.battle
+	let maspect = s.fullSails ? s.mov.full : s.mov.battle
+	if (s.s.rigg[0] == 0) {
+		// We have lost one or more rigging sections
+		s.dismasted = true
+		let loss = 0
+		for (let sect of s.s.rigg) {
+			if (sect == 0)
+				loss++
+			else
+				s.dismasted = false
+		}
+		maclone = {}
+		for (const d of ['A', 'B', 'C', 'D'])
+			maclone[d] = maspect[d] - loss
+		maspect = maclone
+	}
+	if (s.dismasted) {
+		// May only drift and turn according to rule 8.2.5
+		// TODO: implement!
+		return fail
+	}
 	// The initial direction 
 	let a = aspectMatrix[g.wind.d][s.d]
 	const maxmp = maspect[a]	// initial dir mp may never be exceeded
-	// Handle the special case when a ship starts against the wind (D)
-	if (maxmp == 0) {
+	// Handle the special case (rule 7.1.15) when a ship starts with
+	// mp=0 (or <0), against the wind (D), or due to rigging section
+	// loss
+	if (maxmp <= 0) {
 		if (!s.m) return {mp:0, t:1}
 		if (s.m.length > 1) return fail
 		const c = s.m.charAt(0)
@@ -227,15 +273,17 @@ function moveShip(s, i) {
 	if (!c) return
 	if (c == 'B') return
 	if (c == '1') {
-		const h = adjacentHex(s.hex, s.d)
+		const h = map.adjacentHex(s)
 		const pos = grid.hexToPixel(h)
-		new Konva.Tween({
+		const tween = new Konva.Tween({
 			node: s.img,
 			x: pos.x,
 			y: pos.y,
 			duration: 0.5,
 			easing: Konva.Easings.EaseInOut,
-		}).play()
+			onFinish: () => tween.destroy(),
+		})
+		tween.play()
 		s.hex = h
 	} else {
 		// Problem: if we for instance make a left-turn from d=0 to
@@ -244,15 +292,16 @@ function moveShip(s, i) {
 		s.img.rotation(s.d * 60) // the same, but positive
 		const dd = c == 'L' ? -1 : 1
 		const rot = s.img.rotation() + (60 * dd)
-		new Konva.Tween({
+		const tween = new Konva.Tween({
 			node: s.img,
 			rotation: rot,
 			duration: 0.5,
 			easing: Konva.Easings.EaseInOut,
-		}).play()
+			onFinish: () => tween.destroy(),
+		})
+		tween.play()
 		s.d = (s.d + dd + 6) % 6
 	}
-	s.h = {hex: s.hex, d: s.d}
 }
 // Check collision in movement step i. Rule 8.3.
 // If two ships occupy the same hex (the collision-hex) after
@@ -263,39 +312,60 @@ function moveShip(s, i) {
 // This function must be called repeatedly until no collision occur
 // (return null). This will cover "cascading" collisions, in a
 // line-of-ships for instance.
+//
+// Returns a "hd-item" {hex:{x:0,y:0}, d:0}. "hex" is the
+// collision-hex, and "d" is the direction to the other ship.
+//
+// NOTE: All edges of the map is treated as land, and will cause a
+// collision!
 export function collisionCheck(step) {
 	// Make a "fake" movement up to and including 'step'. We can
 	// assume that all collisions has been taken care of for previous
 	// steps.
-	for (const s of ships) s.th = s.h // temp-hex
+	function cloneHd(hd) {return {hex:hd.hex, d:hd.d}}
+	for (const s of ships) if (s.hex) s.th = cloneHd(s)
 	for (let i = 0; i <= step; i++) {
 		for (const s of ships) {
-			s.ph = s.th			// previous hex
+			if (!s.hex) continue
+			s.ph = cloneHd(s.th)		// previous hex
 			const c = s.m.charAt(i)
 			if (!c) continue
 			switch (c) {
 			case 'B':
 				break
 			case '1':
-				s.th = {hex:adjacentHex(s.th.hex, s.th.d), d:s.th.d}
+				s.th.hex = map.adjacentHex(s.th)
 				break
 			case 'L':
-				s.th = {hex:s.th.hex, d:(s.th.d + 5) % 6}
+				s.th.d = (s.th.d + 5) % 6
 				break
 			case 'R':
-				s.th = {hex:s.th.hex, d:(s.th.d + 1) % 6}
+				s.th.d = (s.th.d + 1) % 6
 				break
 			}
+		}
+	}
+	// Check if any ship is moving out of the map
+	for (const s of ships) {
+		if (!s.hex) continue
+		if (!map.hex(s.th.hex)) {
+			s.m = s.m.substring(0, step)
+			return map.hd(s.ph.hex, s.th.hex)
+		}
+		const st = stern(s.th)
+		if (!map.hex(st)) {
+			s.m = s.m.substring(0, step)
+			return map.hd(stern(s.ph), st)
 		}
 	}
 	// Check if two ships occupies the same hex: a collision-hex (chex).
 	// A Set is used, but we can't compare objects, so use a key
 	function key(h) {return h.x + 1000 * h.y}
 	let chex = null
-	const ohexes = new Set()
+	const ohexes = new Set()	// occupied hexes
 	let s1, s2
 	for (const s of ships) {
-		const bow = s.th.hex
+		if (!s.hex) continue
 		let k = key(s.th.hex)
 		if (ohexes.has(k)) {
 			chex = s.th.hex
@@ -324,62 +394,56 @@ export function collisionCheck(step) {
 	// Cut "s.m" for the involved ships according to the rules, and
 	// return the collision-hex immediately! (no checks for more
 	// collisions)
+	function hd(h, s2, step) {
+		if (s2.m.charAt(step) == '1')
+			return map.hd(h, s2.ph.hex)
+		else
+			return map.hd(h, stern(s2.ph))
+	}
 	function freeze(h, s1, s2, info) {
-		// No ship moves
+		// No ship moves. s1 occupied the chex, and s2 ran into it
 		//console.log("freeze chex", map.hexToId(h), info)
+		const chd = hd(h, s2, step)
 		s1.m = s1.m.substring(0, step)
 		s2.m = s2.m.substring(0, step)
 		s1.th = s1.ph
 		s2.th = s2.ph
-		return h
+		return chd
 	}		
 	function mov(h, s1, s2, info) {
 		// s1 moves, s2 stays
 		//console.log("mov chex", map.hexToId(h), info)
+		const chd = hd(h, s2, step)
 		s1.m = s1.m.substring(0, step+1)
 		s2.m = s2.m.substring(0, step)
 		s2.th = s2.ph
-		return h
+		return chd
 	}
 	function rand(h, s1, s2, info) {
 		// Random ship moves, the other stays
 		//console.log("rand chex", map.hexToId(h), info)
+		let chd
 		if (die.roll() < 4) {
+			chd = hd(h, s2, step)
 			s1.m = s1.m.substring(0, step+1)
 			s2.m = s2.m.substring(0, step)
 			s2.th = s2.ph
 		} else {
+			chd = hd(h, s1, step)
 			s2.m = s2.m.substring(0, step+1)
 			s1.m = s1.m.substring(0, step)
 			s1.th = s1.ph
 		}
-		return h
-	}
-	// For fouling we want the ships and a hex (bow or stern) in the
-	// first ship that is in touch with a hex of the other ship, and
-	// the direction
-	function fouling(s1, s2) {
-		if (die.roll() > 2) return
-		// Prerquisite: '.th' is the ship positions
-		let h = s1.h
-		for (const h of [s1.th.hex, stern(s1.th)]) {
-			for (let i = 0; i < 6; i++) {
-				const n = adjacentHex(h, i)
-				if (hexEq(n, s2.th.hex) || hexEq(n, stern(s2.th))) {
-					s1.s.fouled.push({s:s2, m:{hex: h, d: i}})
-					s2.s.fouled.push({s:s1})
-				}
-			}
-		}
+		return chd
 	}
 	// 8.3.2. If the bow or stern of a ship is in the hex at the same
 	// point in movement when one or more other ships attempt to enter
 	// the hex, the occupying ship remains. The other ship is placed
 	// in the hex(es) occupied just prior to the collision.
-	if (hexEq(s1.ph.hex, chex) || hexEq(s2.ph.hex, chex))
-		return freeze(chex, s1, s2, "chex occupied by bow")
-	if (hexEq(stern(s1.ph), chex) || hexEq(stern(s2.ph), chex))
-		return freeze(chex, s1, s2, "chex occupied by stern")
+	if (hexEq(s1.ph.hex, chex) || hexEq(stern(s1.ph), chex))
+		return freeze(chex, s1, s2, `occupied by ${s1.name}`)
+	if (hexEq(s2.ph.hex, chex) || hexEq(stern(s2.ph), chex))
+		return freeze(chex, s2, s1, `occupied by ${s2.name}`)
 	// (now we know that chex is empty before this step)
 	// 8.3.2. If the stern of a ship enters a hex in a turning
 	// maneuver at the same point in the phase as the bow of another
@@ -411,21 +475,35 @@ export function collisionCheck(step) {
 function hexEq(h1, h2) {
 	return h1.x == h2.x && h1.y == h2.y
 }
-function adjacentHex(hex, d) {
+export function stern(hd) {
+	const d = (hd.d + 3) % 6
+	return map.adjacentHex({hex:hd.hex, d:d})
+}
+// Returns the distance from a ship to a hex
+export function distanceHex(s, hex) {
+	if (!s.hex) return 1000
 	const ax = grid.hexToAxial(hex)
-	const n = grid.neighboursAxial(ax)
-	const i = (d + 5) % 6
-	return grid.axialToHex(n[i])
+	const bowdist = grid.axialDistance(ax, grid.hexToAxial(s.hex))
+	const st = stern(s)
+	const sterndist = grid.axialDistance(ax, grid.hexToAxial(st))
+	return bowdist < sterndist ? bowdist : sterndist
 }
-function stern(hd) {
-	// hd is {hex:{x:0,y:0}, d:0}
-	const b = (hd.d + 3) % 6
-	return adjacentHex(hd.hex, b)
+// Returns the distance between two ships
+export function distance(s1, s2) {
+	if (!s1.hex || !s2.hex) return 1000
+	const bowdist = distanceHex(s1, s2.hex)
+	const st = stern(s2)
+	const sterndist = distanceHex(s1, st)
+	return bowdist < sterndist ? bowdist : sterndist
 }
-function logHex(hd) {
-	if (!hd) return
-	// hd is {hex:{x:0,y:0}, d:0}
-	console.log(map.hexToId(hd.hex), hd.d)
+// Return the player nationality for the ship
+export function nat(s) {
+	if (!sc.players) return s.nat
+	// We have alliances
+	for (const [key, value] of Object.entries(sc.players)) {
+		if (value.includes(s.nat)) return key
+	}
+	return s.nat				// (fallback. should not happen)
 }
 
 // Returns a Konva.Group (ii = image identifier)
@@ -522,12 +600,10 @@ export async function init(_ships, _scale = 1.0) {
 		s.s = {
 			hull: s.hull,
 			guns: {l:s.guns, r:s.guns},
-			crew: s.crew.split('-'),
-			rigg: s.rigging.split('-'),
-			fullSails: false,
-			grappled: [],
-			fouled: [],
+			crew: s.crew.split('-').map((x) => Number(x)),
+			rigg: s.rigging.split('-').map((x) => Number(x)),
 		}
 		if (s.car) s.s.car = {l:s.car, r:s.car}
+		s.ammo = {l:'R', r:'R'}
 	}
 }

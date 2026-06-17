@@ -1,0 +1,23 @@
+{
+	"id": "nordic",
+	"name": "A nordic encounter",
+	"wind": {
+		"d": 0,
+		"v": 3,
+		"change": 5
+	},
+	"players": {
+		"br": ["br"],
+		"se": ["se", "dk"]
+	},
+	"classTable": "ah_napoleonic",
+	"ships": [
+		{"cid":"br-sol2-74", "name": "Agile", "cq": "Cr", "ih": {"hex":"W18", "d":2}},
+		{"cid":"br-sol2-74", "name": "Heros", "cq": "Cr", "ih": {"hex":"Y21", "d":2}},
+		{"cid":"fr-sol2-80", "name": "Wasa", "nat": "se", "cq": "Av", "ih": {"hex":"AA16", "d":5}},
+		{"cid":"fr-sol2-80", "name": "Aalborg", "nat": "dk", "cq": "Av", "ih": {"hex":"CC19", "d":5}}
+	],
+	"map": {
+		"focus": "AA19"
+	}
+}

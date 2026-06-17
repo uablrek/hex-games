@@ -1,0 +1,17 @@
+{
+	"id": "mar-her",
+	"name": "Mars v.s. Hercule",
+	"wind": {
+		"d": 1,
+		"v": 3,
+		"change": 5
+	},
+	"classTable": "ah_napoleonic",
+	"ships": [
+		{"cid":"br-sol2-74-l", "name": "Mars", "cq": "Cr", "ih": {"hex":"R23", "d":2}},
+		{"cid":"fr-sol2-74", "name": "Hercule", "cq": "Av", "ih": {"hex":"FF16", "d":2}}
+	],
+	"map": {
+		"focus": "AA19"
+	}
+}

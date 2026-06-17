@@ -18,7 +18,7 @@ if (p == "svg") {
 	board.add(gridImg)
 } else {
 	// Flat-top, Konva generated rect with fillPattern
-	let size=50, scale=1.0, flattop=false
+	let size=60, scale=1.0, flattop=false
 	if (p) {
 		let w = p.split(',')
 		size = Number(w[0])
@@ -41,6 +41,10 @@ if (p == "svg") {
 			fillPatternScale: grid.patternScale(),
 		})
 		board.add(hexGrid)
+		createHexId()
+		board.add(hexIds)
+		createAxId()
+		board.add(axIds)
 	}
 }
 
@@ -51,9 +55,16 @@ marker = new Konva.Circle({
 	stroke: 'black',
 	strokeWidth: 1
 });
-initMarker = {x:10,y:4}
+initMarker = {x:11,y:8}
 marker.position(grid.hexToPixel(initMarker))
 board.add(marker)
+
+function toAxial(hex) {
+	const o = grid.hexToAxial(initMarker)
+	// Make the original marker position the center
+	const ax = grid.hexToAxial(hex)
+	return {r:ax.r - o.r, q: ax.q - o.q}
+}
 
 // Create an "info" layer that stays in place (on top, to the left)
 // when the map (grid) is dragged.
@@ -125,7 +136,7 @@ axialBox = textBox({
 }, "Axial coordinates")
 axialText = axialBox.findOne('.txt')
 info.add(axialBox)
-axial = grid.hexToAxial(initMarker)
+axial = toAxial(initMarker)
 axialText.text(`r:${axial.r}, q:${axial.q}`)
 
 posBox = textBox({
@@ -142,9 +153,60 @@ board.on('click', function() {
 	clickText.text(`${pos.x}, ${pos.y}`)
 	h = grid.pixelToHex(pos)
 	hexText.text(`${h.x}, ${h.y}`)
-	axial = grid.hexToAxial(h)
+	axial = toAxial(h)
 	axialText.text(`r:${axial.r}, q:${axial.q}`)
 	ph = grid.hexToPixel(h)
 	marker.x(ph.x)
 	marker.y(ph.y)
 });
+
+// ----------------------------------------------------------------------
+// Hex id's
+
+function hexToId(hex) {
+	const x = String(hex.x).padStart(2, '0')
+	const y = String(hex.y).padStart(2, '0')
+	return `${x}${y}`
+}
+function axToId(ax) {
+	return `${ax.r},${ax.q}`
+}
+let hexIds
+function createHexId() {
+	hexIds = new Konva.Group()
+	for (let x = 1; x < 82; x++) {
+		for (let y = 1; y < 57; y++) {
+			const hex = {x:x,y:y}
+			const pos = grid.hexToPixel(hex)
+			const txt = new Konva.Text({
+				text: hexToId(hex),
+				position: pos,
+				fill: 'gray',
+			})
+			txt.offsetX(txt.width() / 2)
+			txt.offsetY(24)
+			hexIds.add(txt)
+		}
+	}
+	hexIds.cache()
+}
+let axIds
+function createAxId() {
+	axIds = new Konva.Group()
+	for (let x = 1; x < 82; x++) {
+		for (let y = 1; y < 57; y++) {
+			const hex = {x:x,y:y}
+			const pos = grid.hexToPixel(hex)
+			const ax = toAxial(hex)
+			const s = -ax.r - ax.q
+			const txt = new Konva.Text({
+				text: `${ax.r},${ax.q},${s}`,
+				position: pos,
+				fill: 'gray',
+			})
+			txt.offsetX(txt.width() / 2)
+			axIds.add(txt)
+		}
+	}
+	axIds.cache()
+}

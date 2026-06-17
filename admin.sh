@@ -238,6 +238,8 @@ cmd_release() {
 ##     Start a container and print the IP-address
 ##   docker-app [--tag=tag] [--run] <dir>
 ##     Build a container with an app (a game server)
+##   server-app <dir>
+##     Build, and run a server for the app
 cmd_docker_build() {
 	if test "$__client" = "yes"; then
 		__open=no
@@ -323,7 +325,7 @@ cmd_build() {
 		npm ls || die "FAILED: check-deps"
 	fi
 	esbuild --bundle --outfile=bundle.js --loader:.svg=dataurl \
-		--loader:.png=dataurl --loader:.jpg=dataurl \
+		--loader:.png=dataurl --loader:.jpg=dataurl $opt \
 		$@ . || die esbuild
 	# Remove everything except index.html and bundle.js
 	local f

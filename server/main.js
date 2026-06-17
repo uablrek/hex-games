@@ -57,16 +57,37 @@ function isSaveRestore(message) {
 	return false
 }
 
+// The server can be used to roll a die. The reply with the result is
+// sent to *both* sides
+function isDieRoll(message) {
+	const msg = JSON.parse(message)
+	if (msg.type != "dieroll") return false
+	let die = "1d6"
+	if (msg.die) die = msg.die
+	const da = die.split('d')
+	let s = 0
+	for (let i = 0; i < da[0]; i++)
+		s += (Math.floor(Math.random() * da[1]) + 1)
+	msg.result = s
+	const reply = JSON.stringify(msg)
+	if (A) A.send(reply)
+	if (B) B.send(reply)
+	log("DieRoll", msg)
+}
+
+
 // https://stackoverflow.com/questions/69485407/why-is-received-websocket-data-coming-out-as-a-buffer
 function messageFromA(message) {
 	const msg = message.toString()
 	if (isSaveRestore(msg)) return
+	if (isDieRoll(message)) return
 	if (B) B.send(msg)
 	log("A->B", msg)
 }
 function messageFromB(message) {
 	const msg = message.toString()
 	if (isSaveRestore(msg)) return
+	if (isDieRoll(msg)) return
 	if (A) A.send(msg)
 	log("B->A", msg)
 }

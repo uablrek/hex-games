@@ -10,14 +10,15 @@ use. This take I use HTML5/canvas and JavaScript.
 Much inspiration (and code) is taken from [Red Blob Games](
 https://www.redblobgames.com/). [Konva](
 https://konvajs.org/docs/index.html) is used for most canvas
-manipulations. Both are *absolutely excellent*"
+manipulations. Both are *absolutely excellent!!*
 
 I was trying to get the old (1974) board game [Rise and Decline of the
 Third Reich](rdtr/README.md) (RDTR) to run in a browser. It turned out
 to be far too complex to start with. So, instead I tried [Napoleon at
 Waterloo](waterloo/README.md), but I got stuck on displacement on
 retreat, and AI. Now I am working with [Wooden Ships & Iron Men](
-ws-im/README.md)
+ws-im/README.md), which can be played against AI, but [lacks a lot of
+features](https://github.com/uablrek/hex-games/issues/3).
 
 #### Try a release
 
@@ -32,7 +33,7 @@ Unzip release-asset `waterloo.zip` or `ws-im.zip` and open
 
 #### Docker container
 
-Or play the [The battle for The Hill](./the-hill-mp/README.md)
+To play the [The battle for The Hill](./the-hill-mp/README.md)
 multi-player version from a docker container:
 ```
 docker pull uablrek/the-hill:latest
@@ -90,8 +91,8 @@ be "stable" (whatever that means). What *is* guaranteed is library
 compatibility. If I make an incompatible update, I will step the major
 version.
 
-The example games (e.g. [NaW](waterloo/README.md)) are updated
-indepent of versioning. The major version is only for library
+The example-games (e.g. [NaW](waterloo/README.md)) are updated with a
+minor version increment. The major version is only for library
 compatibility.
 
 ## Hex grid
@@ -125,10 +126,10 @@ can use `fillPatternOffset` to align the grid with a map image. And
 
 ```
    // (compensate for pixel rounding errors)
-   fillPatternScale: hex.patternScale(),
+   fillPatternScale: grid.patternScale(),
 ```
 
-Please, check the grid demo in the release.
+Please, also check the grid demo.
 
 ## Units
 
@@ -158,7 +159,7 @@ can be defined in individual games.
 A game map can be created in many ways, like generating from some
 simple format as [Battle for Wesnoth](https://www.wesnoth.org/), or
 from pre-drawn tiles like [Panzer General](
-https://en.wikipedia.org/wiki/Panzer_General). In `hex-games` I do:
+https://en.wikipedia.org/wiki/Panzer_General). Possible procedure:
 
 1. Generate a hex-grid (SVG)
 2. Draw the map graphics with [Inkscape](https://inkscape.org/)
@@ -169,6 +170,11 @@ Draw the map:
 hex emit-grid --rect=1400x1000 > example-map.svg
 inkscape example-map.svg &
 ```
+
+Or you can create absolutely beautiful maps using the [wargames_tex](
+https://gitlab.com/wargames_tex) package by Christian Holm
+Christensen. But the learning curve is pretty steep.
+
 
 ### Map maker
 
@@ -200,13 +206,16 @@ type: up-slope (u), which can give combat/movement penalties.
 
 The `json` file is used to store the map [in any way you prefer](
 https://www.redblobgames.com/grids/hexagons/#map-storage).  Personally
-I prefer to use a hash table (javascript Map()).  A hex object can
+I prefer to use a hash table (javascript Map()). A hex reference can
 *not* be used as key since the object reference is used, instead
 create a key something like:
 
 ```javascript
   let key = hex.x + hex.y * 1000
 ```
+
+But, please note that the actual map-hex-objects *can* be used as keys
+in a Map() or objects in a Set() since their reference never changes.
 
 ## Multi-player
 

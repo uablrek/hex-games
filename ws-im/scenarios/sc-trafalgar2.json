@@ -1,5 +1,5 @@
 {
-	"id": "trafalgar",
+	"id": "trafalgar2",
 	"name": "Battle of Trafalgar",
 	"description": "The most famous naval battle in history. French and Spanish fleets clash with Brittish at 21 October 1805.",
 	"wind": {
@@ -33,13 +33,13 @@
 		{"cid":"br-sol2-74", "name": "Collossus", "cq": "Cr", "ih": {"hex":"AA4", "d":5}, "pv": 27},
 		{"cid":"br-sol2-74-l", "name": "Achille", "cq": "Cr", "ih": {"hex":"CC3", "d":4}, "pv": 29},
 		{"cid":"br-sol2-64", "name": "Africa", "cq": "El", "ih": {"hex":"WW26", "d":6}, "pv": 22},
-		{"cid":"br-sol2-74", "name": "Revenge", "cq": "El", "ih":{"hex":"Y1", "d":6, "t":3},  "pv": 29},
-		{"cid":"br-sol2-74", "name": "Defiance", "cq": "Cr", "ih":{"hex":"AA1", "d":5, "t":3}, "pv": 27},
-		{"cid":"br-sol1-98", "name": "Dreadnaught", "cq": "El", "ih":{"hex":"II1", "d":5, "t":3}, "pv": 32},
-		{"cid":"br-sol2-74", "name": "Swiftsure", "cq": "Cr", "ih":{"hex":"GG1", "d":5, "t":3}, "pv": 27},
-		{"cid":"br-sol2-64", "name": "Polythemus", "cq": "Cr", "ih":{"hex":"EE1", "d":5, "t":4}, "pv": 20},
-		{"cid":"br-sol2-74", "name": "Thunderer", "cq": "Cr", "ih":{"hex":"II1", "d":5, "t":5}, "pv": 27},
-		{"cid":"br-sol2-74", "name": "Defence", "cq": "Cr", "ih":{"hex":"II1", "d":5, "t":6}, "pv": 27},
+		{"cid":"br-sol2-74", "name": "Revenge", "cq": "El", "ih": {"hex":"2807", "d":5}, "pv": 29},
+		{"cid":"br-sol2-74", "name": "Defiance", "cq": "Cr", "ih": {"hex":"3007", "d":5}, "pv": 27},
+		{"cid":"br-sol1-98", "name": "Dreadnaught", "cq": "El", "ih": {"hex":"3807", "d":5}, "pv": 32},
+		{"cid":"br-sol2-74", "name": "Swiftsure", "cq": "Cr", "ih": {"hex":"3607", "d":5}, "pv": 27},
+		{"cid":"br-sol2-64", "name": "Polythemus", "cq": "Cr", "ih": {"hex":"3606", "d":5}, "pv": 20},
+		{"cid":"br-sol2-74", "name": "Thunderer", "cq": "Cr", "ih": {"hex":"4205", "d":5}, "pv": 27},
+		{"cid":"br-sol2-74", "name": "Defence", "cq": "Cr", "ih": {"hex":"4404", "d":5}, "pv": 27},
 
 		{"cid":"fr-sol2-74", "name": "Scipion", "cq": "Av", "ih": {"hex":"VV32", "d":3}},
 		{"cid":"fr-sol2-74", "name": "Intrepide", "cq": "Av", "ih": {"hex":"TT32", "d":3}},
@@ -56,8 +56,8 @@
 		{"cid":"fr-sol2-74", "name": "Algeciras", "cq": "Av", "ih": {"hex":"Q11", "d":3}},
 		{"cid":"fr-sol2-74", "name": "Aigle", "cq": "Av", "ih": {"hex":"O10", "d":3}},
 		{"cid":"fr-sol2-74", "name": "Swiftsure", "cq": "Av", "ih": {"hex":"M9", "d":3}},
-		{"cid":"fr-sol2-74", "name": "Argonaute", "cq": "Av", "ih": {"hex":"U7", "d":3}},
-		{"cid":"fr-sol2-74", "name": "Achille", "cq": "Av", "ih": {"hex":"U4", "d":3}},
+		{"cid":"fr-sol2-74", "name": "Argonaute", "cq": "Av", "ih": {"hex":"K8", "d":3}},
+		{"cid":"fr-sol2-74", "name": "Achille", "cq": "Av", "ih": {"hex":"L5", "d":3}},
 		{"cid":"fr-sol2-74", "name": "Berwick", "cq": "Av", "ih": {"hex":"H2", "d":3}},
 
 		{"cid":"sp-sol2-80", "name": "Neptuno", "cq": "Gr", "ih": {"hex":"XX32", "d":2}},
@@ -77,6 +77,9 @@
 		{"cid":"sp-sol2-74", "name": "S.J de Nepomuceno", "cq": "Gr", "ih": {"hex":"F1", "d":3}}
 	],
 	"map": {
-		"focus": "HH21"
+		"focus": "HH21",
+		"height": 50,
+		"width": 64,
+		"offset": {"x":0, "y":8}
 	}
 }
