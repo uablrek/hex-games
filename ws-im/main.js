@@ -24,6 +24,7 @@ let soundCrash				// Sound effect on collision
 let soundGun				// Sound effect on gunfire
 let hexToShip				// A hex (map-object) -> ship Map()
 export let me = ''          // The players nat(). ''=both (solitarie game)
+let aiInPlay = false		// Disable user input when AI is in play
 
 let infoBox
 function createInfoBox() {
@@ -139,7 +140,10 @@ function keyProceed(e) {
 	}
 	// Play against AI.
 	// We are in "Planning" or "Combat" phase
-	ai.play()
+	if (!aiInPlay) {
+		aiInPlay = true
+		ai.play()
+	}
 }
 function keyEscape(e) {
 	if (selectedShip) {
@@ -369,12 +373,13 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Planning",
 			start: function(seq) {
+				updatePhase(seq)
+				aiInPlay = false
 				savedMovement = ""
 				for (const s of ships) {
 					s.m = ""
 					s.setSails = ""
 				}
-				updatePhase(seq)
 			},
 		},
 		{
@@ -420,13 +425,14 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Combat",
 			start: function(seq) {
+				updatePhase(seq)
+				aiInPlay = false
 				hexToShip = shipHexMap()
 				for (const s of ships) {
 					s.fof = map.fireHexes(s)
 					s.targets = null
 					s.dmg = []
 				}
-				updatePhase(seq)
 			},
 			end: function(seq) {
 				removeCollisionMarkers()
