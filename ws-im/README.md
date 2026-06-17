@@ -72,6 +72,8 @@ Keys that works in any phase:
 * **i** - Toggle hex id's
 * **p** - Save the map locally as png. The entire map that is, not only what you see in your browser ([example](https://boardgamegeek.com/image/9598691/uablrek))
 
+You may open "Developmer Tools" in your browser to see program
+printouts (log). Ctrl-Shift-I on Firefox and Chrome.
 
 ## Rules
 
