@@ -126,6 +126,10 @@ this AI.
 
 **A BIG thanks to Mark Hunter for giving us this system!**
 
+The **big** table is derived from `woodsolo.txt` found [here](
+https://boardgamegeek.com/filepage/277738/woodenship-solo-program).
+Thanks to [clonea](https://boardgamegeek.com/profile/clonea) for
+this work.
 
 ## User defined scenario
 
