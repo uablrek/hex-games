@@ -55,9 +55,10 @@ CMD ["node", "/bundle.cjs"]
 
 Dependencies:
 
-* [esbuild](https://esbuild.github.io/) - Must be in your $PATH
+* [NPM](https://www.npmjs.com/) - For building and using the library
+* [esbuild](https://esbuild.github.io/) - As packager. Must be in your $PATH
 * [Konva](https://konvajs.org/docs/index.html) - Scripts must be able to import
-* [ExpressJs](https://expressjs.com/) - for the game server
+* [ExpressJs](https://expressjs.com/) - For the game server
 
 Most things can be done with the [admin.sh](admin.sh) script.
 ```

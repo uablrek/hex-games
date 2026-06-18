@@ -156,7 +156,8 @@ enclosed in a javascript string. I recommend to edit the json data to
 get aid from your editor, and add the javascript string when done.
 
 The "id" in the user defined scenario file can be anything, it is
-always loaded as "sc=user".
+always loaded as "sc=user". Define wind.d=0 to get a random wind
+direction. TIP: reload the page (F5) to re-roll the wind direction.
 
 Please contribute your scenarios if you like, preferably in a github
 pull-request (PR).
