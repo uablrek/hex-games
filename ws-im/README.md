@@ -33,7 +33,7 @@ Not Yet Implemented (NYI):
 * Ships arriving at later turns
 * Reload/ammos. Both sides are always loaded with 'R'
 * Smaller vessels. Only SOL and F implemented
-* Surrender/cpture ship. Ships strikes when run out of H,G,R,C
+* Surrender/cpture ship. Ships strikes when run out of H,G,R,C, and freeze
 * Player-vs-Player (PvP) mode (requires a server)
 * Large battle AI
 * Victory conditions/end-of-game (continues until you close/reload)
