@@ -25,6 +25,7 @@ let soundGun				// Sound effect on gunfire
 let hexToShip				// A hex (map-object) -> ship Map()
 export let me = ''          // The players nat(). ''=both (solitarie game)
 let aiInPlay = false		// Disable user input when AI is in play
+const release = {version:"4.0.0", date:"2026-06-18"}
 
 let infoBox
 function createInfoBox() {
@@ -348,6 +349,7 @@ sequence.add(new sequence.Sequence({
 				g.phase = seq.currentStep.name
 				helpTxt = sequence.getSeqHelp(g.phase)
 				let txt = sequence.getSeqHelp("Welcome0")
+				txt += `\nVersion: ${release.version}, ${release.date}`
 				txt += `\n\nSenario:\n${sc.name}\n`
 				if (sc.description) txt += `${sc.description}\n`
 				txt += '\n'

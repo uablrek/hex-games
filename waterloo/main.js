@@ -21,6 +21,7 @@ const board = ui.stage()
 const info = new Konva.Layer({name: "info"})
 board.getStage().add(info)
 sequence.parseSeqHelp(seqHelp)
+const release = {version:"4.0.0", date:"2026-06-18"}
 
 let infoBox
 function createInfoBox() {
@@ -341,11 +342,13 @@ sequence.add(new sequence.Sequence({
 			name: "Initial Deployment",
 			start: function(seq) {
 				initialDeployment()
+				const ver = `\n\nVersion ${release.version}, ${release.date}`
 				if (client.mode == "sol" && client.side != 'A') {
 					// Allow test mode in stand-alone solitarie games
-					updatePhase(seq, '\n' + sequence.getSeqHelp("test-mode"))
+					updatePhase(
+						seq, '\n' + sequence.getSeqHelp("test-mode") + ver)
 				} else
-					updatePhase(seq)
+					updatePhase(seq, ver)
 			},
 		},
 		{
