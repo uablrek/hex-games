@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: CC-BY-4.0.
-
+/*
+  Main module in the browser implementation of WS&IM:
+  https://github.com/uablrek/hex-games/blob/main/ws-im/README.md
+ */
 import Konva from 'konva'
 import {ui, box, sequence, grid, die} from '@uablrek/hex-games'
 import * as map from './map.js'
@@ -17,15 +20,15 @@ export const board = ui.stage()
 export const info = new Konva.Layer({name: "info"})
 board.getStage().add(info)
 sequence.parseSeqHelp(help)
-let selectedShip
+let selectedShip			// Most recently clicked dhip
 export let sc				// Current Scenario
 export let ships			// The ship array. Initiated from scenario
 let soundCrash				// Sound effect on collision
 let soundGun				// Sound effect on gunfire
-let hexToShip				// A hex (map-object) -> ship Map()
+export let hexToShip		// A hex (map-object) -> ship Map()
 export let me = ''          // The players nat(). ''=both (solitarie game)
 let aiInPlay = false		// Disable user input when AI is in play
-const release = {version:"4.0.0", date:"2026-06-18"}
+const release = {version:"4.1.0-rc.1", date:"2026-06-20"}
 
 let infoBox
 function createInfoBox() {
@@ -64,7 +67,7 @@ function updateInfoBox() {
 			for (const d of ['A', 'B', 'C', 'D'])
 				m[d] = loss > s.mov.battle[d] ? 0 : s.mov.battle[d] - loss
 		}
-		txt += `Mov A:${m.A}, B:${m.B}, C:${m.C}, D:0, t:${s.mov.turn}\n`
+		txt += `Mov A:${m.A}, B:${m.B}, C:${m.C}, D:${m.D}, t:${s.mov.turn}\n`
 		if (g.phase == "Planning") {
 			if (me && ship.nat(s) != me)
 				txt += "Enemy Ship\n"
@@ -78,8 +81,6 @@ function updateInfoBox() {
 				if (s.setSails) txt += `Set ${s.setSails} Sails`
 			}
 		}
-		//const hex = map.hexToId(s.hex)
-		//txt += `Hex: ${hex}, direction: ${s.d}\n`
 	}
 	box.update(infoBox, txt, `${g.phase}, turn ${g.turn}`)
 }
@@ -103,6 +104,7 @@ box.destroyCallback(boxDestroyed)
 function shipOnClick(e) {
 	if (g.phase == "Movement") return // (things are in motion)
 	if (selectedShip) ship.unmark(selectedShip)
+	ai.removeHix()
 	selectedShip = ship.fromImg(e.target)
 	ship.mark(selectedShip, board)
 	updateInfoBox()
@@ -132,6 +134,9 @@ ui.setKeys([
 	{key:' ', fn:keySpace},
 	{key:'h', fn:keyFire},
 	{key:'r', fn:keyFire},
+	{key:'m', fn:keyTest},
+	{key:'n', fn:keyTest},
+	{key:'j', fn:keyTest},
 ])
 function keyProceed(e) {
 	if (!["Welcome","Planning","Combat"].includes(g.phase)) return
@@ -143,7 +148,7 @@ function keyProceed(e) {
 	// We are in "Planning" or "Combat" phase
 	if (!aiInPlay) {
 		aiInPlay = true
-		ai.play()
+		ai.fn.play()
 	}
 }
 function keyEscape(e) {
@@ -255,10 +260,7 @@ function keyMovement(e) {
 		break
 	}
 	const mp = ship.mp(s)
-	if (mp.mp < 0 || mp.t < 0)
-		s.m = oldm
-	else
-		savedMovement = s.m
+	if (mp.mp < 0 || mp.t < 0) s.m = oldm // not allowed
 	updateInfoBox()
 }
 function keySails(e) {
@@ -266,6 +268,23 @@ function keySails(e) {
 	if (me && me != ship.nat(selectedShip)) return	
 	selectedShip.setSails = e.key == 'f' ? "Full" : "Battle"
 	updateInfoBox()
+}
+function keyTest(e) {
+	if (sc.id != "test" || g.phase != "Planning") return
+	const s = selectedShip
+	switch (e.key) {
+	case 'n':
+		if (s) ai.toggleHix(s)
+		break
+	case 'm':
+		if (s) s.m = ai.fn.movement(s)
+		updateInfoBox()
+		break
+	case 'j':
+		g.wind.d = (g.wind.d + 1) % 6
+		map.updateWindIndicator(info)
+		break
+	}
 }
 
 const collisionMarkerTemplate = new Konva.Star({
@@ -348,6 +367,12 @@ sequence.add(new sequence.Sequence({
 			start: function(seq) {
 				g.phase = seq.currentStep.name
 				helpTxt = sequence.getSeqHelp(g.phase)
+				if (sc.id == "test") {
+					let txt = sequence.getSeqHelp("Test Mode")
+					txt += `\n\nVersion: ${release.version}, ${release.date}`
+					box.update(infoBox, txt, g.phase)
+					return
+				}
 				let txt = sequence.getSeqHelp("Welcome0")
 				txt += `\nVersion: ${release.version}, ${release.date}`
 				txt += `\n\nSenario:\n${sc.name}\n`
@@ -376,12 +401,15 @@ sequence.add(new sequence.Sequence({
 			name: "Planning",
 			start: function(seq) {
 				updatePhase(seq)
+				hexToShip = shipHexMap()
 				aiInPlay = false
-				savedMovement = ""
 				for (const s of ships) {
 					s.m = ""
 					s.setSails = ""
 				}
+			},
+			end: function(seq) {
+				ai.removeHix()
 			},
 		},
 		{
@@ -440,7 +468,7 @@ sequence.add(new sequence.Sequence({
 				removeCollisionMarkers()
 				unmarkFof()
 				untargetShip()
-				applyDamage()
+				if (sc.id != "test") applyDamage()
 				for (const s of ships) {
 					// (help GC)
 					s.fof = null
@@ -769,6 +797,17 @@ function applyDamage() {
 // ----------------------------------------------------------------------
 // Main
 
+async function loadSound(audio, data) {
+	// esbuild sets "application/octet-stream", but Chrome needs "audio/mpeg"
+	// https://github.com/evanw/esbuild/issues/4485
+	audio.src = data.replace("application/octet-stream", "audio/mpeg")
+	return new Promise((resolve, reject) => {
+		audio.addEventListener("canplaythrough", (event) => {
+			resolve()
+		})
+	})
+}
+
 ;(async () => {
 	// Load scenario (do this early)
 	let scName = "trafalgar"
@@ -801,45 +840,40 @@ function applyDamage() {
 	// If 'player' is unspecified or doesn't exist, check the ship
 	// array, and resort to the nat() of the first ship
 	param = href.searchParams.get("ai")
-	if (param) {
-		const aiName = param
-		param = href.searchParams.get("player")
+	if (sc.id != "test") {
 		if (param) {
-			if (sc.players && (param in sc.players))
-				me = param
-			else {
-				me = ship.nat(ships[0]) // (default)
-				for (const s of ships) {
-					if (ship.nat(s) == param) {
-						me = param
-						break
+			const aiName = param
+			param = href.searchParams.get("player")
+			if (param) {
+				if (sc.players && (param in sc.players))
+					me = param
+				else {
+					me = ship.nat(ships[0]) // (default)
+					for (const s of ships) {
+						if (ship.nat(s) == param) {
+							me = param
+							break
+						}
 					}
 				}
+			} else {
+				me = ship.nat(ships[0])
 			}
-		} else {
-			me = ship.nat(ships[0])
+			ai.set(aiName)			// After 'me' is defined
 		}
-		ai.set(aiName)			// After 'me' is defined
+	} else {
+		// In test-mode we always initiate an AI, but it's not
+		// active ('me' is not set)
+		if (param)
+			ai.set(param)
+		else
+			ai.set("solo")
 	}
 	// Sounds
-	// Crome recognises only "audio/mpeg"
 	soundCrash = new Audio()
-	soundCrash.src =
-		crashAudioData.replace("application/octet-stream", "audio/mpeg")
-	await new Promise((resolve, reject) => {
-		soundCrash.addEventListener("canplaythrough", (event) => {
-			resolve()
-		})
-	})
+	await loadSound(soundCrash, crashAudioData)
 	soundGun = new Audio()
-	soundGun.src =
-		gunAudioData.replace("application/octet-stream", "audio/mpeg")
-	await new Promise((resolve, reject) => {
-		soundGun.addEventListener("canplaythrough", (event) => {
-			resolve()
-		})
-	})
-
+	await loadSound(soundGun, gunAudioData)
 	// Start game
 	sequence.nextStep()
 })()

@@ -15,6 +15,18 @@ You can click on any ship to bring up it's stats.
 If you want to adjust the zoom-level in your browser, do that now,
 and then reload.
 
+|Test Mode|
+
+Test-Mode is active. AI is disabled, but you may query the AI for
+movement. If the "Flying Duchman" is in play, it has movement 7 in all
+directions. No damage is taken from gun-fire.
+^
+^Extra keys in Planning phase:
+^
+^j - Rotate wind direction
+^n - Display Hex-Index
+^m - Get movement from AI
+
 |Planning|
 Select a ship by clicking it, then add movement steps.
 ^

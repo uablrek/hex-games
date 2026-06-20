@@ -2,11 +2,13 @@
 /*
   This is the main AI module, and also contains the "solo" AI.
 
-  An AI have only functions init() and play(). All needed data is
-  taken from other modules, mostly 'main.js'.
+  All needed data is taken from other modules, mostly 'main.js' (which
+  should be improved by a "lib" module).
 */
 
-import {g, me, ships, sc, findTargets, fire, shipHexMap} from './main.js'
+import {
+	g, me, ships, sc, findTargets, fire, hexToShip, board,
+} from './main.js'
 import {grid, sequence, die} from '@uablrek/hex-games'
 import * as ship from './ship.js'
 import * as map from './map.js'
@@ -14,35 +16,30 @@ import hixData from './solo.json'
 
 // Import and extend for other AI's
 const ais = {
-	solo: {init: soloInit, play: soloPlay},
+	solo: {
+		init: soloInit,
+		play: soloPlay,
+		movement: soloGetMovement
+	},
 }
-export let play
+export let fn
 export function set(name) {
 	if (!(name in ais)) name = "solo"
-	ais[name].init(getAiPlayer())
-	play = ais[name].play
+	ais[name].init(otherPlayer(me))
+	fn = ais[name]
 }
 
-// If sc.players is defined AI becomes the "other" player. Otherwise,
-// AI is the nat() of the first ship not owned by the human player (me)
-export function getAiPlayer() {
-	let ai
+// If sc.players is defined, return the player who is not 'p'.
+// Otherwise, return the nat() of the first ship not owned by 'p'.
+export function otherPlayer(p) {
 	if (sc.players) {
-		for (p in sc.players) {
-			if (p != me) {
-				ai = p
-				break
-			}
-		}
+		for (o in sc.players)
+			if (o != p) return o
 	} else {
-		for (const s of ships) {
-			if (ship.nat(s) != me) {
-				ai = ship.nat(s)
-				break
-			}
-		}
+		for (const s of ships)
+			if (ship.nat(s) != p) return ship.nat(s)
 	}
-	return ai
+	throw new Error("No other player") // we shouldn't get here
 }
 
 /* ----------------------------------------------------------------------
@@ -63,7 +60,6 @@ export function getAiPlayer() {
 */
 let ai
 let hixMap
-let hexToShip
 
 function soloInit(aiPlayer) {
 	ai = aiPlayer
@@ -84,27 +80,18 @@ function soloPlay() {
 function soloPlanning() {
 	// Create a Map() for all hexes containing ships.
 	// It can be used for Set() operations (I like set's)
-	hexToShip = shipHexMap()
 	for (const s of ships) {
 		if (ship.nat(s) != ai || !s.hex || s.surrendered) continue
-		let ns = nearestShip(s)
-		let forceLongDist = false
-		if (!ns) {
-			// There is no nearest ship in LoS, try without LoS,
-			// but enforce long-distance lookup (dist > 3)
-			ns = nearestShip(s, false)
-			if (!ns) continue	// wtf...?
-			forceLongDist = true
-			g.log(s.name, "see-through at", ns.name)
-		}
-		let m = getMovement(ns, s, forceLongDist)
+		let m = soloGetMovement(s)
 		if (!m || m == '0') continue
 		s.m = m
 		let mp = ship.mp(s)
 		while (mp.mp < 0) {
+			// The ship may have lost rigging sections, or be a SOL1.
+			// Shorten the movement command by 1 (if possible)
 			if (m.length == 1) {
 				s.m = ''
-				continue
+				break
 			}
 			m = m.substring(0, m.length-1)
 			s.m = m
@@ -144,15 +131,29 @@ function handleTarget(i, s, t, b) {
 }
 
 // ns=nearest ship, as=AI ship
-function getMovement(ns, as, forceLongDist=false) {
-	let key
+function soloGetMovement(as) {
+	let ns = nearestShip(as)
+	if (!ns) {
+		// There is a problem if all "nearest ships" are blocked,
+		// e.g. by surrendered ships, then the 'as' will freeze. If
+		// there is no nearest ship in LoS, try without LoS.  I am not
+		// sure at all if this helps, or just causes collissions for
+		// instance.
+		ns = nearestShip(as, false)
+		if (ns) g.log(as.name, "See-through at", ns.name)
+	}
+	if (!ns) {
+		g.log("No nearest ship for", as.name)
+		return '0'
+	}
 	g.log(`Get movement for: ${as.name}, nearest ship: ${ns.name}`)
-	// Get the key in the "Nearest Ship Attitude Diagram" (mm)
-	// NOTE: distance must be to as's bow (no key in mm for stern)
-	if (ship.distanceHex(ns, as.hex) > 3 || forceLongDist) {
+	// Get the key in the "Nearest Ship Attitude Diagram"
+	// NOTE: distance must be to 'as's bow (no key for stern)
+	let key
+	if (ship.distanceHex(ns, as.hex) > 3) {
 		// Instead of checking hex-fields for the zone (A-F), we
 		// compute the relative direction from 'ns' to 'as' (bows)
-		// Rotate coordinate to the direction of the ship
+		// Rotate coordinate to the direction of the 'ns' ship
 		const rhex = rotate(ns.hex, ns.d, as.hex)
 		let angle = getAngle(grid.hexToPixel(rhex))
 		// The angle is right=0deg, but we want up=0deg
@@ -163,7 +164,6 @@ function getMovement(ns, as, forceLongDist=false) {
 		// NOTE: in the table dirs are 1-6
 		const N = (as.d + 9 - ns.d) % 6
 		key = `${Z}${N+1}`
-		g.dbg("distance > 3 to", ns.name, angle, ad, ns.d)
 	} else {
 		const vb = getHixValue(ns, as.hex)
 		const st = ship.stern(as)
@@ -242,15 +242,14 @@ function rotate(chex, d, hex) {
 	return grid.axialToHex(rax)
 }
 
-// Return the nearest "fiendly" (not controlled by the AI) ship in
-// sight
+// Return the nearest ship to 's' controlled by the other player.
+// Line-of-Sight (LoS) is required is mustHaveLos==true
 function nearestShip(s, mustHaveLos=true) {
-	if (ship.nat(s) != ai) return null
+	const o = otherPlayer(ship.nat(s))
 	let dist = 1000
 	let nearest = null
 	for (const fs of ships) {
-		if (ship.nat(fs) == ai || !fs.hex) continue
-		if (fs.surrendered) continue
+		if (ship.nat(fs) != o || !fs.hex || fs.surrendered) continue
 		if (mustHaveLos && !los(s, fs)) continue
 		const tdist = ship.distance(s, fs)
 		if (tdist < dist) {
@@ -298,6 +297,54 @@ function getLine(from, to) {
 		s.add(map.hex(hex))
 	}
 	return s
+}
+
+// ----------------------------------------------------------------------
+// Test functions. Should only be used in test mode to help evaluate
+// "Nearest Ship Attitude Diagram"s
+const hixTemplate = new Konva.Text({
+	text: "0",
+	font: 'sans-serif',
+	fontSize: 20,
+	fill: 'red',
+	fontStyle: 'bold',
+	offset: {x:10, y:10},
+})
+let hixMarkers
+export function toggleHix(s) {
+	if (hixMarkers) {
+		removeHix()
+		return
+	}
+	hixMarkers = new Konva.Group()
+	const cax = grid.hexToAxial(s.hex)
+	const close = grid.inRangeAxial(6, cax)
+	for (const aax of close) {
+		let rax = {r:aax.r - cax.r, q:aax.q - cax.q}
+		// Rotate
+		// https://www.redblobgames.com/grids/hexagons/#rotation
+		rax.s = -rax.r - rax.q	// cubify
+		for (let i = 0; i < s.d; i++) {
+			// [q,r,s] -> [-r,-s,-q]
+			rax = {q: -rax.s, r:-rax.q, s:-rax.r}
+		}
+		const key = rax.r*1000 + rax.q
+		const v = hixMap.get(key)
+		if (v) {
+			const pos = grid.hexToPixel(grid.axialToHex(aax))
+			hixMarkers.add(hixTemplate.clone({
+				text: `${v}`,
+				position: pos,
+			}))
+		}
+	}
+	board.add(hixMarkers)
+}
+export function removeHix() {
+	if (hixMarkers) {
+		hixMarkers.destroy()
+		hixMarkers = null
+	}
 }
 
 // ----------------------------------------------------------------------

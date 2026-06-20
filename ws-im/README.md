@@ -5,7 +5,7 @@ https://boardgamegeek.com/boardgame/237/wooden-ships-and-iron-men) (WS&IM).
 
 **This is a Work in Progress (WIP)**
 
-And yes, you can play against AI (but not large battles). I Recommend
+And yes, you can play against AI, but not large battles. I Recommend
 the "nordic encounter" or "Mars v.s. Hercule" scenarios.
 
 Implemented:
@@ -162,6 +162,18 @@ direction. TIP: reload the page (F5) to re-roll the wind direction.
 Please contribute your scenarios if you like, preferably in a github
 pull-request (PR).
 
+### The test scenario, and test mode
+
+If the User defined scenario has `id="test"`, then you will enter
+"test mode". In Planning phase you can toggle the hex-values for the
+"Enemy Ship Movement Table" (ESMT), and change the wind
+direction. This should make it easier to customize the ESMT (but it's
+still a lot of work). The ESMT is also extended with another "layer",
+which I think is useful for F3/F4 ships.
+
+If the "Flying Dutchman" is present, it has movement 7 in all
+directions. Damage from combat is displayed, but not applied.
+
 
 ## Development
 
@@ -172,7 +184,9 @@ Ship graphics are my own, created with [Inkscape](
 https://inkscape.org/), and not very pretty (I am no artist). But the
 small size of the ship counters make them OK (IMHO). Flags are taken
 from https://flagicons.lipis.dev/, except the [us flag](
-https://sv.wikipedia.org/wiki/Fil:Flag_of_the_United_States_(1795%E2%80%931818).svg). Sound effects (collision, gun-fire) are taken from [pixabay](
+https://sv.wikipedia.org/wiki/Fil:Flag_of_the_United_States_(1795%E2%80%931818).svg),
+and [Jolly Roger](https://commons.wikimedia.org/wiki/File:Jolly-Roger.svg).
+Sound effects (collision, gun-fire) are taken from [pixabay](
 https://pixabay.com/sound-effects/).
 
 ### Scenarios

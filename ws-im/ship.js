@@ -16,6 +16,7 @@ import ruflagData from './ru.svg'
 import tuflagData from './tu.svg'
 import dkflagData from './dk.svg'
 import duflagData from './nl.svg'
+import piflagData from './Jolly-Roger.svg'
 import fullSailsData from './full-sails.svg'
 
 const shipImage = {}
@@ -138,7 +139,13 @@ const mAspect = {
 		B: 6,
 		C: 2,
 		D: 0,
-	},	
+	},
+	FD: {						// Flying Dutchman
+		A: 7,
+		B: 7,
+		C: 7,
+		D: 7,
+	},
 }
 function defineMovementAllowance(s) {
 	switch (s.class) {
@@ -536,6 +543,8 @@ function createShipImg(s, i) {
 		})
 		if (s.nat == "us")
 			flag.scale({x: 0.07, y: 0.07})
+		else if (s.nat == "pi")
+			flag.scale({x: 0.07, y: 0.06})
 		else
 			flag.scale({x: 0.03, y: 0.03})
 		flag.rotate(-90)
@@ -572,6 +581,7 @@ export async function init(_ships, _scale = 1.0) {
 	flagImage.tu = await loadImage(tuflagData)
 	flagImage.dk = await loadImage(dkflagData)
 	flagImage.du = await loadImage(duflagData)
+	flagImage.pi = await loadImage(piflagData)
 	const fullSailsImg = await loadImage(fullSailsData)
 	fullSailsTemplate = new Konva.Image({image: fullSailsImg})
 	// Create a ship-class Map
@@ -605,5 +615,13 @@ export async function init(_ships, _scale = 1.0) {
 		}
 		if (s.car) s.s.car = {l:s.car, r:s.car}
 		s.ammo = {l:'R', r:'R'}
+		if (sc.id == "test" && s.name == "Flying Dutchman" && s.nat == "du") {
+			s.flyingDutchman = true
+			s.mov = {
+				turn: 4,
+				battle: mAspect.FD,
+				full: mAspect.FD,
+			}
+		}
 	}
 }

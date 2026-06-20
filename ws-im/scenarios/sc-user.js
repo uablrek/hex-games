@@ -1,19 +1,18 @@
 const scUser = `{
-	"id": "user",
-	"name": "User Defined",
-    "description": "A user defined scenario",
-	"wind": {
-		"d": 1,
-		"v": 3,
-		"change": 4
-	},
-	"classTable": "ah_napoleonic",
-	"ships": [
-		{"cid":"br-f3-36", "name": "Nymphe", "cq": "Cr", "ih": {"hex":"R23", "d":2}},
-		{"cid":"fr-f3-36", "name": "Cleopatre", "hull":7, "cq": "Av", "crew":"2-2-2", "ih": {"hex":"FF16", "d":2}, "pv":"10"}
-	],
-	"map": {
-		"focus": "AA19"
-	}
+    "id": "test",
+    "name": "A Test Scenario",
+    "description": "To test game play. The Flying Dutchman has special capabilities",
+    "wind": {
+        "d": 0,
+        "v": 3,
+        "change": 4
+    },
+    "classTable": "ah_napoleonic",
+    "ships": [
+        {"cid": "br-sol2-64", "name": "Black Pearl", "nat":"pi", "cq": "Av", "ih": {"hex":"U20", "d":1}, "pv":15},
+        {"cid": "br-f3-36", "name": "Flying Dutchman", "nat":"du","cq": "El", "ih": {"hex":"AA20", "d":1}, "pv":100}
+    ],
+    "map": {
+        "focus": "AA20"
+    }
 }`
-
