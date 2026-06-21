@@ -221,7 +221,7 @@ cmd_release() {
 	rm -rf $WS/release
 	mkdir -p $WS/release
 	local app
-	for app in waterloo ws-im; do
+	for app in waterloo ws-im rdtr; do
 		$me build --open=no --appd=$WS/$app $dir/$app --minify \
 			|| die "build $dir/$app"
 		cd $WS/$app
