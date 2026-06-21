@@ -22,6 +22,10 @@ features](https://github.com/uablrek/hex-games/issues/3).
 
 #### Try a release
 
+Visit: https://hex-games.staticdomains.app/
+
+OR:
+
 Unzip release-asset `waterloo.zip` or `ws-im.zip` and open
 `index.html` in your browser. No dependencies needed!
 
