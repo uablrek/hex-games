@@ -25,7 +25,7 @@ const ais = {
 export let fn
 export function set(name) {
 	if (!(name in ais)) name = "solo"
-	ais[name].init(otherPlayer(me))
+	ais[name].init()
 	fn = ais[name]
 }
 
@@ -61,12 +61,12 @@ export function otherPlayer(p) {
 let ai
 let hixMap
 
-function soloInit(aiPlayer) {
-	ai = aiPlayer
+function soloInit() {
 	hixMap = new Map(hixData)
 	loadTables()
 }
-function soloPlay() {
+function soloPlay(player) {
+	ai = player
 	if (g.phase == "Planning") {
 		soloPlanning()
 		return
@@ -78,8 +78,6 @@ function soloPlay() {
 	alert(`AI called in unknown phase ${g.phase}`)
 }
 function soloPlanning() {
-	// Create a Map() for all hexes containing ships.
-	// It can be used for Set() operations (I like set's)
 	for (const s of ships) {
 		if (ship.nat(s) != ai || !s.hex || s.surrendered) continue
 		let m = soloGetMovement(s)
@@ -98,7 +96,6 @@ function soloPlanning() {
 			mp = ship.mp(s)
 		}
 	}
-	sequence.nextStep()
 }
 function soloCombat(i) {
 	for (;i < ships.length; i++) {
@@ -109,7 +106,7 @@ function soloCombat(i) {
 			if (s.ammo.l) s.targets.l = findTargets(s, s.fof.l)
 			if (s.ammo.r) s.targets.r = findTargets(s, s.fof.r)
 		}
-		// Is fire animation starts, this function will be called again in 1s
+		// If fire animation starts, this function will be called again in 1s
 		if (s.targets.l.length > 0)
 			if (handleTarget(i, s, s.targets.l[0], 'l')) return
 		if (s.targets.r.length > 0)
@@ -130,9 +127,8 @@ function handleTarget(i, s, t, b) {
 	return true
 }
 
-// ns=nearest ship, as=AI ship
 function soloGetMovement(as) {
-	let ns = nearestShip(as)
+	let ns = nearestShip(as)	// nearest ship
 	if (!ns) {
 		// There is a problem if all "nearest ships" are blocked,
 		// e.g. by surrendered ships, then the 'as' will freeze. If
@@ -147,10 +143,20 @@ function soloGetMovement(as) {
 		return '0'
 	}
 	g.log(`Get movement for: ${as.name}, nearest ship: ${ns.name}`)
-	// Get the key in the "Nearest Ship Attitude Diagram"
-	// NOTE: distance must be to 'as's bow (no key for stern)
-	let key
-	if (ship.distanceHex(ns, as.hex) > 3) {
+	// First check the bow-stern hexes in the "Nearest Ship Attitude
+	// Diagram" (NSAD).  This will fail if the distance is too large,
+	// or if there is no record for the hexes in the "Enemy Ship
+	// Movement Table" (ESMT)
+	let a, key
+	const vb = getHixValue(ns, as.hex)
+	const st = ship.stern(as)
+	const vs = getHixValue(ns, st)
+	if (vb && vs) {
+		key = `${vb}-${vs}`
+		a = getTable(as).get(key)
+	}
+	if (!a) {
+		// NSAD look-up failed. Resort to Zones:
 		// Instead of checking hex-fields for the zone (A-F), we
 		// compute the relative direction from 'ns' to 'as' (bows)
 		// Rotate coordinate to the direction of the 'ns' ship
@@ -164,16 +170,7 @@ function soloGetMovement(as) {
 		// NOTE: in the table dirs are 1-6
 		const N = (as.d + 9 - ns.d) % 6
 		key = `${Z}${N+1}`
-	} else {
-		const vb = getHixValue(ns, as.hex)
-		const st = ship.stern(as)
-		const vs = getHixValue(ns, st)
-		key = `${vb}-${vs}`
-	}
-	const a = getTable(as).get(key)			// (should always work)
-	if (!a) {								// (but then again...)
-		g.log("Key not found", key, "for class", as.class)
-		return '0'
+		a = getTable(as).get(key)
 	}
 	// compute the wind aspect for as
 	const wa = (g.wind.d - as.d + 6) % 6
@@ -202,7 +199,9 @@ function soloGetMovement(as) {
 	return mstr
 }
 // Get the value for a hex from the "Nearest Ship Attitude Diagram".
-// The ship 's' gives diagram position and direction
+// The ship 's' gives diagram position and direction.  Will return
+// 'undefined' if no value is found, e.g. if the distance is too
+// large.
 function getHixValue(s, hex) {
 	const cax = grid.hexToAxial(s.hex)
 	const ax = grid.hexToAxial(hex)

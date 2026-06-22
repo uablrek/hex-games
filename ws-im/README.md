@@ -132,10 +132,11 @@ this AI.
 
 **A BIG thanks to Mark Hunter for giving us this system!**
 
-The **big** table is derived from `woodsolo.txt` found [here](
+The **big** Enemy Ship Movement Table (ESMT) is derived from
+`woodsolo.txt` found [here](
 https://boardgamegeek.com/filepage/277738/woodenship-solo-program).
-Thanks to [clonea](https://boardgamegeek.com/profile/clonea) for
-this work.
+Thanks to [clonea](https://boardgamegeek.com/profile/clonea) for this
+work.
 
 The original "Enemy Ship Movement Table" (ESMT) is optimized for SOL2
 ships. There seem to be an interest (well, it [was](
@@ -144,6 +145,13 @@ extend this for other classes. This can be done without altering the
 program, in a similar way as for user-defined scenarios. Write an own
 version of [solo-tables.js](./solo-tables.js) and copy it to the ws-im
 directory (where index.html is) before start.
+
+### AI v.s. AI
+
+This can be useful to check if a scenario is balanced, and it's
+fun :-) When playing against the AI, you can press `l` (lazy) to let the
+AI play for you.
+
 
 ## User defined scenario
 

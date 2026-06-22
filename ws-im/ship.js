@@ -18,6 +18,7 @@ import dkflagData from './dk.svg'
 import duflagData from './nl.svg'
 import piflagData from './Jolly-Roger.svg'
 import fullSailsData from './full-sails.svg'
+import bsData from './broadside.png'
 
 const shipImage = {}
 const flagImage = {}
@@ -513,6 +514,61 @@ export function nat(s) {
 	return s.nat				// (fallback. should not happen)
 }
 
+// Play a broadside sprite
+let bsSprite
+const bsScale = 0.09
+function createBsSprite(img) {
+	// First left-edge is at y=130. Distance between frames 250.
+	const bsAnim = {
+		boom: [
+			// x, y, width, height
+			130, 70, 190, 1120,
+			380, 70, 190, 1120,
+			630, 70, 190, 1120,
+			880, 70, 190, 1120,
+			1130, 70, 190, 1120,
+			1380, 70, 190, 1120,
+			1630, 70, 190, 1120,
+			1880, 70, 190, 1120,
+		],
+	}
+	bsSprite = new Konva.Sprite({
+		image: img,
+		animation: 'boom',
+		animations: bsAnim,
+		frameRate: 8,
+		scale: {x:bsScale, y:bsScale},
+	})
+	bsSprite.on('frameIndexChange.konva', function() {
+		if (bsSprite.frameIndex() == 7) {
+			bsSprite.stop()
+			bsSprite.remove()
+		}
+	})
+}
+export function broadside(s, side) {
+	if (!s.hex) return
+	if (bsSprite.isRunning()) {
+		bsSprite.stop()
+		bsSprite.remove()
+	}
+	//bsSprite.rotation(60)
+	const pos = grid.hexToPixel(s.hex)
+	if (side == 'r') {
+		bsSprite.offsetX(-12/bsScale)
+		bsSprite.offsetY(6/bsScale)
+		bsSprite.rotation(s.d * 60)
+		bsSprite.position(pos)
+	} else {
+		bsSprite.offsetX(-8/bsScale)
+		bsSprite.offsetY(80/bsScale)
+		bsSprite.rotation(s.d * 60 + 180)
+		bsSprite.position(pos)
+	}
+	bsSprite.frameIndex(0)
+	board.add(bsSprite)
+	bsSprite.start()
+}
 // Returns a Konva.Group (ii = image identifier)
 function createShipImg(s, i) {
 	const img = new Konva.Group({
@@ -584,6 +640,8 @@ export async function init(_ships, _scale = 1.0) {
 	flagImage.pi = await loadImage(piflagData)
 	const fullSailsImg = await loadImage(fullSailsData)
 	fullSailsTemplate = new Konva.Image({image: fullSailsImg})
+	const bsImage = await loadImage(bsData)
+	createBsSprite(bsImage)
 	// Create a ship-class Map
 	if (sc.classTable)
 		classData = shipClasses[sc.classTable]

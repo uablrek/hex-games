@@ -31,6 +31,7 @@ directions. No damage is taken from gun-fire.
 Select a ship by clicking it, then add movement steps.
 ^
 ^Enter,q - Proceed
+^l - Let the AI play for you (Lazy)
 ^c,Backspace - Clear Movement
 ^Space - Next unmoved Ship
 ^= - Copy to all friendly ships
@@ -51,6 +52,7 @@ All vessels move. Collisions may occur.
 Ships fires broadsides. Click on a friendly ship to mark possible targets.
 ^
 ^Enter,q - Proceed
+^l - Let the AI play for you (Lazy)
 ^f - Toggle field-of-fire
 ^h - Fire guns at hull (range <= 5)
 ^r - Fire guns at rigging

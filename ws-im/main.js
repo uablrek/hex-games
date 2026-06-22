@@ -20,15 +20,17 @@ export const board = ui.stage()
 export const info = new Konva.Layer({name: "info"})
 board.getStage().add(info)
 sequence.parseSeqHelp(help)
-let selectedShip			// Most recently clicked dhip
+let selectedShip			// Most recently clicked ship
 export let sc				// Current Scenario
 export let ships			// The ship array. Initiated from scenario
 let soundCrash				// Sound effect on collision
 let soundGun				// Sound effect on gunfire
 export let hexToShip		// A hex (map-object) -> ship Map()
 export let me = ''          // The players nat(). ''=both (solitarie game)
+let other					// The "other" player (i.e. not 'me')
 let aiInPlay = false		// Disable user input when AI is in play
-const release = {version:"4.2.0-rc1", date:"2026-06-22"}
+let playerUsesAIForCombat
+const release = {version:"4.2.0-rc2", date:"2026-06-22"}
 
 let infoBox
 function createInfoBox() {
@@ -138,6 +140,7 @@ ui.setKeys([
 	{key:'m', fn:keyTest},
 	{key:'n', fn:keyTest},
 	{key:'j', fn:keyTest},
+	{key:'l', fn:keyAI},
 ])
 function keyProceed(e) {
 	if (!["Welcome","Planning","Combat"].includes(g.phase)) return
@@ -147,9 +150,29 @@ function keyProceed(e) {
 	}
 	// Play against AI.
 	// We are in "Planning" or "Combat" phase
-	if (!aiInPlay) {
+	if (g.phase == "Planning") {
+		ai.fn.play(other)
+		sequence.nextStep()
+	}
+	if (g.phase == "Combat") {
+		if (!aiInPlay) {
+			aiInPlay = true
+			ai.fn.play(other)
+		}
+	}
+}
+function keyAI(e) {
+	if (!other) return
+	if (g.phase == "Planning") {
+		ai.fn.play(me)
+		ai.fn.play(other)
+		sequence.nextStep()
+	}
+	if (g.phase == "Combat" && !aiInPlay) {
+		removeCollisionMarkers()
+		playerUsesAIForCombat = true
 		aiInPlay = true
-		ai.fn.play()
+		ai.fn.play(me)
 	}
 }
 function keyEscape(e) {
@@ -469,6 +492,22 @@ sequence.add(new sequence.Sequence({
 				removeCollisionMarkers()
 				unmarkFof()
 				untargetShip()
+			}
+		},
+		{
+			// If the AI handles Combat for both players we must block
+			// here (not proceed) until animations, etc is ready
+			//name: "Combat other",
+			start: function(seq) {
+				if (playerUsesAIForCombat)
+					ai.fn.play(other)
+				else
+					seq.nextStep()
+			},
+			end: function(seq) {
+				removeCollisionMarkers()
+				unmarkFof()
+				untargetShip()
 				if (sc.id != "test") applyDamage()
 				for (const s of ships) {
 					// (help GC)
@@ -521,6 +560,7 @@ sequence.add(new sequence.Sequence({
 // ----------------------------------------------------------------------
 // Combat
 
+// Field of Fire (FoF)
 function mkFofmarker(n) {
 	const fill = [
 		"#080",
@@ -648,6 +688,7 @@ export function fire(s, aim) {
 		// rule 11.2.5
 		const dist = ship.distance(s, t.s)
 		if (dist > 5) {
+			// TODO: change to AlertBox
 			alert("Distance > 5, must aim at rigging")
 			return
 		}
@@ -658,6 +699,7 @@ export function fire(s, aim) {
 	s.ammo[t.b] = ''
 	soundGun.currentTime = 0
 	soundGun.play()
+	ship.broadside(s, t.b)
 	resolveFire(s, t.b, t.s, aim)
 }
 function resolveFire(s, b, t, aim) {
@@ -843,7 +885,7 @@ async function loadSound(audio, data) {
 	param = href.searchParams.get("ai")
 	if (sc.id != "test") {
 		if (param) {
-			const aiName = param
+			ai.set(param)
 			param = href.searchParams.get("player")
 			if (param) {
 				if (sc.players && (param in sc.players))
@@ -860,7 +902,7 @@ async function loadSound(audio, data) {
 			} else {
 				me = ship.nat(ships[0])
 			}
-			ai.set(aiName)			// After 'me' is defined
+			other = ai.otherPlayer(me)
 		}
 	} else {
 		// In test-mode we always initiate an AI, but it's not
