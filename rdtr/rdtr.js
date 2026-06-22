@@ -56,7 +56,8 @@ sequence.add(new sequence.Sequence({
 	steps: [
 		{
 			name: "Connect to server",
-			start: function(seq) {
+			start: sequence.proceed,
+			disabledStart: function(seq) {
 				ui.setChoiceCallback((c, seq)=> {
 					if (c != "Connect")
 						seq.nextStep()

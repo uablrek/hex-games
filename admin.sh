@@ -307,6 +307,7 @@ cmd_rdtr_build_demos() {
 ##     --open - Open in $BROWSER after succesful build
 cmd_build() {
 	which esbuild > /dev/null || die 'Not in $PATH [esbuild]'
+	cp $dir/hex-games.css $WS
 	src $1
 	shift
 	appdir

@@ -5,6 +5,8 @@ https://boardgamegeek.com/boardgame/237/wooden-ships-and-iron-men) (WS&IM).
 
 **This is a Work in Progress (WIP)**
 
+<img src="figures/screenshot-trafalgar.png" width="50%" />
+
 And yes, you can play against AI, but not large battles. I Recommend
 the "nordic encounter" or "Mars v.s. Hercule" scenarios.
 
@@ -46,6 +48,10 @@ https://github.com/uablrek/hex-games/issues).
 
 
 ### Try it
+
+Visit: https://hex-games.staticdomains.app/ws-im/
+
+OR:
 
 * Download the [ws-im.zip](
   https://github.com/uablrek/hex-games/releases/latest/download/ws-im.zip)
@@ -169,10 +175,22 @@ If the User defined scenario has `id="test"`, then you will enter
 "Enemy Ship Movement Table" (ESMT), and change the wind
 direction. This should make it easier to customize the ESMT (but it's
 still a lot of work). The ESMT is also extended with another "layer",
-which I think is useful for F3/F4 ships.
+which I think is useful for F3/F4 ships.  If the "Flying Dutchman" is
+present, it has movement 7 in all directions. Damage from combat is
+displayed, but not applied.
 
-If the "Flying Dutchman" is present, it has movement 7 in all
-directions. Damage from combat is displayed, but not applied.
+<img src="figures/screenshot-test.png" width="50%" />
+
+Above is a screenshot from the default test scenario. The "Web
+Developer Tools" are activated (Ctrl-Shift-I), so you can see the
+console printouts. The lookup in the ESMT looks like:
+
+```
+Flying Dutchman 13-28 Array(6) [ "1B", "1BB", "1", "L-0", "1", "1BB-2B" ] 2 1
+```
+
+The bow-stern values are "13-28", the wind aspect is 2 (Port C), and
+the suggested move is "1".
 
 
 ## Development

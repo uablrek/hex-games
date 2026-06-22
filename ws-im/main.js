@@ -28,7 +28,7 @@ let soundGun				// Sound effect on gunfire
 export let hexToShip		// A hex (map-object) -> ship Map()
 export let me = ''          // The players nat(). ''=both (solitarie game)
 let aiInPlay = false		// Disable user input when AI is in play
-const release = {version:"4.1.0", date:"2026-06-21"}
+const release = {version:"4.2.0-rc1", date:"2026-06-22"}
 
 let infoBox
 function createInfoBox() {
@@ -38,6 +38,7 @@ function createInfoBox() {
 		width: 350,
 		height: 640,
 		destroyable: false,
+		fontFamily: 'sans-serif',
 		label: "Welcome",
 	})
 	info.add(infoBox)
