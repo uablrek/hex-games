@@ -39,7 +39,6 @@ Not Yet Implemented (NYI):
 * Player-vs-Player (PvP) mode (requires a server)
 * Large battle AI
 * Victory conditions/end-of-game (continues until you close/reload)
-* Broadside animation
 * Wind change/wind velocity
 * more...?
 

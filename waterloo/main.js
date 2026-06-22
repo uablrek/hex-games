@@ -21,7 +21,7 @@ const board = ui.stage()
 const info = new Konva.Layer({name: "info"})
 board.getStage().add(info)
 sequence.parseSeqHelp(seqHelp)
-const release = {version:"4.2.0-rc2", date:"2026-06-22"}
+const release = {version:"4.2.0", date:"2026-06-22"}
 
 let infoBox
 function createInfoBox() {
