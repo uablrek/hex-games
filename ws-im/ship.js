@@ -353,15 +353,17 @@ export function collisionCheck(step) {
 			}
 		}
 	}
-	// Check if any ship is moving out of the map
+	// Check if any ship is moving out of the map, or into land
 	for (const s of ships) {
 		if (!s.hex) continue
-		if (!map.hex(s.th.hex)) {
+		let h = map.hex(s.th.hex)
+		if (!h || (h.prop && h.prop != "")) {
 			s.m = s.m.substring(0, step)
 			return map.hd(s.ph.hex, s.th.hex)
 		}
 		const st = stern(s.th)
-		if (!map.hex(st)) {
+		h = map.hex(st)
+		if (!h || (h.prop && h.prop != "")) {
 			s.m = s.m.substring(0, step)
 			return map.hd(stern(s.ph), st)
 		}
@@ -393,6 +395,7 @@ export function collisionCheck(step) {
 	if (!chex) return null
 	// We have a collision-hex, and one ship. Get the other ship
 	for (const s of ships) {
+		if (!s.hex) continue
 		if (s == s1) continue
 		if (hexEq(s.th.hex, chex) || hexEq(stern(s.th), chex)) {
 			s2 = s
@@ -480,6 +483,13 @@ export function collisionCheck(step) {
 	else
 		return mov(chex, s2, s1, `${s2.name} is faster`)
 }
+export function checkDrifting() {
+	// This is a bit like collisionCheck(), but not nearly as complex,
+	// mostly since ships only drift one step. Drifting ships *may*
+	// cause additional collisions, but then always stops any
+	// movement by drifting (there may be fouling though).
+}
+
 function hexEq(h1, h2) {
 	return h1.x == h2.x && h1.y == h2.y
 }
@@ -673,6 +683,7 @@ export async function init(_ships, _scale = 1.0) {
 		}
 		if (s.car) s.s.car = {l:s.car, r:s.car}
 		s.ammo = {l:'R', r:'R'}
+		s.turnsUnmoved = 0
 		if (sc.id == "test" && s.name == "Flying Dutchman" && s.nat == "du") {
 			s.flyingDutchman = true
 			s.mov = {

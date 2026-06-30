@@ -30,7 +30,7 @@ export let me = ''          // The players nat(). ''=both (solitarie game)
 let other					// The "other" player (i.e. not 'me')
 let aiInPlay = false		// Disable user input when AI is in play
 let playerUsesAIForCombat
-const release = {version:"4.2.0", date:"2026-06-22"}
+const release = {version:"4.3.0-rc0", date:"2026-06-30"}
 
 let infoBox
 function createInfoBox() {
@@ -310,7 +310,7 @@ function keyTest(e) {
 		break
 	}
 }
-
+// Collision markers. Added at the end of the "Movement" phase
 const collisionMarkerTemplate = new Konva.Star({
 	numPoints: 9,
 	innerRadius: 10,
@@ -430,10 +430,13 @@ sequence.add(new sequence.Sequence({
 				for (const s of ships) {
 					s.m = ""
 					s.setSails = ""
+					s.turnsUnmoved++
 				}
 			},
 			end: function(seq) {
 				ai.removeHix()
+				// To prevent drifting, the ship need only to *plan* to move
+				for (const s of ships) if (s.m.includes('1')) s.turnsUnmoved = 0
 			},
 		},
 		{
@@ -459,6 +462,13 @@ sequence.add(new sequence.Sequence({
 					if (l > maxMov) maxMov = l
 				}
 				moveAll(0)
+			},
+		},
+		{
+			//name: "Drifting",
+			start: function(seq) {
+				ship.checkDrifting()
+				seq.nextStep()
 			},
 			end: function(seq) {
 				if (collisionMarkers) {
@@ -505,7 +515,6 @@ sequence.add(new sequence.Sequence({
 					seq.nextStep()
 			},
 			end: function(seq) {
-				removeCollisionMarkers()
 				unmarkFof()
 				untargetShip()
 				if (sc.id != "test") applyDamage()

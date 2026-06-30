@@ -5,6 +5,7 @@ import scTrafalgar from './sc-trafalgar.json'
 import scNymCle from './sc-nym-cle.json'
 import scMarHer from './sc-mar-her.json'
 import scNordic from './sc-nordic.json'
+import scNile from './sc-nile.json'
 
 const scenario = new Map()
 
@@ -19,5 +20,6 @@ export function init() {
 	scenario.set(scNymCle.id, scNymCle)
 	scenario.set(scMarHer.id, scMarHer)
 	scenario.set(scNordic.id, scNordic)
+	scenario.set(scNile.id, scNile)
 }
 

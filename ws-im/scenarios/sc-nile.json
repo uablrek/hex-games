@@ -1,0 +1,44 @@
+{
+	"id": "nile",
+	"name": "Battle of the Nile",
+	"wind": {
+		"d": 6,
+		"v": 3,
+		"change": 6
+	},
+	"classTable": "ah_napoleonic",
+	"ships": [
+		{"cid":"br-sol2-74", "name": "Culloden", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"RR24", "d":6}},
+		{"cid":"br-sol2-74", "name": "Goliath", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"TT25", "d":6}},
+		{"cid":"br-sol2-74", "name": "Zealous", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"UU27", "d":1}},
+		{"cid":"br-sol2-74", "name": "Omon", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"UU29", "d":1}},
+		{"cid":"br-sol2-74", "name": "Audacious", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"UU31", "d":1}},
+		{"cid":"br-sol2-74", "name": "Theseus", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"UU33", "d":1}},
+		{"cid":"br-sol2-74", "name": "Vanguard", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"VV34", "d":6}},
+		{"cid":"br-sol2-74", "name": "Minotaur", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"VV34", "d":6, "t":2}},
+		{"cid":"br-sol2-74", "name": "Defence", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"VV34", "d":6, "t":2}},
+		{"cid":"br-sol2-74", "name": "Bellerophen", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"VV34", "d":6, "t":2}},
+		{"cid":"br-sol2-74", "name": "Majestic", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"VV34", "d":6, "t":3}},
+		{"cid":"br-sol2-74", "name": "Leunder", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"VV34", "d":6, "t":4}},
+		{"cid":"br-sol2-74", "name": "Alexander", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"VV34", "d":6, "t":4}},
+		{"cid":"br-sol2-74", "name": "Swifture", "crew":"4-4-3", "cq": "Cr", "ih": {"hex":"VV34", "d":6, "t":6}},
+
+		{"cid":"fr-sol2-74", "name": "Guerrier", "cq": "Av", "ih": {"hex":"DD11", "d":2}},
+		{"cid":"fr-sol2-74", "name": "Conquerant", "cq": "Av", "ih": {"hex":"BB12", "d":2}},
+		{"cid":"fr-sol2-74", "name": "Apartiare", "cq": "Av", "ih": {"hex":"Z13", "d":2}},
+		{"cid":"fr-sol2-74", "name": "Auilion", "cq": "Av", "ih": {"hex":"X14", "d":2}},
+		{"cid":"fr-sol2-74", "name": "Souverain Peuple", "cq": "Av", "ih": {"hex":"V15", "d":3}},
+		{"cid":"fr-sol2-74", "name": "Franklin", "cq": "Av", "ih": {"hex":"T15", "d":2}},
+		{"cid":"fr-sol2-74", "name": "Orient", "cq": "Av", "ih": {"hex":"R15", "d":3}},
+		{"cid":"fr-sol2-74", "name": "Tonante", "cq": "Av", "ih": {"hex":"P14", "d":3}},
+		{"cid":"fr-sol2-74", "name": "Heureuse", "cq": "Av", "ih": {"hex":"N13", "d":3}},
+		{"cid":"fr-sol2-74", "name": "Timoleon", "cq": "Av", "ih": {"hex":"L12", "d":3}},
+		{"cid":"fr-sol2-74", "name": "Mercure", "cq": "Av", "ih": {"hex":"J11", "d":3}},
+		{"cid":"fr-sol2-74", "name": "Guillaume Teli", "cq": "Av", "ih": {"hex":"H10", "d":3}},
+		{"cid":"fr-sol2-74", "name": "Genereux", "cq": "Av", "ih": {"hex":"F9", "d":3}}
+	],
+	"map": {
+		"focus": "CC21",
+		"mapProperties": [{"hex":{"x":35,"y":35},"prop":"1"},{"hex":{"x":35,"y":34},"prop":"1"},{"hex":{"x":35,"y":33},"prop":"1"},{"hex":{"x":35,"y":32},"prop":"1"},{"hex":{"x":35,"y":31},"prop":"1"},{"hex":{"x":35,"y":30},"prop":"1"},{"hex":{"x":35,"y":29},"prop":"1"},{"hex":{"x":35,"y":28},"prop":"1"},{"hex":{"x":36,"y":28},"prop":"1"},{"hex":{"x":37,"y":27},"prop":"1"},{"hex":{"x":38,"y":28},"prop":"1"},{"hex":{"x":39,"y":28},"prop":"1"},{"hex":{"x":39,"y":29},"prop":"1"},{"hex":{"x":39,"y":30},"prop":"1"},{"hex":{"x":39,"y":31},"prop":"1"},{"hex":{"x":38,"y":32},"prop":"1"},{"hex":{"x":38,"y":33},"prop":"1"},{"hex":{"x":38,"y":34},"prop":"1"},{"hex":{"x":38,"y":35},"prop":"1"},{"hex":{"x":33,"y":0},"prop":"2"},{"hex":{"x":33,"y":1},"prop":"2"},{"hex":{"x":33,"y":2},"prop":"2"},{"hex":{"x":33,"y":3},"prop":"2"},{"hex":{"x":34,"y":4},"prop":"2"},{"hex":{"x":35,"y":4},"prop":"2"},{"hex":{"x":35,"y":5},"prop":"2"},{"hex":{"x":35,"y":6},"prop":"2"},{"hex":{"x":35,"y":7},"prop":"2"},{"hex":{"x":35,"y":8},"prop":"2"},{"hex":{"x":35,"y":9},"prop":"2"},{"hex":{"x":35,"y":10},"prop":"2"},{"hex":{"x":36,"y":11},"prop":"2"},{"hex":{"x":36,"y":12},"prop":"2"},{"hex":{"x":36,"y":13},"prop":"2"},{"hex":{"x":36,"y":14},"prop":"2"},{"hex":{"x":36,"y":15},"prop":"2"},{"hex":{"x":35,"y":15},"prop":"2"},{"hex":{"x":35,"y":16},"prop":"2"},{"hex":{"x":36,"y":17},"prop":"2"},{"hex":{"x":36,"y":18},"prop":"2"},{"hex":{"x":36,"y":19},"prop":"2"},{"hex":{"x":36,"y":20},"prop":"2"},{"hex":{"x":36,"y":21},"prop":"2"},{"hex":{"x":37,"y":21},"prop":"2"},{"hex":{"x":38,"y":22},"prop":"2"},{"hex":{"x":39,"y":21},"prop":"2"},{"hex":{"x":39,"y":20},"prop":"2"},{"hex":{"x":39,"y":19},"prop":"2"},{"hex":{"x":40,"y":19},"prop":"2"},{"hex":{"x":40,"y":18},"prop":"2"},{"hex":{"x":40,"y":17},"prop":"2"},{"hex":{"x":40,"y":16},"prop":"2"},{"hex":{"x":40,"y":15},"prop":"2"},{"hex":{"x":40,"y":14},"prop":"2"},{"hex":{"x":40,"y":13},"prop":"2"},{"hex":{"x":41,"y":12},"prop":"2"},{"hex":{"x":41,"y":11},"prop":"2"},{"hex":{"x":42,"y":11},"prop":"2"},{"hex":{"x":42,"y":10},"prop":"2"},{"hex":{"x":41,"y":9},"prop":"2"},{"hex":{"x":41,"y":8},"prop":"2"},{"hex":{"x":41,"y":7},"prop":"2"},{"hex":{"x":41,"y":6},"prop":"2"},{"hex":{"x":41,"y":5},"prop":"2"},{"hex":{"x":42,"y":5},"prop":"2"},{"hex":{"x":42,"y":4},"prop":"2"},{"hex":{"x":42,"y":3},"prop":"2"},{"hex":{"x":43,"y":2},"prop":"2"},{"hex":{"x":43,"y":1},"prop":"2"},{"hex":{"x":43,"y":0},"prop":"2"},{"hex":{"x":38,"y":36},"prop":"1"}]
+	}
+}

@@ -150,8 +150,8 @@ export function hd(h1, h2) {
 	const ax1 = grid.hexToAxial(h1) // this is the base-hex
 	const ax2 = grid.hexToAxial(h2) // this is the direction-hex
 	const n = grid.neighboursAxial(ax1)
-	for (const [i, ax] of n.entries())
-		if (axEq(ax, ax2)) return {hex:h1, d:(i + 1) % 6}
+	for (const [i, h] of n.entries())
+		if (axEq(h.ax, ax2)) return {hex:h1, d:(i + 1) % 6}
 	return null					// h2 is not adjacent to h1
 }
 // Takes a hd-item and return the adjecent hex in direction "d"
@@ -159,7 +159,7 @@ export function adjacentHex(hd) {
 	const ax = grid.hexToAxial(hd.hex)
 	const n = grid.neighboursAxial(ax)
 	const i = (hd.d + 5) % 6
-	return grid.axialToHex(n[i])
+	return grid.axialToHex(n[i].ax)
 }
 // Return which side 'hex' is of a hd-item (usually a ship). The side
 // can be 'l', 'r', 'b', or 's'. If 'hex' is aligned with the hd-item
@@ -328,6 +328,127 @@ export function fireHexes(hd) {
 }
 
 // ----------------------------------------------------------------------
+// Land
+/*
+  For each land area we want a plygon with the centers of the coastal-
+  line hexes as corners. A "plygon" is created as a closed Konva.Line.
+
+  The path is a "Directed Cycle Graph" in graph theory. Please see:
+  https://en.wikipedia.org/wiki/Cycle_graph
+
+  While there are plenty of algorithms for *detecting* cyclic graphs,
+  I didn't find any to *create* a Directed Cycle Graph from a number
+  of coordinates (vertices), but I'm sure they exist.
+
+  So, I make up an algorithm on my own. Crucial are the "neighbour
+  hexes", "neighbours" from now on. The algorithm is recursive.
+  NOTE: the algorithm will fail if the land have a "waist", that is
+  only one hex wide (technically that mean 2 Cycle Graphs, sharing a vertex)
+
+  1. Collecct all hexes belonging to the plygon, i.e. have the same id
+  2. Exclude a polygon with <3 corners (hexes)
+  3. Start at *any* hex belonging to the plygon, called Z from now on
+  4. Pick a coast-line neighbour that we have not visited before.
+     If none are left, return null
+  5. If this hex is Z:
+     If all hexes are visited, we are done!
+     Otherwise pick another neighbour (return null if none left)
+  6. Make a recursive call to 4 for the selected hex
+ */
+function cycleGraph(id) {
+	const v = new Set()
+	let Z = null
+	for (const h of map.hexMap.values()) {
+		if (h.prop == id) {
+			if (!Z) Z = h
+			v.add(h)
+		}
+	}
+	if (v.size < 3) return null
+	for (const h of v.values()) h.n = grid.neighboursAxial(h.ax)
+	// Special case:
+	// To support land that goes off the edges (not islands), check for
+	// coast line hexes at the edge of the map with only one neighbour.
+	// This is an open graph, but we connect these edge hexes with each other.
+	// NOTE: this doesn't look good if you put them in corners. Don't do that!
+	function edgeHex(h) {
+		if (h.hex.x == 0 || h.hex.y == 0 || h.hex.x == width-1) return true
+		// On the lower edge, even x'ids get y==height
+		const edgeY = (h.hex.x % 2) ? height-1 : height
+		return h.hex.y == edgeY
+	}
+	function nNeighbours(h) {
+		let count = 0
+		for (n of h.n) if (n && n.prop) count++
+		return count
+	}
+	let e1, e2
+	for (const h of v.values()) {
+		if (edgeHex(h) && nNeighbours(h) == 1) {
+			if (e1)
+				e2 = h
+			else
+				e1 = h
+		}
+	}
+	if (e1 && e2) {
+		e1.n.push(e2)
+		e2.n.push(e1)
+	}
+	// All vertices are collected, now crawl!
+	function crawl(o, a) {
+		if (a.includes(o)) return null // already visited
+		a.push(o)
+		const i = a.length
+		if (i > v.size) return null // cowardly check indefinite recursion
+		for (const n of o.n) {
+			if (!n || !n.prop) continue	// (sea hex)
+			if (n == Z) {
+				if (a.length == v.size) return a // success!
+				continue
+			}
+			a.splice(i)			// restore the array before try next neighbour
+			if (crawl(n, a)) return a
+		}
+		return null
+	}
+	return crawl(Z, [])
+}
+
+function drawLand(id, coasts) {
+	const graph = cycleGraph(id)
+	if (!graph) return
+	const points = []
+	for (const h of graph) {
+		const pos = grid.hexToPixel(h.hex)
+		// (push edge verticies out of the map)
+		if (h.hex.x == 0) pos.x -= 80
+		if (h.hex.x == width-1) pos.x += 80
+		points.push(pos.x)
+		if (h.hex.y == 0) pos.y -= 80
+		const edgeY = (h.hex.x % 2) ? height-1 : height
+		if (h.hex.y == edgeY) pos.y += 80
+		points.push(pos.y)
+	}
+	const polygon = new Konva.Line({
+		points: points,
+		stroke: 'beige',
+		strokeWidth: 10,
+		fill: '#040',
+		id: `poly${id}`,
+		closed: true,
+		tension: 0.5,
+		
+	})
+	// https://konvajs.org/docs/tweens/Tween_Filter.html
+	polygon.filters([Konva.Filters.Blur])
+	polygon.blurRadius(10)
+	polygon.cache()
+	board.add(polygon)
+}
+
+
+// ----------------------------------------------------------------------
 // Init
 
 // Re-export some items
@@ -351,6 +472,7 @@ export async function init(obj) {
 		width: 52,
 		offset: {x:0,y:0},
 		focus: "",
+		mapProperties: [],
 	}
 	for (const prop in obj) if (prop in cfg) cfg[prop] = obj[prop]
 
@@ -358,15 +480,17 @@ export async function init(obj) {
 	width = cfg.width
 	offset = cfg.offset
 	grid.configure(sz, 1.0, {x:0,y:0}, true)
-	// TODO: add wave glimmer
 	map.init(cfg)
-
+	grid.mapFunctions(map.getAxial)
+	// Add the blue sea
+	// TODO: add wave glimmer
 	const sea = new Konva.Rect({
 		width: width * oz,
 		height: height * sz,
 		fill: '#2030aa',
 	})
 	board.add(sea)
+	// Add hex grid with optional IDs
 	const pattern = new Image()
 	pattern.src = grid.patternSvg("black")
 	await new Promise(resolve => pattern.onload = resolve)
@@ -380,5 +504,14 @@ export async function init(obj) {
 	hexGrid.cache()
 	createHexId()
 	board.add(hexGrid)
+	// Add land
+	for (let i = 0; i <= 9; i++) drawLand(i)
+	// https://konvajs.org/docs/clipping/Clipping_Regions.html
+	board.clip({
+		x: 0,
+		y: 0,
+		width: width * oz,
+		height: height * sz
+	})
 	focus(cfg.focus) 
 }

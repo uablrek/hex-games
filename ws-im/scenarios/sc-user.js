@@ -13,6 +13,11 @@ const scUser = `{
         {"cid": "br-f3-36", "name": "Flying Dutchman", "nat":"du","cq": "El", "ih": {"hex":"AA20", "d":1}, "pv":100}
     ],
     "map": {
-        "focus": "AA20"
+        "focus": "AA20",
+        "mapProperties": [
+           {"hex":{"x":16,"y":18},"prop":"1"},
+           {"hex":{"x":17,"y":18},"prop":"1"},
+           {"hex":{"x":16,"y":19},"prop":"1"}
+        ]
     }
 }`

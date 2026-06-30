@@ -20,6 +20,7 @@ Implemented:
 * AI for small scenarios
 * Sound effects for collisions and gunfire
 * User defined scenarios
+* Land (causes collision, and block FoF)
 * Undiscovered bugs :-)
 
 Not Yet Implemented (NYI):
@@ -29,7 +30,7 @@ Not Yet Implemented (NYI):
 * Drifting
 * Advanced Rules (except full/backing sails)
 * Optional Rules
-* Land/Anchor
+* Anchor
 * Skew ships to avoid end-of-map problems
 * Gun hits in rule 11.4.3. Use carronades first (as in original rules)
 * Ships arriving at later turns
@@ -50,7 +51,7 @@ https://github.com/uablrek/hex-games/issues).
 
 Visit: https://hex-games.staticdomains.app/ws-im/
 
-OR:
+To define your own scenario, you must run locally:
 
 * Download the [ws-im.zip](
   https://github.com/uablrek/hex-games/releases/latest/download/ws-im.zip)
@@ -244,11 +245,33 @@ Hex id's outside the original map are in the form "XXYY", e.g. "0312".
 
 ### Land
 
-To implement land hexes is pretty simple using the map-hex-objects,
-but presenting a good-looking map with land in the browser is a
-different matter. I will probably try it in the near future, since
-it's interresting. The map graphics should probably be generated.
+Land is defined in the "map" section of a scenario:
 
+```json
+    "map": {
+        "focus": "AA20",
+        "mapProperties": [
+           {"hex":{"x":16,"y":18},"prop":"1"},
+           {"hex":{"x":17,"y":18},"prop":"1"},
+           {"hex":{"x":16,"y":19},"prop":"1"}
+        ]
+    }
+```
+
+Only coastal-line hexes are defined. You can define land areas
+0-9. The example above generates a minimum island (3 corners). The
+land area, defined by the coastal-line, forms a polygon implemented
+with a closed [Konva.Line](https://konvajs.org/api/Konva.Line.html).
+The "smoothing" is implemented using the "tension" property.
+
+<img src="figures/triangle-island.png" width="30%" />
+
+Land areas off-map (not islands) are not closed. They must have 2
+not-adjacent edge-hexes defined. Land areas in corners are not yet
+implemented.
+
+As in the other "hex-games" projects, there is a `map-maker` program
+that allows land to be defined by clicking on the map.
 
 ### The ship object
 

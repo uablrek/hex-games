@@ -1,0 +1,9 @@
+{
+  "name": "ws-im-map-maker",
+  "version": "1.0.0",
+	"description": "Wooden Ships and Iron Men - Map Maker",
+  "license": "CC-BY-4.0",
+  "author": "",
+  "type": "module",
+  "main": "main.js"
+}
