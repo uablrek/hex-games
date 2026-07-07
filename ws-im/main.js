@@ -30,7 +30,7 @@ export let me = ''          // The players nat(). ''=both (solitarie game)
 let other					// The "other" player (i.e. not 'me')
 let aiInPlay = false		// Disable user input when AI is in play
 let playerUsesAIForCombat
-const release = {version:"4.3.0-rc0", date:"2026-06-30"}
+const release = {version:"4.3.0-rc1", date:"2026-07-07"}
 
 let infoBox
 function createInfoBox() {
@@ -107,7 +107,7 @@ box.destroyCallback(boxDestroyed)
 function shipOnClick(e) {
 	if (g.phase == "Movement") return // (things are in motion)
 	if (selectedShip) ship.unmark(selectedShip)
-	ai.removeHix()
+	ai.removeHix()				// (for test-mode)
 	selectedShip = ship.fromImg(e.target)
 	ship.mark(selectedShip, board)
 	updateInfoBox()
@@ -179,6 +179,7 @@ function keyEscape(e) {
 	if (selectedShip) {
 		ship.unmark(selectedShip)
 		selectedShip = null
+		unmarkFof()
 		updateInfoBox()
 	}
 }
@@ -434,7 +435,7 @@ sequence.add(new sequence.Sequence({
 				}
 			},
 			end: function(seq) {
-				ai.removeHix()
+				ai.removeHix()	// (for test-mode)
 				// To prevent drifting, the ship need only to *plan* to move
 				for (const s of ships) if (s.m.includes('1')) s.turnsUnmoved = 0
 			},

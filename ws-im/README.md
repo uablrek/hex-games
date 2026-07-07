@@ -12,7 +12,7 @@ the "nordic encounter" or "Mars v.s. Hercule" scenarios.
 
 Implemented:
 
-* Map without land (with hex'id toggle)
+* Map with hex'id toggle
 * SOL/F counters
 * Movement (with nice animations)
 * Collisions (stops movement, but never fouled)
@@ -48,8 +48,6 @@ https://github.com/uablrek/hex-games/issues).
 
 
 ### Try it
-
-Visit: https://hex-games.staticdomains.app/ws-im/
 
 To define your own scenario, you must run locally:
 
