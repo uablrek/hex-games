@@ -319,7 +319,7 @@ export function toggleHix(s) {
 	const cax = grid.hexToAxial(s.hex)
 	const close = grid.inRangeAxial(6, cax)
 	for (const aax of close) {
-		let rax = {r:aax.r - cax.r, q:aax.q - cax.q}
+		let rax = {r:aax.ax.r - cax.r, q:aax.ax.q - cax.q}
 		// Rotate
 		// https://www.redblobgames.com/grids/hexagons/#rotation
 		rax.s = -rax.r - rax.q	// cubify
@@ -330,7 +330,7 @@ export function toggleHix(s) {
 		const key = rax.r*1000 + rax.q
 		const v = hixMap.get(key)
 		if (v) {
-			const pos = grid.hexToPixel(grid.axialToHex(aax))
+			const pos = grid.hexToPixel(grid.axialToHex(aax.ax))
 			hixMarkers.add(hixTemplate.clone({
 				text: `${v}`,
 				position: pos,

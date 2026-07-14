@@ -49,6 +49,8 @@ https://github.com/uablrek/hex-games/issues).
 
 ### Try it
 
+Visit: https://uablrek.github.io/hex-games/ws-im/
+
 To define your own scenario, you must run locally:
 
 * Download the [ws-im.zip](

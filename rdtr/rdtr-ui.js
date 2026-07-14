@@ -8,8 +8,8 @@
 */
 
 import Konva from 'konva'
-import * as rdtr from './rdtr.js'
 import * as unit from './rdtr-unit.js'
+import {g, saveGame, saveJSON, nextStep} from './rdtr.js'
 import * as map from './rdtr-map.js'
 import * as images from './rdtr-images.js'
 import {box, ui, sequence, grid} from '@uablrek/hex-games'
@@ -42,7 +42,7 @@ export async function init() {
 	return board
 }
 
-// Sctoll the board so "hex" becomes top-left
+// Scroll the board so "hex" becomes top-left
 export function scrollBoard(hex) {
 	if (hex.x < 0) hex.x = 0
 	if (hex.y < 0) hex.y = 0
@@ -69,19 +69,19 @@ export function initUI() {
 	}
 	let brp = document.getElementById('brp')
 	brp.addEventListener('change', checkBrpUI)
-	rdtr.g.uiNat = "ge"
-	console.log(rdtr.g.status.ge)
-	brp.value = rdtr.g.status.ge.brp
+	g.uiNat = "ge"
+	console.log(g.status.ge)
+	brp.value = g.status.ge.brp
 }
 function checkNatUI(e) {
 	let nat = e.target.value
-	rdtr.g.uiNat = nat
+	g.uiNat = nat
 	let brpElement = document.getElementById('brp')
-	brpElement.value = rdtr.g.status[nat].brp
+	brpElement.value = g.status[nat].brp
 }
 function checkBrpUI(e) {
-	//rdtr.g.uiValue = e.target.value
-	rdtr.g.status[rdtr.g.uiNat].brp = e.target.value
+	//g.uiValue = e.target.value
+	g.status[g.uiNat].brp = e.target.value
 }
 // Call to update BRP in the UI if it's visible. E.g. after DoW, or
 // unit buy
@@ -105,14 +105,14 @@ function updateBrpUI(natUpdated) {
 
 const keyFn = [
 	{key:'Shift', fn:deleteModeOn},
-	{key:'s', fn:rdtr.saveGame},
-	{key:'j', fn:rdtr.saveJSON},
+	{key:'s', fn:saveGame},
+	{key:'j', fn:saveJSON},
 	{key:'a', fn:()=>{ new unit.UnitBoxAir }},
 	{key:'f', fn:()=>{ new unit.UnitBoxNav }},
 	{key:'h', fn:createHelpBox},
 	{key:'c', fn:()=>{ new CombatBox({ board: board, }) }},
 	{key:' ', fn:rollStack},
-	{key:'Enter', fn:rdtr.nextStep},
+	{key:'Enter', fn:nextStep},
 	//{key:'r', fn:regretMove},
 ]
 const keyUpFn = [
@@ -161,36 +161,28 @@ export function adjustBoxPos(pos) {
 }
 
 let theInfoBox = box.info({
-	label: "Info",
-	x: 40,
+	x: window.innerWidth - 320,
 	y: 20,
-	width: 350,
-	height: 400,
+	width: 300,
+	height: 600,
 	destroyable: false,
 })
-export function updateInfo(g, info) {
+export function updateInfo(g, info, key) {
 	let txt = `Turn: ${g.turn.year}, ${g.turn.season}\n`
 	txt += `Player: ${g.player}\n`
 	txt += `Phase: ${g.phase}\n`
 	if (g.front) txt += `Front: ${g.front}, ${g.action}\n`
 	if (info) txt += info
-	const key = `${g.seq.name}/${g.phase}`
+	if (!key) key = g.phase
 	const phaseHelp = sequence.getSeqHelp(key)
 	if (phaseHelp) txt += ('\n'+ phaseHelp)
-	box.update(theInfoBox, txt)
+	box.update(theInfoBox, txt, g.phase)
 }
 
 let helpBox = null
 function createHelpBox() {
-	const help =
-		"s - Save\n" +
-		"a - Air exchange counters\n" +
-		"f - Fleet exchange counters\n" +
-		"c - Combat chart (with die)\n" +
-		"j - Save deployment as json\n" +
-		"' ' - Rotate stack\n" +
-		"Enter - Next Phase\n" 
 	if (helpBox) return
+	const help = sequence.getSeqHelp('help')
 	helpBox = box.info({
 		label: "Help",
 		text: help,

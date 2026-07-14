@@ -30,7 +30,7 @@ export let me = ''          // The players nat(). ''=both (solitarie game)
 let other					// The "other" player (i.e. not 'me')
 let aiInPlay = false		// Disable user input when AI is in play
 let playerUsesAIForCombat
-const release = {version:"4.3.0-rc1", date:"2026-07-07"}
+const release = {version:"4.3.0-rc4", date:"2026-07-14"}
 
 let infoBox
 function createInfoBox() {

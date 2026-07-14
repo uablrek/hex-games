@@ -278,7 +278,7 @@ cmd_server_app() {
 	export APPD=$__appd
 	$me run --appd=$WS/server $dir/server
 }
-##   rdtr-build-demos [--appd=dir] [--clean] [--open] page
+##   rdtr-build-demos [--appd=dir] [--clean] page
 ##     Build the "Rise and Decline of the Third Reich" demos.
 ##     Normally invoked with "admin build --demos rdtr"
 cmd_rdtr_build_demos() {
@@ -287,12 +287,17 @@ cmd_rdtr_build_demos() {
 	cd $__appd
 	cp $src/figures/tr-counters-* $src/figures/rdtr-map.png \
 		$src/figures/rdtr-combat-chart.png .
-	cp $src/*.json $src/*.js $src/demos/* .
-	cp $dir/lib/* .
+	cp $src/*.json $src/*.js .
 	cp $src/scenario/scenario-* .
-	mv lib.js hex-games.js
+	local hg=$WS/hex-games/hex-games.tgz
+	test -r "$hg" || die "hex-games.tgz not built"
+	if npm ls -g konva > /dev/null; then
+		# Use locally installed Konva
+		npm link konva
+	fi
+	npm install $hg
 	local sub
-	cp $src/demos/* $__appd
+	cp $src/demos/* .
 	for sub in map-demo units-demo deployment-demo restore-demo\
 		map-maker map-demo2 seq-demo; do
 		esbuild --bundle --outfile=$sub-bundle.js --loader:.png=dataurl \

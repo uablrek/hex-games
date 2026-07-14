@@ -19,6 +19,8 @@ import {href} from './rdtr-game.js'
 // Globals
 const version = 5				// The version of scenario/save files
 export var g = {}				// Game status. This is loaded/saved
+const release = {version:"4.3.0-rc4", date:"2026-07-14"}
+
 const playerStr = {
 	nu: "Neutrals",
 	it: "Italy",
@@ -36,10 +38,10 @@ let me							// My alliance in a multi-player game al/ax
 // ----------------------------------------------------------------------
 // Sequences
 
-function updatePhase(seq, info) {
+function updatePhase(seq, info, key) {
 	g.seq = seq
 	g.phase = seq.currentStep.name
-	ui.updateInfo(g, info)
+	ui.updateInfo(g, info, key)
 }
 // This is called from the UI on 'Enter'
 export function nextStep() {
@@ -54,6 +56,13 @@ export function nextStep() {
 sequence.add(new sequence.Sequence({
 	name: "game",
 	steps: [
+		{
+			name: "Welcome",
+			start: function(seq) {
+				updatePhase(
+					seq, `\nVersion ${release.version}, ${release.date}\n`)
+			}
+		},
 		{
 			name: "Connect to server",
 			start: sequence.proceed,
@@ -243,7 +252,7 @@ sequence.add(new sequence.Sequence({
 			start: (seq) => {
 				g.nat = g.orderOfDeployment[seq.i]
 				g.player = playerStr[g.nat]
-				updatePhase(seq)
+				updatePhase(seq, '', 'Deployment-' + g.player)
 				if (!me || me == alliance(g.nat)) {
 					// For "po" we must bring up the "neutrals" box
 					let nat = g.nat == "po" ? "nu" : g.nat

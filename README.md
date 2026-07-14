@@ -22,7 +22,7 @@ features](https://github.com/uablrek/hex-games/issues/3).
 
 #### Try a release
 
-Visit: https://hex-games.staticdomains.app/
+Visit: https://uablrek.github.io/hex-games/index.html
 
 OR:
 
