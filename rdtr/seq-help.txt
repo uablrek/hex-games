@@ -1,40 +1,95 @@
-|game/Connect to server|
+|Welcome|
+This is a browser version of the Avalon Hill board game
+"Rise and Decline of the Third Reich" from 1975.
+^
+^The game is played in sequences. To proceed to the next step,
+press 'Enter'.
+^
+^Hit 'h' for a keyboard help-box.
+
+
+|Connect to server|
 Select "Connect" for multi-player, or "Local" to play both sides.
 The first to connect becomes "Axis", and the second "Allies"
 
-|turn/Declaration of War (DoW)|
+|Declaration of War (DoW)|
 Players announce Declaration of War on major (35brp) or minor (10brp)
 countries.
 
-|turn/Announce front action|
+|Announce front action|
 Players announce which of: Offensive (15brp), Attrition or Pass action,
 for all fronts.
 
-|turn/Movement|
+|Movement|
 All ground units may move, air units may stage, and naval unit may
 change base. In Pass option units may only move within controlled
 territory. Naval units providing supply are marked.
 
-|offensive/Attacker naval+air|
+|Attacker naval+air|
 14.11 Attacker announces all naval and air missions. All Counterair
 missions (28.43) are resolved.
 
-|offensive/Defender inteception+DAS|
+|Defender inteception+DAS|
 14.12 Defender announces any allocations of Defensive Air Support,
 any air attacks on naval forces at sea, and any naval Interception
 attempts.
 
-|offensive/Sea Transport Missions|
+|Sea Transport Missions|
 14.14 Successful Sea Transport missions (29.42) are concluded and the
 naval units returned to their base.
 
-|offensive/Airborne drops|
+|Airborne drops|
 14.15 Attacker may make airborne drops.
 
-|offensive/Combat|
+|Combat|
 Resolve combat in any order. Move exploiting units to breakthrough
 hexes.
 
-|offensive/Exploitation|
+|Exploitation|
 Exploiting units move, and have a combat phase
 
+|help|
+To proceed to next phase hit 'Enter'.
+^
+^s - Save (restore id manual)
+^a - Air exchange counters
+^f - Fleet exchange counters
+^c - Combat chart (with die)
+^j - Save deployment as json
+^Space - Rotate stack
+^Enter - Next Phase
+
+|Deployment-Poland|
+Re-arrange the default Neutrals deployment by dragging units.
+|Deployment-Italy|
+All fleets in the Mediterranian, and at least:
+^
+^1x1-3 in Albania
+^2x1-3 in Libya
+|Deployment-France|
+At least:
+^
+^1x2-3 in Morocco, Tunisia or Algeria
+^1x2-3 in Lebanon-Syria
+|Deployment-Britain|
+At least:
+^1x1-3 in Palestine
+^1x1-3, 1x1-4 on Malta
+^1x1-3, 1x2-5, 2x1-4, 1xNav in Egypt
+^1x1-4, 2xNav in Gibraltar
+|Deployment-U.S.S.R|
+^1x2-3 in Leningrad
+^1x3-5 in Moscow
+^1x1-3 in Odessa
+^1x1-3 in Khrarkov
+^1x1-3 in Grozny
+^
+^These must not move until war with Axis and enemy units are within 5 hexes
+|Deployment-Germany|
+Must place at least 20 ground and/or air factors on
+Eastern Front and maintain there throughout the game.
+^
+^Fleets must start in Baltic or North Sea.
+^
+^May initially place up to 20 factors (total) in Finland (maximum of
+five), Hungary, Rumania and Bulgaria.
