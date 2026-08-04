@@ -8,8 +8,8 @@ times. A problem has been what language and graphic environment to
 use. This take I use HTML5/canvas and JavaScript.
 
 Much inspiration (and code) is taken from [Red Blob Games](
-https://www.redblobgames.com/). [Konva](
-https://konvajs.org/docs/index.html) is used for most canvas
+https://www.redblobgames.com/), and [Konva](
+https://konvajs.org/docs/index.html) is used for canvas
 manipulations. Both are *absolutely excellent!!*
 
 I was trying to get the old (1974) board game [Rise and Decline of the
@@ -205,7 +205,7 @@ undefined
 
 The dimensions of the map are *not* defined in this json file.
 
-The [example map](./map-maker/example-map.svg) has 4 terrain types:
+The [example map](./the-hill/map-maker/example-map.svg) has 4 terrain types:
 forrest (f), river (r), water (w) and mountain (m). It has one edge
 type: up-slope (u), which can give combat/movement penalties.
 
@@ -226,7 +226,7 @@ in a Map() or objects in a Set() since their reference never changes.
 
 <img src="./figures/game-server.svg" width="50%" />
 
-Multi-player gaming requires a server. This is interactive, so
+Multi-player gaming requires a server. Games are interactive, so
 [websockets](https://en.wikipedia.org/wiki/WebSocket) are used. How
 functions are distributed between the server and clients is
 described in a good way in [this post](

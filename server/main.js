@@ -20,7 +20,7 @@ app.ws('/ws', function(ws, req) {
 	ws.on('connection', onConnection(ws))
 })
 app.listen(port, () => {
-	console.log(`Server listening on port ${port}`)
+	console.log("Server listening on port", port)
 })
 let saves = {}
 
