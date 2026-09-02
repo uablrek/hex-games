@@ -1,0 +1,8 @@
+|Welcome|
+Welcome to "The Hill Multi-Player" game
+^
+^It is a test game used for development and test of various hex-game features.
+It is made up by "sequences" and "steps".
+^
+^To continue to the next step, press "Enter"
+

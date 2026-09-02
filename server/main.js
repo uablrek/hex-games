@@ -1,141 +1,145 @@
-// SPDX-License-Identifier: CC-BY-4.0.
+// SPDX-License-Identifier: CC0-1.0.
+// A websocket server that relays messages between clients.
+// This is a minimalistic server intended for games, but it is generic.
 
+// Express-ws (https://github.com/HenningM/express-ws) seem to be
+// unmaintained, the used version, 5.0.2 was released 2021. But it's a
+// thin wrapper for "ws" which is well maintained.
 import express from 'express'
 import expressWs from 'express-ws'
-import fs from 'fs'
 
-const port = 8081
-let A
-let B
-let log = console.log
-//let log = functio(){}
+// The protocol version
+const version = 1
 
-const saved = "saves"
-if (!fs.existsSync(saved)) fs.mkdirSync(saved)
+// Basic logging. Disable with:
+//let dbg = function(){}
+const log = console.log
+let dbg = function(){}
 
+const clients = new Map()
+let clientId = 0
+
+// Setup server
+// The server serves ws:// requests on "/ws" and publish static content
+// from the "html/" directory
+let port = process.env.PORT
+if (!port) port = 8081
 const app = express()
-expressWs(app)
 app.use(express.static('html'))
-app.ws('/ws', function(ws, req) {
-	ws.on('connection', onConnection(ws))
-})
+expressWs(app)
 app.listen(port, () => {
-	console.log("Server listening on port", port)
+	log("Server listening on port", port)
 })
-let saves = {}
-
-// Saves are stored at the server. Message format:
-//   {"type":"save", "name":"save-name", "game": {...}}
-//   {"type":"restore", "name":"save-name", "game": {...}}
-// The "game" object may be anything, and is omitted in a restore request.
-function isSaveRestore(message) {
-	const msg = JSON.parse(message)
-	if (msg.type == "save") {
-		saves[msg.name] = msg.game
-		const savef = `${saved}/${msg.name}`
-		fs.writeFileSync(savef, JSON.stringify(msg.game))
-		log("Game saved", message)
-		return true
+app.ws('/ws', function(ws, req) {
+	ws.on('connection', cbConnection(ws))
+})
+function cbConnection(ws) {
+	clientId++
+	log("Client connect", clientId)
+	const client = {
+		ws: ws,
+		id: clientId,
 	}
-	if (msg.type == "restore") {
-		if (msg.name in saves)
-			msg.game = saves[msg.name]
-		else {
-			const savef = `${saved}/${msg.name}`
-			if (fs.existsSync(savef)) {
-				const data = fs.readFileSync(savef, 'utf8')
-				saves[msg.name] = JSON.parse(data)
-				msg.game = saves[msg.name]
-			}
-		}
-		const reply = JSON.stringify(msg)
-		if (A) A.send(reply)
-		if (B) B.send(reply)
-		log("Game restored", reply)
-		return true
+	clients.set(ws, client)
+	ws.on('message', cbMessage)
+	ws.on('close', cbClose)
+	const msg = {
+		type: "server",
+		version: version,
+		client: clientId,
 	}
-	return false
+	send(client, msg)
 }
-
-// The server can be used to roll a die. The reply with the result is
-// sent to *both* sides
-function isDieRoll(message) {
-	const msg = JSON.parse(message)
-	if (msg.type != "dieroll") return false
-	let die = "1d6"
-	if (msg.die) die = msg.die
-	const da = die.split('d')
-	let s = 0
-	for (let i = 0; i < da[0]; i++)
-		s += (Math.floor(Math.random() * da[1]) + 1)
-	msg.result = s
-	const reply = JSON.stringify(msg)
-	if (A) A.send(reply)
-	if (B) B.send(reply)
-	log("DieRoll", msg)
-}
-
-
-// https://stackoverflow.com/questions/69485407/why-is-received-websocket-data-coming-out-as-a-buffer
-function messageFromA(message) {
-	const msg = message.toString()
-	if (isSaveRestore(msg)) return
-	if (isDieRoll(message)) return
-	if (B) B.send(msg)
-	log("A->B", msg)
-}
-function messageFromB(message) {
-	const msg = message.toString()
-	if (isSaveRestore(msg)) return
-	if (isDieRoll(msg)) return
-	if (A) A.send(msg)
-	log("B->A", msg)
-}
-function closeA() {
-	A = null
-	if (B) {
-		B.send('{"status":"disconnected"}')
-		B.close()
-		B = null
-	}
-}
-function closeB() {
-	B = null
-	if (A) {
-		A.send('{"status":"disconnected"}')
-		A.close()
-		A = null
-	}
-}
-function onConnection(socket) {
-	if (A && B) {
-		socket.send('{"status":"busy"}')
-		socket.close()
+function cbMessage(message) {
+	const client = clients.get(this)
+	const msg = JSON.parse(message.toString())
+	log("Got message", msg, "from client", client.id)
+	if (msg.type == "server") {
+		serverMsg(client, msg)
 		return
 	}
-	if (A) {
-		// A connection with 'A' exist. This connection becomes 'B',
-		// and we must inform 'A' that both players are now connected
-		B = socket
-		B.on('message', messageFromB)
-		B.on('close', closeB)
-		B.on('error', closeB)
-		const msg = '{"status":"connected", "player":"B"}'
-		log("S->B", msg)
-		B.send(msg)
-		log("S->A", msg)
-		A.send(msg)
-	} else {
-		// The first to connect becomes player 'A'
-		A = socket
-		A.on('message', messageFromA)
-		A.on('close', closeA)
-		A.on('error', closeA)
-		const msg = '{"status":"connected", "player":"A"}'
-		log("S->A", msg)
-		A.send(msg)
+	// Peer messages are relayed to all connected clients with an
+	// "info" object, except the sending client
+	msg.from = client.id
+	const jsonMsg = JSON.stringify(msg)
+	for (const c of clients.values()) {
+		if (c.id == client.id) continue
+		if (!c.info) continue
+		c.ws.send(jsonMsg)
 	}
-	socket.addEventListener('error', error => {
-		console.error('WebSocket error:', error)
+}
+function cbClose() {
+	const client = clients.get(this)
+	clients.delete(this)
+	log("Close, client", client.id)
+	sendConnected()
+}
+function send(client, msg) {
+	dbg("Send", client.id, msg)
+	client.ws.send(JSON.stringify(msg))
+}
+// Handle message to the server
+function serverMsg(client, msg) {
+	if (msg.info) {
+		// This is part of the connection handshake. The "info" object
+		// is stored in the client object, but the content is yet not
+		// interpreted.
+		client.info = msg.info
+		// The client awaits a reply
+		send(client, {
+			type: "server",
+			// TODO: something useful, e.g. check accept/reject ...
+			join: "accepted",
+		})
+		sendConnected()			// Update connection state
+		return
+	}
+	if (msg.dieroll) {
+		dieroll(client, msg)
+		return
+	}
+}
+// Send connected update whenever a client is added or removed
+function sendConnected() {
+	const connected = []
+	for (const c of clients.values()) {
+		if (c.info) connected.push(c.id)
+	}
+	sendToAll({
+		type: "server",
+		connected: connected,
 	})
+}
+function sendToAll(msg) {
+	const jsonMsg = JSON.stringify(msg)
+	for (const c of clients.values()) {
+		if (c.info) c.ws.send(jsonMsg)
+	}
+}
+
+// ----------------------------------------------------------------------
+// Die-roll
+
+function dieroll(client, msg) {
+	msg.dieroll = rollDie(msg.dieroll)
+	// Send the reply to the calling client
+	send(client, msg)
+	// Send the dieroll to all other clients, but not as a reply
+	delete msg.request
+	msg.from = client.id
+	const jsonMsg = JSON.stringify(msg)
+	for (const c of clients.values()) {
+		if (c.info && c.id != client.id) c.ws.send(jsonMsg)
+	}
+}
+function rollDie(die) {
+	if (!die) die = "1d6"
+	const ns = die.split('d')
+	const n = Number(ns[0])
+	const s = Number(ns[1])
+	let sum = 0
+	for (let i = 0; i < n; i++) {
+		sum += Math.floor(Math.random() * s) + 1
+	}
+	return sum
 }

@@ -7,19 +7,21 @@
 */
 
 import Konva from 'konva'
-import {ui, grid, box, unit, sequence, map} from '@uablrek/hex-games'
+import {ui, grid, box, unit, sequence, map, server} from '@uablrek/hex-games'
 import mapData from './example-map.svg'
 import crtData from './crt.svg'
 import mapProperties from './map-data.json'
+import helpTxt from './help.txt'
+sequence.parseSeqHelp(helpTxt)
 
 let board
 let crt
-let me
+let me = ''
 let attackerFactorsToRemove = 0
 let defenderFactorsToRemove = 0
 let href
-//let log = console.log
-let log = function(){}
+let log = console.log
+//let log = function(){}
 
 const keyFn = [
 	{key:'h', fn:createHelpBox},
@@ -41,6 +43,10 @@ function rotateStack(e) {
 	unit.rotateStack(hex)
 }
 function nextStep(e) {
+	if (g.phase == "Welcome") {
+		sequence.nextStep()
+		return
+	}
 	if (!me || me != g.player) return
 	if (attackerFactorsToRemove > 0) {
 		alert(`Attacker have ${attackerFactorsToRemove} factors to remove`)
@@ -106,51 +112,48 @@ function unitClick(e) {
 }
 
 // ----------------------------------------------------------------------
-// Websocket related
-let ws
-let url
+// Server related
 
-function openConnection(_url) {
-	url = _url
-	ws = new WebSocket(url)
-	ws.onclose = retryConnection
-	ws.onerror = retryConnection
-	ws.onmessage = handleConnectMessage
-	updateTurnBox("Connecting...")
+const client = {
+	cbMessage: cbMessage,
+	cbClose: cbClose,
 }
-function retryConnection() {
-	ws = null
-	status = null
-	setTimeout(openConnection, 2000, url)
+
+function cbClose() {
+	alert("Lost connection")
 }
-function handleConnectMessage(_msg) {
-	// This should be a json-status message
-	let msg = JSON.parse(_msg.data)
-	if (msg.status != "connected") {
-		updateTurnBox(`Status: ${msg.status}`)
+function cbMessage(msg) {
+	log("cbMessage", msg)
+	if (msg.type == "server") {
+		if (msg.connected) handleConnectMessage(msg)
 		return
 	}
-	// First player to connect becomes player 'A' and French
+	handlePeerMessage(msg)
+}
+
+function handleConnectMessage(msg) {
+	// First player to connect becomes French.
+	// That is, if my client-id is the lowest in the "connected" array
+	
 	if (!me) {
 		if (msg.player == 'A') {
 			me = "French"
 			// We must wait for the English player
-			updateTurnBox("Waiting for English player...")
+			updateInfoBox("Waiting for English player...")
 			return
 		} else
 			// Here we know that player 'A' is already connected as French
 			me = "English"
 	}
 	g.player = "English"
-	updateTurnBox(`You are playing as: ${me}`)
+	updateInfoBox(`You are playing as: ${me}`)
 	ws.onclose = brokenConnection
 	ws.onerror = brokenConnection
 	ws.onmessage = handlePeerMessage
 	sequence.nextStep()
 }
-function handlePeerMessage(_msg) {
+function handlePeerMessage(msg) {
 	// A message from the other player
-	let msg = JSON.parse(_msg.data)
 	let u
 	switch (msg.type) {
 	case "nextstep":
@@ -282,9 +285,9 @@ function checkFrenchVictory() {
 // ----------------------------------------------------------------------
 // Sequences
 
-function updatePhase(seq) {
+function updatePhase(seq, txt) {
 	g.phase = seq.currentStep.name
-	updateTurnBox()
+	updateInfoBox(txt)
 }
 
 // This is the top sequence
@@ -292,14 +295,29 @@ sequence.add(new sequence.Sequence({
 	name: "game",
 	steps: [
 		{
-			name: "Connect to Server", // 0
+			name: "Welcome",
 			start: function(seq) {
-				let url = 'ws://localhost:8081/ws'
-				if (href.protocol != "file:")
-					url = `ws://${href.host}/ws`
-				console.log(`Connecting to ${url} ...`)
-				openConnection(url)
+				updatePhase(seq)
+			}
+		},
+		{
+			name: "Connect to Server",
+			start: function(seq) {
+				client.url = server.getUrl()
+				updatePhase(seq, `Server URL: ${client.url}`)
+				server.join(client, {}).then(sequence.nextStep)
 			},
+		},
+		{
+			start: function(seq) {
+				if (!client.id) {
+					alert("Connection failed")
+					return
+				}
+				log("Connected as client:", client.id)
+				if (server.local)
+					log("Connected to the local server (AI)")
+			}
 		},
 		{
 			name: "English Deployment", // 1
@@ -627,27 +645,29 @@ function createHelpBox() {
 	})
 	board.add(theHelpBox)
 }
-let theTurnBox
-function createTurnBox() {
-	if (theTurnBox) return
-	theTurnBox = box.info({
-		x: 800,
+let theInfoBox
+function createInfoBox() {
+	theInfoBox = box.info({
+		x: window.innerWidth - 500,
 		y: 100,
 		width: 400,
-		height: 160,
+		height: 600,
 		destroyable: false,
 	})
-	updateTurnBox()
-	board.add(theTurnBox)
+	board.add(theInfoBox)
 }
-function updateTurnBox(info) {
-	if (!theTurnBox) return
+function updateInfoBox(info) {
 	let m = String(g.turn.m).padStart(2, '0')
 	let str = `April 6 1806, ${g.turn.h}:${m}\n`
 	str += `Player: ${me}\n`
-	str += `Current player: ${g.player}\nPhase: ${g.phase}\n`
+	str += `Current player: ${g.player}\n\n`
+	const help = sequence.getSeqHelp(g.phase)
+	if (help) {
+		str += help
+		str += "\n\n"
+	}
 	if (info) str += info
-	box.update(theTurnBox, str)
+	box.update(theInfoBox, str, g.phase)
 }
 
 // ----------------------------------------------------------------------
@@ -924,7 +944,7 @@ function handleEX(a, d) {
 		removeDefenders()
 		// The attacker marks are still on
 		attackerFactorsToRemove = d
-		updateTurnBox(`Attacker must remove ${d} factors`)
+		updateInfoBox(`Attacker must remove ${d} factors`)
 	} else {
 		removeAttackers()
 		// The peer-player should remove units
@@ -934,7 +954,7 @@ function handleEX(a, d) {
 		targetMarker = null
 		for (const u of targetHex.units) unit.addMark1(u, 'red')
 		defenderFactorsToRemove = a
-		updateTurnBox(`Defender must remove ${a} factors`)
+		updateInfoBox(`Defender must remove ${a} factors`)
 	}
 }
 function exDone() {
@@ -943,7 +963,7 @@ function exDone() {
 	unsetAttackers()
 	if (targetHex)
 		for (const u of targetHex.units) unit.removeMark1(u)
-	updateTurnBox()
+	updateInfoBox()
 }
 
 // ----------------------------------------------------------------------
@@ -974,8 +994,6 @@ function exDone() {
 	board.add(mapImage)
 	for (const h of map.hexMap.values())
 		if (h.prop && h.prop.includes("o")) objectives.add(h)
-	//createHelpBox()
-	href = new URL(location.href)
+	createInfoBox()
 	sequence.nextStep()
-	createTurnBox()
 })()

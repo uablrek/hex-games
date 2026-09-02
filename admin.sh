@@ -384,13 +384,13 @@ generateIndex() {
 	cat > index.html <<EOF
 <!DOCTYPE html>
 <html>
-  <style>body, html { margin: 0; padding: 0; }</style>
   <head>
-        <title>$description</title>
-        <script defer src="bundle.js"></script>
+     <style>body, html { margin: 0; padding: 0; }</style>
+     <title>$description</title>
+     <script defer src="bundle.js"></script>
   </head>
   <body>
-        <div id='container'></div>
+     <div id='container' style="background-color: #7A766F"></div>
   </body>
 </html>
 EOF

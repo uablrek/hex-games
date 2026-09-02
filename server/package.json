@@ -1,10 +1,8 @@
 {
-  "name": "the-hill-server",
+  "name": "hex-games-server",
   "version": "1.0.0",
-  "description": "Battle for The Hill - Server",
+  "description": "A generic server for turn-based games",
   "main": "main.js",
-  "scripts": {
-  },
   "keywords": [],
   "author": "",
   "license": "CC-BY-4.0",

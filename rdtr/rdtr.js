@@ -19,7 +19,7 @@ import {href} from './rdtr-game.js'
 // Globals
 const version = 5				// The version of scenario/save files
 export var g = {}				// Game status. This is loaded/saved
-const release = {version:"4.3.0", date:"2026-08-04"}
+const release = {version:"4.3.0-rc1", date:"2026-09-02"}
 
 const playerStr = {
 	nu: "Neutrals",
