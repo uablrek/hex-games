@@ -1,0 +1,9 @@
+{
+  "name": "test-map",
+  "version": "1.0.0",
+	"description": "Lgeneral - test map",
+  "license": "CC-BY-4.0",
+  "author": "",
+  "type": "module",
+  "main": "main.js"
+}

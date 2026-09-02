@@ -1,0 +1,77 @@
+diff -ur -x '*.o' -x Makefile -x lgc-pg -x .deps -x shptool lgeneral-orig/lgc-pg/maps.c lgeneral-1.4.4/lgc-pg/maps.c
+--- lgeneral-orig/lgc-pg/maps.c	2020-10-31 11:02:28.000000000 +0100
++++ lgeneral-1.4.4/lgc-pg/maps.c	2026-08-31 16:04:05.457095179 +0200
+@@ -146,7 +146,7 @@
+         
+         /* open dest file */
+         if ( map_id == -1 )
+-            snprintf( path, MAXPATHLEN, "%s/maps/%s/map%02d", 
++            snprintf( path, MAXPATHLEN, "%s/maps/%s/map%02d.json", 
+                                                 dest_path, target_name, i );
+         else
+             snprintf( path, MAXPATHLEN, "%s/scenarios/%s",
+@@ -159,14 +159,14 @@
+         
+         /* magic for new file */
+         if ( map_id == -1 )
+-            fprintf( dest_file, "@\n" );
++            fprintf( dest_file, "{" );
+         /* terrain types */
+-        if (map_id == -1)
+-            fprintf( dest_file, "terrain_db=%s.tdb\n", target_name );
++        if (map_id == -1) {}
++            //fprintf( dest_file, "terrain_db=%s.tdb\n", target_name );
+         else
+             fprintf( dest_file, "terrain_db=pg.tdb\n" );
+         /* domain */
+-        fprintf( dest_file, "domain=pg\n" );
++        //fprintf( dest_file, "domain=pg\n" );
+         /* read/write map size */
+         width = height = 0;
+         fseek( source_file, 101, SEEK_SET );
+@@ -176,35 +176,36 @@
+         _fread( &height, 2, 1, source_file ); 
+         height = SDL_SwapLE16( height );
+         width++; height++;
+-        fprintf( dest_file, "width=%i\nheight=%i\n", width, height );
++        fprintf(
++			dest_file, "\"width\":%i,\"height\":%i", width, height );
+         /* picture ids */
+         fseek( source_file, 123 + 5 * width * height, SEEK_SET );
+-        fprintf( dest_file, "tiles=" );
++        fprintf( dest_file, ",\"tiles\":[" );
+         for ( y = 0; y < height; y++ ) {
+             for ( x = 0; x < width; x++ ) {
+                 tile_id = 0;
+                 _fread( &tile_id, 2, 1, source_file ); 
+                 tile_id = SDL_SwapLE16( tile_id );
+                 tile_get_id_string( tile_id, map_tile_str );
+-                fprintf( dest_file, "%s", map_tile_str );
++                fprintf( dest_file, "\"%s\"", map_tile_str );
+                 if ( y < height - 1 || x < width - 1 )
+-                    fprintf( dest_file, "&" );
++                    fprintf( dest_file, "," );
+             }
+         }
+-        fprintf( dest_file, "\n" );
+-        fprintf( dest_file, "names=" );
++        fprintf( dest_file, "]," );
++        fprintf( dest_file, "\"names\":[" );
+         fseek( source_file, 123, SEEK_SET );
+         for ( y = 0; y < height; y++ ) {
+             for ( x = 0; x < width; x++ ) {
+                 ibuf = 0; _fread( &ibuf, 2, 1, source_file );
+                 ibuf = SDL_SwapLE16( ibuf );
+                 tile_get_name( name_file, ibuf, name_buf );
+-                fprintf( dest_file, "%s", name_buf );
++                fprintf( dest_file, "\"%s\"", name_buf );
+                 if ( y < height - 1 || x < width - 1 )
+-                    fprintf( dest_file, "&" );
++                    fprintf( dest_file, "," );
+             }
+         }
+-        fprintf( dest_file, "\n" );
++        fprintf( dest_file, "]}" );
+         fclose( source_file );
+         fclose( dest_file );
+     }

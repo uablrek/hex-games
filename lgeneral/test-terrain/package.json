@@ -1,0 +1,9 @@
+{
+  "name": "test-terrain",
+  "version": "1.0.0",
+	"description": "Lgeneral - test terrain",
+  "license": "CC-BY-4.0",
+  "author": "",
+  "type": "module",
+  "main": "main.js"
+}

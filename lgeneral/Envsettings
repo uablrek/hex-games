@@ -1,0 +1,8 @@
+eval $(./lg.sh alias)
+eval $(./lg.sh env | grep WS=)
+eval $(./lg.sh env | grep idir=)
+alias cdh="cd $PWD"
+alias cdws="cd $WS"
+alias cdi="cd $idir"
+alias lsws="ls -lFh $WS"
+hd "Hex-games/lgeneral"

@@ -1,0 +1,9 @@
+{
+  "name": "test-tiles",
+  "version": "1.0.0",
+	"description": "Lgeneral - test terrain tiles",
+  "license": "CC-BY-4.0",
+  "author": "",
+  "type": "module",
+  "main": "main.js"
+}
