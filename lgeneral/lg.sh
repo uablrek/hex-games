@@ -133,6 +133,19 @@ cmd_emit_terrain() {
 	done
 	echo "])"
 }
+##   emit-map
+##     Emit js-code for map data
+cmd_emit_map() {
+	local sdir=$idir/share/lgeneral/scenarios/pg
+	test -d $sdir || die "Not a directory [$sdir]"
+	cd $sdir
+	local map sc
+	for i in $(seq 1 38); do
+		map=$(printf "map%02d" $i)
+		sc=$(grep $map * | cut -d: -f1)
+		echo "\t$map: {data: $map, name: \"$sc\"},"
+	done
+}
 ##   sdl12
 ##     Unpack and build SDL12-compat
 cmd_sdl12() {

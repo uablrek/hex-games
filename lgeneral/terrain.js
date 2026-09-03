@@ -3,6 +3,45 @@
   Handles terrain tiles for:
   https://github.com/uablrek/hex-games/tree/main/lgeneral
 */
+const dbg = console.log
+
+
+export async function init() {
+	let p = []
+	for (const t of tdata.values()) {
+		t.img = new Image()
+		t.img.src = t.data
+		p.push(new Promise(resolve => t.img.onload = resolve))
+	}
+	// Load image should never fail since data is local
+	await Promise.all(p)
+
+	// Create hex tiles
+	for (const [k,t] of tdata.entries()) {
+		const n = t.img.width / 60
+		t.tile = new Array(n)
+		for (let i = 0; i < n; i++) {
+			t.tile[i] = new Konva.Image({
+				crop: {
+					x: i * 60,
+					y: 0,
+					width: 60,
+					height: 50,
+				},
+				width: 60,
+				image: t.img,
+				offset: {
+					x: 60 / 2,
+					y: 50 / 2,
+				},
+			})
+		}
+	}
+	return 0
+}
+
+// ----------------------------------------------------------------------
+// Data
 import airfield_data from './airfield.png'
 import airfield_rain_data from './airfield_rain.png'
 import airfield_snow_data from './airfield_snow.png'
@@ -49,7 +88,6 @@ import town_data from './town.png'
 import town_rain_data from './town_rain.png'
 import town_snow_data from './town_snow.png'
 
-const dbg = console.log
 
 export const tdata = new Map([
 	["airfield", {data: airfield_data}],
@@ -98,37 +136,3 @@ export const tdata = new Map([
 	["town_rain", {data: town_rain_data}],
 	["town_snow", {data: town_snow_data}],
 ])
-
-export async function init() {
-	let p = []
-	for (const t of tdata.values()) {
-		t.img = new Image()
-		t.img.src = t.data
-		p.push(new Promise(resolve => t.img.onload = resolve))
-	}
-	// Load image should never fail since data is local
-	await Promise.all(p)
-
-	// Create hex tiles
-	for (const [k,t] of tdata.entries()) {
-		const n = t.img.width / 60
-		t.tile = new Array(n)
-		for (let i = 0; i < n; i++) {
-			t.tile[i] = new Konva.Image({
-				crop: {
-					x: i * 60,
-					y: 0,
-					width: 60,
-					height: 50,
-				},
-				width: 60,
-				image: t.img,
-				offset: {
-					x: 60 / 2,
-					y: 50 / 2,
-				},
-			})
-		}
-	}
-	return 0
-}

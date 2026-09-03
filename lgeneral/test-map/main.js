@@ -3,11 +3,13 @@
   This is a test program for for:
   https://github.com/uablrek/hex-games/tree/main/lgeneral
 */
-import {ui, grid} from '@uablrek/hex-games'
+import {ui, grid, box} from '@uablrek/hex-games'
 import * as terrain from './terrain.js'
 import * as map from './map.js'
 const dbg = console.log
 const board = ui.stage()
+const info = new Konva.Layer({name: "info"})
+board.getStage().add(info)
 
 // Keyboard
 ui.setKeys([
@@ -17,10 +19,12 @@ ui.setKeys([
 	{key:'s', fn:setMap},
 ])
 function hexGrid() {
-	if (map.hexGrid.getParent())
-		map.hexGrid.remove()
-	else
-		board.add(map.hexGrid)
+	if (map.hexGrid.isVisible())
+		map.hexGrid.hide()
+	else {
+		map.hexGrid.position(shownMap.position())
+		map.hexGrid.show()
+	}
 }
 let shownMap
 function setMap(e) {
@@ -48,6 +52,31 @@ function setMap(e) {
 	shownMap = img
 }
 
+// Infobox
+let infoBox
+function createInfoBox() {
+	window.innerWidth
+    infoBox = box.info({
+        x: window.innerWidth/2 - 200,
+        y: 30,
+        width: 400,
+        height: 50,
+        destroyable: false,
+    })
+    info.add(infoBox)
+}
+function updateInfoBox(info) {
+	box.update(infoBox, "", info)
+}
+let currentHex = null
+function updateHexInfo(e) {
+	const h = map.hexFromPointer(shownMap.getRelativePointerPosition())
+	if (h != currentHex) {
+		currentHex = h
+		updateInfoBox(h ? h.name : " ")
+	}
+}
+
 // ----------------------------------------------------------------------
 // main
 ;(async () => {
@@ -63,5 +92,12 @@ function setMap(e) {
 	}
 	shownMap = map.image.clear
 	board.add(shownMap)
-	hexGrid()
+	board.add(map.hexGrid)
+	if (true) {
+		shownMap.on('mousemove', updateHexInfo)
+		map.hexGrid.on('mousemove', updateHexInfo)
+	}
+	createInfoBox()
+	const scenario = map.maps[mapName].name
+	updateInfoBox(scenario)
 })()

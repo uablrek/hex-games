@@ -90,7 +90,7 @@ export async function init(mapName) {
     pattern.src = grid.patternSvg("gray")
     await new Promise(resolve => pattern.onload = resolve)
 	hexGrid =  new Konva.Rect({
-        width: width*60,
+        width: width*43.8 + 60,
         height: height*50,
         fillPatternImage: pattern,
         fillPatternRepeat: 'repeat',
@@ -99,6 +99,19 @@ export async function init(mapName) {
     })
     hexGrid.cache()
 	return 0
+}
+// Get the hex object from a pointer position
+let currentHex = {x:-10,y:-10}
+let currentHexObject = null
+export function hexFromPointer(pos) {
+	// why is an offset needed?
+	const hex = grid.pixelToHex({x:pos.x-10, y:pos.y-25})
+	if (hex.x != currentHex.x || hex.y != currentHex.y) {
+		//dbg(hex)
+		currentHex = hex
+		currentHexObject = map.getHex(currentHex)
+	}
+	return currentHexObject
 }
 
 // ----------------------------------------------------------------------
@@ -141,45 +154,45 @@ import map35 from './map35.json'
 import map36 from './map36.json'
 import map37 from './map37.json'
 import map38 from './map38.json'
-const maps = {
-	map01: {data: map01},
-	map02: {data: map02},
-	map03: {data: map03},
-	map04: {data: map04},
-	map05: {data: map05},
-	map06: {data: map06},
-	map07: {data: map07},
-	map08: {data: map08},
-	map09: {data: map09},
-	map10: {data: map10},
-	map11: {data: map11},
-	map12: {data: map12},
-	map13: {data: map13},
-	map14: {data: map14},
-	map15: {data: map15},
-	map16: {data: map16},
-	map17: {data: map17},
-	map18: {data: map18},
-	map19: {data: map19},
-	map20: {data: map20},
-	map21: {data: map21},
-	map22: {data: map22},
-	map23: {data: map23},
-	map24: {data: map24},
-	map25: {data: map25},
-	map26: {data: map26},
-	map27: {data: map27},
-	map28: {data: map28},
-	map29: {data: map29},
-	map30: {data: map30},
-	map31: {data: map31},
-	map32: {data: map32},
-	map33: {data: map33},
-	map34: {data: map34},
-	map35: {data: map35},
-	map36: {data: map36},
-	map37: {data: map37},
-	map38: {data: map38},
+export const maps = {
+	map01: {data: map01, name: "Poland"},
+	map02: {data: map02, name: "Warsaw"},
+	map03: {data: map03, name: "Norway"},
+	map04: {data: map04, name: "LowCountries"},
+	map05: {data: map05, name: "France"},
+	map06: {data: map06, name: "Sealion40"},
+	map07: {data: map07, name: "NorthAfrica"},
+	map08: {data: map08, name: "MiddleEast"},
+	map09: {data: map09, name: "ElAlamein"},
+	map10: {data: map10, name: "Caucasus"},
+	map11: {data: map11, name: "Sealion43"},
+	map12: {data: map12, name: "Torch"},
+	map13: {data: map13, name: "Husky"},
+	map14: {data: map14, name: "Anzio"},
+	map15: {data: map15, name: "D-Day"},
+	map16: {data: map16, name: "Anvil"},
+	map17: {data: map17, name: "Ardennes"},
+	map18: {data: map18, name: "Cobra"},
+	map19: {data: map19, name: "MarketGarden"},
+	map20: {data: map20, name: "BerlinWest"},
+	map21: {data: map21, name: "Balkans"},
+	map22: {data: map22, name: "Crete"},
+	map23: {data: map23, name: "Barbarossa"},
+	map24: {data: map24, name: "Kiev"},
+	map25: {data: map25, name: "Moscow41"},
+	map26: {data: map26, name: "Sevastapol"},
+	map27: {data: map27, name: "Moscow42"},
+	map28: {data: map28, name: "Stalingrad"},
+	map29: {data: map29, name: "Kharkov"},
+	map30: {data: map30, name: "Kursk"},
+	map31: {data: map31, name: "Moscow43"},
+	map32: {data: map32, name: "Byelorussia"},
+	map33: {data: map33, name: "Budapest"},
+	map34: {data: map34, name: "BerlinEast"},
+	map35: {data: map35, name: "Berlin"},
+	map36: {data: map36, name: "Washington"},
+	map37: {data: map37, name: "EarlyMoscow"},
+	map38: {data: map38, name: "SealionPlus"},
 }
 const tcode = new Map([
 	["c", "clear"],
