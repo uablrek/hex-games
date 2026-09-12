@@ -1,6 +1,58 @@
+diff -ur -x '*.o' -x Makefile -x lgeneral -x .deps -x .dirstamp lgeneral-orig/src/slot.c lgeneral-1.4.4/src/slot.c
+--- lgeneral-orig/src/slot.c	2021-01-06 09:28:42.000000000 +0100
++++ lgeneral-1.4.4/src/slot.c	2026-09-11 06:39:03.350590852 +0200
+@@ -226,7 +226,7 @@
+ ====================================================================
+ */
+ enum UnitStoreParams {
+-    UnitLibSize = 4*sizeof(void *) + 26*sizeof(int) + TARGET_TYPE_LIMIT*sizeof(int)
++    UnitLibSize = 4*sizeof(void *) + 27*sizeof(int) + TARGET_TYPE_LIMIT*sizeof(int)
+ #ifdef WITH_SOUND
+             + 1*sizeof(void *) + 1*sizeof(int)
+ #endif
+diff -ur -x '*.o' -x Makefile -x lgeneral -x .deps -x .dirstamp lgeneral-orig/src/unit_lib.c lgeneral-1.4.4/src/unit_lib.c
+--- lgeneral-orig/src/unit_lib.c	2020-10-31 11:02:31.000000000 +0100
++++ lgeneral-1.4.4/src/unit_lib.c	2026-09-11 06:39:03.350739681 +0200
+@@ -446,6 +446,7 @@
+          * if picture_type is not ALL_DIRS, picture is a single picture looking to the right;
+          * add a flipped picture looking to the left 
+          */
++		unit->icon_o = offset;
+         if ( unit->icon_type == UNIT_ICON_ALL_DIRS ) {
+             unit->icon = create_surf( width * 6, height, SDL_SWSURFACE );
+             unit->icon_w = width;
+@@ -571,6 +572,17 @@
+                 unit->eval_score /= best_ground;
+         }
+     }
++	list_reset(unit_lib);
++#if 1
++	FILE* jsf = fopen("/tmp/units.js", "w");
++    while (unit = list_next(unit_lib)) {
++		fprintf(
++			jsf,
++			"{name:\"%s\",id:%s,o:%d,w:%d,h:%d},\n",
++			unit->name, unit->id, unit->icon_o, unit->icon_w, unit->icon_h);
++	}
++	fclose(jsf);
++#endif
+     free(domain);
+     SDL_FreeSurface(icons);
+     return 1;
+diff -ur -x '*.o' -x Makefile -x lgeneral -x .deps -x .dirstamp lgeneral-orig/src/unit_lib.h lgeneral-1.4.4/src/unit_lib.h
+--- lgeneral-orig/src/unit_lib.h	2020-10-31 11:02:32.000000000 +0100
++++ lgeneral-1.4.4/src/unit_lib.h	2026-09-11 06:39:03.350846259 +0200
+@@ -145,6 +145,7 @@
+     SDL_Surface *icon_tiny; /* half the size; used to display air and ground unit at one tile */
+     int icon_type;          /* either single or all_dirs */
+     int icon_w, icon_h;     /* single icon size */
++    int icon_o;
+     int icon_tiny_w, icon_tiny_h; /* single icon size */
+     int flags;
+     int start_year, start_month, last_year; /* time of usage */
 diff -ur -x '*.o' -x Makefile -x lgc-pg -x .deps -x shptool lgeneral-orig/lgc-pg/maps.c lgeneral-1.4.4/lgc-pg/maps.c
 --- lgeneral-orig/lgc-pg/maps.c	2020-10-31 11:02:28.000000000 +0100
-+++ lgeneral-1.4.4/lgc-pg/maps.c	2026-08-31 16:04:05.457095179 +0200
++++ lgeneral-1.4.4/lgc-pg/maps.c	2026-09-11 06:39:03.350923717 +0200
 @@ -146,7 +146,7 @@
          
          /* open dest file */
@@ -75,3 +127,90 @@ diff -ur -x '*.o' -x Makefile -x lgc-pg -x .deps -x shptool lgeneral-orig/lgc-pg
          fclose( source_file );
          fclose( dest_file );
      }
+diff -ur -x '*.o' -x Makefile -x lgc-pg -x .deps -x shptool lgeneral-orig/lgc-pg/scenarios.c lgeneral-1.4.4/lgc-pg/scenarios.c
+--- lgeneral-orig/lgc-pg/scenarios.c	2021-01-06 08:21:03.000000000 +0100
++++ lgeneral-1.4.4/lgc-pg/scenarios.c	2026-09-11 16:31:11.883739901 +0200
+@@ -42,7 +42,6 @@
+ extern const char *axis_nations, *allies_nations;
+ 
+ int unit_entry_used[UDB_LIMIT];
+-
+ /*
+ ====================================================================
+ The scenario result is determined by a list of conditions.
+@@ -249,7 +248,7 @@
+ are saved there.
+ ====================================================================
+ */
+-int scen_add_flags( FILE *dest_file, FILE *scen_file, int id )
++int scen_add_flags( FILE *dest_file, FILE *scen_file, int id , FILE* jsf)
+ {
+     FILE *map_file;
+     char path[MAXPATHLEN];
+@@ -284,6 +283,7 @@
+     _fread( &height, 2, 1, map_file ); 
+     height = SDL_SwapLE16(height);
+     width++; height++;
++	char* sep = "";
+     /* owner info */
+     fseek( map_file, 123 + 3 * width * height, SEEK_SET );
+     for ( y = 0; y < height; y++ ) {
+@@ -296,6 +296,10 @@
+                         obj = 1; break;
+                     }
+                 fprintf( dest_file, "<flag\nx=%i\ny=%i\nnation=%s\nobj=%i\n>\n", x, y, nations[(ibuf - 1) * 3], obj );
++				fprintf(
++					jsf, "%s{\"hex\":{\"x\":%d,\"y\":%d},\"nation\":\"%s\",\"obj\":%s}",
++					sep,x,y, nations[(ibuf - 1) * 3], obj ? "true":"false");
++				sep = ",";
+             }
+         }
+     }
+@@ -998,10 +1002,12 @@
+             fprintf( stderr, "%s: access denied\n", path );
+             goto failure;
+         }
+-        
++		char jsfName[64];
++		sprintf(jsfName, "/tmp/%s.json", scentitle_to_filename(scen_title));
++        FILE* jsf = fopen(jsfName, "w");
+         /* file magic */
+         fprintf( dest_file, "@\n" );
+-        
++        fprintf(jsf, "{\"name\":\"%s\",\"desc\":\"%s\"", scen_title, scen_desc);
+         /* scenario name and description */
+         fprintf( dest_file, "name=%s\n", scen_title );
+         fprintf( dest_file, "desc=%s\n", scen_desc );
+@@ -1045,8 +1051,10 @@
+            a custom scenario will have the map added to the same file which
+            will be checked when no map was specified.
+            */
+-        if ( scen_id == -1 )
++        if ( scen_id == -1 ) {
+             fprintf( dest_file, "map=%s/map%02d\n", target_name, i );
++            fprintf(jsf, ",\"map\":\"map%02d\"", i);
++		}
+         /* weather */
+         if (scen_id == -1 && strcmp(target_name,"pg") == 0)
+             scen_create_pg_weather( dest_file, i-1, scen_file, turns );
+@@ -1054,8 +1062,10 @@
+             scen_create_random_weather( dest_file, scen_file, month, turns );
+         /* flags */
+         fprintf( dest_file, "<flags\n" );
+-        if ( !scen_add_flags( dest_file, scen_file, i ) ) goto failure;
++		fprintf(jsf, ",\"flags\":[");
++        if ( !scen_add_flags( dest_file, scen_file, i, jsf ) ) goto failure;
+         fprintf( dest_file, ">\n" );
++		fprintf(jsf, "]");
+         /* get unit offset */
+         fseek( scen_file, 117, SEEK_SET );
+         ibuf = 0; _fread( &ibuf, 1, 1, scen_file );
+@@ -1272,6 +1282,8 @@
+         fprintf( dest_file, ">\n" );
+         fclose( scen_file );
+         fclose( dest_file );
++		fprintf(jsf, "}");
++		fclose(jsf);
+     }
+     if ( scenstat_file ) 
+         fclose( scenstat_file );

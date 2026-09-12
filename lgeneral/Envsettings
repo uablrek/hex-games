@@ -1,6 +1,7 @@
 eval $(./lg.sh alias)
 eval $(./lg.sh env | grep WS=)
 eval $(./lg.sh env | grep idir=)
+export LD_LIBRARY_PATH=$WS/sdl12-compat-1.2.70/build
 alias cdh="cd $PWD"
 alias cdws="cd $WS"
 alias cdi="cd $idir"

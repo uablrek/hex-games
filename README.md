@@ -16,9 +16,10 @@ I was trying to get the old (1974) board game [Rise and Decline of the
 Third Reich](rdtr/README.md) (RDTR) to run in a browser. It turned out
 to be far too complex to start with. So, instead I tried [Napoleon at
 Waterloo](waterloo/README.md), but I got stuck on displacement on
-retreat, and AI. Now I am working with [Wooden Ships & Iron Men](
+retreat, and AI. I am working with [Wooden Ships & Iron Men](
 ws-im/README.md), which can be played against AI, but [lacks a lot of
-features](https://github.com/uablrek/hex-games/issues/3).
+features](https://github.com/uablrek/hex-games/issues/3). I also
+experiment with tile-based maps in [LGeneral](./lgeneral/README.md).
 
 #### Try a release
 

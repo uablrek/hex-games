@@ -14,6 +14,7 @@ export let hexGrid
 
 export async function init(mapName) {
 	if (!(mapName in maps)) return -1
+	await terrain.init()
 	const m = maps[mapName]
 	// Check data
 	const nTiles = m.data.tiles.length

@@ -100,6 +100,7 @@ cmd_env() {
 ##     Clean $WS
 cmd_clean() {
 	rm -rf $WS
+	rm -f /tmp/units.js /tmp/*.json
 }
 ##   versions
 ##     Print versions and archives
@@ -116,11 +117,12 @@ cmd_versions() {
 ##   emit-terrain
 ##     Emit js-code for terrain data
 cmd_emit_terrain() {
-	cmd_data
 	local t
 	local ex='crosshair|damage_bars|danger|explosion|flags|fog|grid|select_frame|units'
 	mkdir -p $tmp
-	for t in $(ls $WS/data | sed -e 's,.png,,'); do
+	test -d $WS/data || die "Data not generated"
+	cd $WS/data
+	for t in $(ls *.png | sed -e 's,.png,,'); do
 		echo $t | grep -q -E "$ex" && continue
 		echo $t >> $tmp/t
 	done
@@ -139,11 +141,39 @@ cmd_emit_map() {
 	local sdir=$idir/share/lgeneral/scenarios/pg
 	test -d $sdir || die "Not a directory [$sdir]"
 	cd $sdir
-	local map sc
+	local map sc i
 	for i in $(seq 1 38); do
 		map=$(printf "map%02d" $i)
 		sc=$(grep $map * | cut -d: -f1)
 		echo "\t$map: {data: $map, name: \"$sc\"},"
+	done
+}
+##   emit-scenario
+##     Emit js-code for scenario data
+cmd_emit_scenario() {
+	local sdir=$idir/share/lgeneral/scenarios/pg
+	test -d $sdir || die "Not a directory [$sdir]"
+	cd $sdir
+	local sc dn
+	for sc in *; do
+		dn=$(echo $sc | tr 'A-Z-' 'a-z_')
+		echo "import $dn from './$dn.json'"
+	done
+	for sc in *; do
+		dn=$(echo $sc | tr 'A-Z-' 'a-z_')
+		echo "\t['$sc', {data: $dn}],"
+	done
+}
+cmd_emit_scenario_list() {
+	local sdir=$idir/share/lgeneral/scenarios/pg
+	test -d $sdir || die "Not a directory [$sdir]"
+	cd $sdir
+	local map sc i
+	for i in $(seq 1 38); do
+		map=$(printf "map%02d" $i)
+		sc=$(grep $map * | cut -d: -f1)
+		test "$sc" = "Sevastapol" && sc="Sevastopol"
+		echo "* [$sc](index.html?scenario=$sc) ($map)"
 	done
 }
 ##   sdl12
@@ -197,49 +227,61 @@ cmd_build() {
 	local dst=$idir/share/lgeneral
 	$idir/bin/lgc-pg -s $tmp/pg-data -d $dst || die lgc-pg
 }
-##   data [--patch=] [--apply]
+##   data [--patch=] [--create]
 ##     Generate data for image, map, etc. to $WS/data.
-##     --patch creates a patch, --apply applies it
+##     Apply --patch, or use --create to create a new
 cmd_data() {
 	local dst=$WS/data
 	mkdir -p $dst
+	# convert images with https://imagemagick.org/
+	# Black, and the "marker" pixels in units, becomes transparent.
 	cd $idir/share/lgeneral/gfx
 	mogrify -format png -transparent black terrain/pg/*.bmp
 	mv terrain/pg/*.png $dst
 	mogrify -format png -transparent black units/pg.bmp
 	mv units/pg.png $dst/units.png
+	convert $dst/units.png -flop $dst/unitsL.png
+	mogrify -transparent '#00c2ff' $dst/units.png $dst/unitsL.png
 	mogrify -format png -transparent black flags/pg.bmp
 	mv flags/pg.png $dst/flags.png
-	json_data
-}
-json_data() {
-	local dst=$WS/data
-	mkdir -p $dst || die mkdir
-	if test -n "$__patch"; then
-		test -n "$__apply" && die "Not both patch and apply!"
-		test "$__patch" = "yes" && __patch=$dir/json.patch
+	# handle patch
+	eset __patch=$dir/json.patch
+	if test "$__create" = "yes"; then
+		rm -f $__patch
 		if ! test -d $WS/lgeneral-orig; then
 			findar $ver || dir "Not found [$ver]"
 			mkdir -p $WS/lgeneral-orig
 			tar -C $WS/lgeneral-orig --strip-components=1 -xf $f
 		fi
 		cd $WS
+		diff -ur -x '*.o' -x Makefile -x lgeneral -x .deps -x .dirstamp \
+			lgeneral-orig/src $ver/src > $__patch
 		diff -ur -x '*.o' -x Makefile -x lgc-pg -x .deps -x shptool \
-			lgeneral-orig/lgc-pg $ver/lgc-pg > $__patch
+			lgeneral-orig/lgc-pg $ver/lgc-pg >> $__patch
+	else
+		cd $WS/$ver
+		if grep -q "/tmp/units.js" ./src/unit_lib.c; then
+			log "Already patched"
+		else
+			patch -p1 < $__patch
+		fi
 	fi
+	# emit json data
 	findar pg-data || die "Not found [pg-data]"
 	mkdir -p $tmp $tmp/nations $tmp/gfx/flags $tmp/units $tmp/gfx/units \
 		$tmp/sounds/pg $tmp/maps $tmp/gfx/terrain/pg $tmp/scenarios/pg
 	tar -C $tmp -xf $f
-	if test -n "$__apply"; then
-		cd $WS/$ver
-		patch -p1 < $dir/json.patch
-	fi
 	cd $WS/$ver/lgc-pg
 	make || die "make lgc-pg"
 	./lgc-pg -s $tmp/pg-data -d $tmp || die lgc-pg
 	mkdir -p $dst
 	cp $(find $tmp -name '*.json') $dst
+	# Scenarios are generated to /tmp. Convert to lower-case and '_'
+	local f n
+	for f in /tmp/*.json; do
+		n=$(basename $f | tr 'A-Z-' 'a-z_')
+		mv $f $dst/$n
+	done
 }
 ##   cpdata <dir>
 ##     Copy game data
@@ -256,6 +298,13 @@ cmd_cpdata() {
 ##     Run LGeneral
 cmd_run() {
 	$idir/bin/lgeneral &
+}
+##   rebuild
+##     Clean and rebuild everything
+cmd_rebuild() {
+	$me clean
+	$me build
+	$me data
 }
 
 ##

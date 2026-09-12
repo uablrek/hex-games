@@ -1,0 +1,9 @@
+{
+  "name": "test-units",
+  "version": "1.0.0",
+	"description": "Lgeneral - test units",
+  "license": "CC-BY-4.0",
+  "author": "",
+  "type": "module",
+  "main": "main.js"
+}
