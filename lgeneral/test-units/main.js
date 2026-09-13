@@ -25,8 +25,10 @@ const board = ui.stage()
 			width: w,
 			height: h,
 		})
-		u.img.position({x:50 - u.w/2, y:20})
-		g.add(u.img)
+		const img = u.img.right
+		img.offset(u.offset)
+		img.position({x:50, y:20})
+		g.add(img)
 		const t = new Konva.Text({
 			y: 50,
 			width: w,

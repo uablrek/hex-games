@@ -4,7 +4,10 @@
   https://github.com/uablrek/hex-games/tree/main/lgeneral
 */
 
+import Konva from 'konva'
+import {grid} from '@uablrek/hex-games'
 import * as map from './map.js'
+let dbg = console.log
 
 export let sc
 
@@ -12,6 +15,33 @@ export async function init(scenarioName) {
 	if (!scenarios.has(scenarioName)) return -1
 	sc = scenarios.get(scenarioName)
 	if (await map.init(sc.data.map)) return -1
+	// Crop flags from the flag-image (1x24 flags)
+	const flagsImg = new Image()
+	flagsImg.src = flag_data
+	await new Promise(resolve => flagsImg.onload = resolve)
+	for (const n of Object.values(nation)) {
+		n.flag = new Konva.Image({
+			crop: {
+				x: 0,
+				y: n.id * 13,
+				width: 20,
+				height: 13,
+			},
+			height: 13,
+			image: flagsImg,
+		})
+	}
+	// Place flags on the grid
+	for (const t of sc.data.flags) {
+		const n = nation[t.nation]
+		const f = n.flag.clone({
+			offset: {x:10,y:6.5},
+		})
+		const pos = grid.hexToPixel(t.hex)
+		f.position({x:pos.x, y:pos.y+15})
+		map.hexGrid.add(f)
+	}
+	map.hexGrid.cache()			// re-cache with flags
 	return 0
 }
 
@@ -99,3 +129,30 @@ const scenarios = new Map([
 	['Warsaw', {data: warsaw}],
 	['Washington', {data: washington}],
 ])
+
+export const nation = {
+    aus: { name:"Austria", id: 0},
+    bel: { name:"Belgia", id: 1},
+    bul: { name:"Bulgaria", id: 2},
+    lux: { name:"Luxemburg", id: 3},
+    den: { name:"Denmark", id: 4},
+    fin: { name:"Finnland", id: 5},
+    fra: { name:"France", id: 6},
+    ger: { name:"Germany", id: 7},
+    gre: { name:"Greece", id: 8},
+    usa: { name:"USA", id: 9},
+    hun: { name:"Hungary", id: 10},
+    tur: { name:"Turkey", id: 11},
+    it:  { name:"Italy", id: 12},
+    net: { name:"Netherlands", id: 13},
+    nor: { name:"Norway", id: 14},
+    pol: { name:"Poland", id: 15},
+    por: { name:"Portugal", id: 16},
+    rum: { name:"Rumania", id: 17},
+    esp: { name:"Spain", id: 18},
+    so:  { name:"Sovjetunion", id: 19},
+    swe: { name:"Sweden", id: 20},
+    swi: { name:"Switzerland", id: 21},
+    eng: { name:"Great Bitain", id: 22},
+    yug: { name:"Yugoslavia", id: 23}
+}

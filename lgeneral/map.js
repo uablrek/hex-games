@@ -25,7 +25,7 @@ export async function init(mapName) {
 		return
 	}
 	// Configure the grid. Do this before any other grid operations!
-	grid.configure(50, 1.02, {x:0,y:0}, true)
+	grid.configure(50, 1.02, {x:-14,y:-25}, true)
 	// Build mapProperties and map groups
 	const mprop = new Array(nTiles)
 	const gClear = new Konva.Group()
@@ -90,14 +90,15 @@ export async function init(mapName) {
     const pattern = new Image()
     pattern.src = grid.patternSvg("gray")
     await new Promise(resolve => pattern.onload = resolve)
-	hexGrid =  new Konva.Rect({
+	hexGrid = new Konva.Group()
+	hexGrid.add(new Konva.Rect({
         width: width*43.8 + 60,
         height: height*50,
         fillPatternImage: pattern,
         fillPatternRepeat: 'repeat',
         fillPatternScale: grid.patternScale(),
 		offsetX: 29,
-    })
+    }))
     hexGrid.cache()
 	return 0
 }
@@ -105,8 +106,7 @@ export async function init(mapName) {
 let currentHex = {x:-10,y:-10}
 let currentHexObject = null
 export function hexFromPointer(pos) {
-	// why is an offset needed?
-	const hex = grid.pixelToHex({x:pos.x-10, y:pos.y-25})
+	const hex = grid.pixelToHex(pos)
 	if (hex.x != currentHex.x || hex.y != currentHex.y) {
 		//dbg(hex)
 		currentHex = hex
@@ -114,6 +114,9 @@ export function hexFromPointer(pos) {
 	}
 	return currentHexObject
 }
+
+// Re-export some map functions
+export const getHex = map.getHex
 
 // ----------------------------------------------------------------------
 // Map data

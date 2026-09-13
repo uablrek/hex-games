@@ -12,7 +12,7 @@ e.g. the AI, to WebAssembly.
 Work in Progress (WIP). This is a rather ambitious project, and I
 think it will take a long time to finish, if ever.
 
-I will (as usual) start with the fun part: the maps. The maps in
+I will (as usual) start with the fun part: the graphics. The maps in
 LGeneral (and Panzer General) are built with hex tiles.
 
 <img src="town.png" width="30%" />
@@ -68,7 +68,7 @@ https://en.wikipedia.org/wiki/PNG) for images, and [json](
 https://en.wikipedia.org/wiki/JSON) for game data.
 
 ```
-lg data --apply    # applies a patch to lgc-pg and build data
+lg data        # applies a patch to lgc-pg and build data
 ls $WS/data
 ```
 

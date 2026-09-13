@@ -164,6 +164,8 @@ cmd_emit_scenario() {
 		echo "\t['$sc', {data: $dn}],"
 	done
 }
+##   emit-scenario-list [--html]
+##     Emil a scenario list in markdown or html
 cmd_emit_scenario_list() {
 	local sdir=$idir/share/lgeneral/scenarios/pg
 	test -d $sdir || die "Not a directory [$sdir]"
@@ -173,7 +175,11 @@ cmd_emit_scenario_list() {
 		map=$(printf "map%02d" $i)
 		sc=$(grep $map * | cut -d: -f1)
 		test "$sc" = "Sevastapol" && sc="Sevastopol"
-		echo "* [$sc](index.html?scenario=$sc) ($map)"
+		if test "$__html" = "yes"; then
+			echo "<li><a href=\"scenario.html?scenario=$sc\">$sc ($map)</a></li>"
+		else
+			echo "* [$sc](index.html?scenario=$sc) ($map)"
+		fi
 	done
 }
 ##   sdl12
