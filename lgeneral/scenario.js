@@ -34,9 +34,23 @@ export async function init(scenarioName) {
 	// Place flags on the grid
 	for (const t of sc.data.flags) {
 		const n = nation[t.nation]
-		const f = n.flag.clone({
-			offset: {x:10,y:6.5},
-		})
+		const f = new Konva.Group()
+		if (t.obj) {
+			// Add a frame to objects
+			f.add(new Konva.Rect({
+				width: 22,
+				height: 15,
+				stroke: 'yellow',
+			}))
+			f.add(n.flag.clone({
+				x: 1,
+				y: 1,
+			}))
+			f.offset({x:9,y:5.5})
+		} else {
+			f.add(n.flag.clone())
+			f.offset({x:10,y:6.5})
+		}
 		const pos = grid.hexToPixel(t.hex)
 		f.position({x:pos.x, y:pos.y+15})
 		map.hexGrid.add(f)

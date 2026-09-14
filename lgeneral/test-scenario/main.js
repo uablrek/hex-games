@@ -11,7 +11,49 @@ const dbg = console.log
 const board = ui.stage()
 const info = new Konva.Layer({name: "info"})
 board.getStage().add(info)
+
+// Keyboard
+ui.setKeys([
+	{key:'h', fn:hexGrid},
+	{key:'c', fn:setMap},
+	{key:'m', fn:setMap},
+	{key:'s', fn:setMap},
+])
+function hexGrid() {
+	if (map.hexGrid.isVisible())
+		map.hexGrid.hide()
+	else {
+		map.hexGrid.position(shownMap.position())
+		map.hexGrid.show()
+	}
+}
 let shownMap
+function setMap(e) {
+	let img
+	switch (e.key) {
+	case 'c':
+		img = map.image.clear
+		break
+	case 'm':
+		img = map.image.mud
+		break
+	case 's':
+		img = map.image.snow
+		break
+	}
+	if (img == shownMap) return	// already shown
+	// The hide/show thing is an attempt to avoid noises on screen.
+	// However, it doesn't seem necessary. Just remove the old map image
+	// and add/moveToBottom the new one looks fine on my computer
+	img.hide()
+	// align the new map with the shown one
+	img.position(shownMap.position())
+	board.add(img)
+	img.moveToBottom()
+	img.show()
+	shownMap.remove()
+	shownMap = img
+}
 
 // Infobox
 let infoBox
@@ -73,7 +115,7 @@ function updateHexInfo(e) {
 		board.add(img)
 	}
 	// Add a marker to check grid.hexToPixel()
-	if (true) {
+	if (false) {
 		const marker = new Konva.Circle({
 			radius: 10,
 			fill: "red",

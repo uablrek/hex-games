@@ -67,17 +67,14 @@ export async function init(mapName) {
 	// Store Konva.Images for clear, mud and snow maps. Cache for performance
 	image.clear = new Konva.Image({
 		image: res[0],
-		draggable: true,
 	})
 	image.clear.cache()
 	image.mud = new Konva.Image({
 		image: res[1],
-		draggable: true,
 	})
 	image.mud.cache()
 	image.snow = new Konva.Image({
 		image: res[2],
-		draggable: true,
 	})
 	image.snow.cache()
 	// Init the map
