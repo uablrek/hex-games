@@ -5,27 +5,29 @@
 */
 
 const dbg = console.log
+let units
 
-export async function init() {
+export async function init(_units, axisOrientation) {
+	units = _units
 	// Right pointing units
 	const unitsImg = new Image()
 	unitsImg.src = units_data
 	await new Promise(resolve => unitsImg.onload = resolve)
-	for (const u of type) {
-		u.img = {}
-		u.img.right = new Konva.Image({
+	for (const ut of type) {
+		ut.img = {}
+		ut.img.right = new Konva.Image({
 			image: unitsImg,
 			crop: {
 				x: 0,
-				y: u.o,
-				width: u.w,
-				height: u.h,
+				y: ut.o,
+				width: ut.w,
+				height: ut.h,
 			},
-			width: u.w,
-			height: u.h,
+			width: ut.w,
+			height: ut.h,
 		})
 		// Compute unit image offset
-		u.offset = {x:u.w/2, y:u.h/2}
+		ut.offset = {x:ut.w/2, y:ut.h/2}
 		
 	}
 	// Left pointing units
@@ -33,24 +35,44 @@ export async function init() {
 	unitsImgL.src = unitsL_data
 	await new Promise(resolve => unitsImgL.onload = resolve)
 	const imageWidth = unitsImgL.width
-	for (const u of type) {
-		u.img.left = new Konva.Image({
+	for (const ut of type) {
+		ut.img.left = new Konva.Image({
 			image: unitsImgL,
 			crop: {
-				x: imageWidth - u.w,
-				y: u.o,
-				width: u.w,
-				height: u.h,
+				x: imageWidth - ut.w,
+				y: ut.o,
+				width: ut.w,
+				height: ut.h,
 			},
-			width: u.w,
-			height: u.h,
+			width: ut.w,
+			height: ut.h,
 		})
+	}
+	// Initiate the unit array
+	const orientation = {
+		axis: axisOrientation,
+		allies: axisOrientation == "left" ? "right" : "left",
+	}
+	for (const u of units) {
+		const ut = type[u.id]		// Unit type
+		u.t = ut
+		u.player = player(ut)
+		const orient = orientation[u.player]
+		u.img = ut.img[orient].clone({
+			offset: u.t.offset,
+		})
+		if (u.trsp) {
+			const tt = type[u.trsp] // Transport type
+			u.timg = tt.img[orient].clone({
+				offset: tt.offset,
+			})
+		}
 	}
 	return 0
 }
 
 // Return the player, "axis|allies" for a unit type
-export function player(ut) {
+function player(ut) {
 	if (["ger","aus","it","hun","bul","rum","fin","esp"].includes(ut.nat))
 		return "axis"
 	else

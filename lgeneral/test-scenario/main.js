@@ -72,11 +72,20 @@ function updateInfoBox(info) {
 	box.update(infoBox, "", info)
 }
 let currentHex = null
+let currentUnit = null
 function updateHexInfo(e) {
 	const h = map.hexFromPointer(shownMap.getRelativePointerPosition())
 	if (h != currentHex) {
 		currentHex = h
-		updateInfoBox(h ? h.name : " ")
+		if (h) {
+			let data = `${h.name} (${h.hex.x},${h.hex.y})`
+			if (h.units && h.units.size > 0) {
+				for (const u of h.units.values())
+					data += `, ${u.t.name}`
+			}
+			updateInfoBox(data)
+		} else
+			updateInfoBox(" ")
 	}
 }
 
@@ -96,36 +105,35 @@ function updateHexInfo(e) {
 	board.add(shownMap)
 	board.add(map.hexGrid)
 	// Add units
-	await units.init()
+	const axisOrientation = scenario.sc.data.players["axis"].orientation
+	await units.init(scenario.sc.data.units, axisOrientation)
 	for (const u of scenario.sc.data.units) {
-		let type = units.type[u.id]
 		// Use transport for non-air units on ocean hexes
-		if (type.movt != "air") {
-			const h = map.getHex(u.hex)
-			if (u.trsp && h.terrain == "ocean")
-				type = units.type[u.trsp]
+		let img = u.img
+		const h = map.getHex(u.hex)
+		if (u.t.movt != "air" && h.terrain == "ocean") {
+			if (u.trsp) img = u.timg
 		}
-		const player = units.player(type)
-		const orientation = scenario.sc.data.players[player].orientation
-		const img = type.img[orientation].clone({
-			offset: type.offset,
-		})
 		const pos = grid.hexToPixel(u.hex)
 		img.position(pos)
 		board.add(img)
+		// Add the unit to the map hex-object
+		if (!h.units) h.units = new Set()
+		h.units.add(u)
 	}
 	// Add a marker to check grid.hexToPixel()
 	if (false) {
-		const marker = new Konva.Circle({
+		board.add(new Konva.Circle({
 			radius: 10,
 			fill: "red",
 			stroke: "black",
 			position: grid.hexToPixel({x:0,y:0}),
-		})
-		board.add(marker)
+		}))
 	}
 	// The 'mousemove' handler must be added to all maps, and the hex-grid
 	map.image.clear.on('mousemove', updateHexInfo)
+	map.image.mud.on('mousemove', updateHexInfo)
+	map.image.snow.on('mousemove', updateHexInfo)
 	map.hexGrid.on('mousemove', updateHexInfo)
 	createInfoBox()
 	updateInfoBox(scenarioName)
