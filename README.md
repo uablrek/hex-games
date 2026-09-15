@@ -101,6 +101,28 @@ The example-games (e.g. [NaW](waterloo/README.md)) are updated with a
 minor version increment. The major version is only for library
 compatibility.
 
+### JavaScript/npm
+
+[NodeJS](https://nodejs.org/en/about) is a JavaScript/TypeScript
+runtime and [npm](https://docs.npmjs.com/about-npm) is the cli-tool
+for the npm software registry.
+
+The Linux distros lag behind, so a local manual installation is
+preferable. Go to the [download page](https://nodejs.org/en/download/current)
+and click the `Standalone Binary (.xz)` button.
+
+```
+cd $HOME/lib
+tar xf ~/Downloads/node-v26.8.2-linux-x64.tar.xz
+export NODE_DIR=$HOME/lib/node-v26.8.2-linux-x64
+```
+
+*NOTE*: Don't use [nvm](https://github.com/nvm-sh/nvm), it's a horrible hack!
+
+The `Envsettings` file sets up a local environment to install "global"
+packages in your home dir, rather than some place that requires "sudo".
+
+
 ## Hex grid
 
 The hex grid should be a pattern. Either an
