@@ -32,6 +32,10 @@ serves as documentation.
 . ./Envsettings       # define some aliases and environment variables
 lg                    # print help text
 lg env                # print the environment
+# Fast start (prerequisite: arhcives downloaded):
+lg rebuild
+admin build-lib
+admin build test-scenario
 ```
 
 ## Original package

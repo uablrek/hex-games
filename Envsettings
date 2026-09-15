@@ -1,0 +1,22 @@
+#! /bin/sh
+# Setup a local JavaScript/npm environment
+NODE_DIR=$HOME/lib/node
+echo $PATH | grep -qF $NODE_DIR || export PATH=$NODE_DIR/bin:$PATH
+test -n "$npm_config_prefix" || npm_config_prefix=$HOME/lib/npm
+export npm_config_prefix
+echo $PATH | grep -qF $npm_config_prefix || export PATH=$npm_config_prefix/bin:$PATH
+test -n "$NPM_CONFIG_GLOBALCONFIG" || export NPM_CONFIG_GLOBALCONFIG=$npm_config_prefix/npmrc
+test -n "$NPM_CONFIG_USERCONFIG" || export NPM_CONFIG_USERCONFIG=$npm_config_prefix/npmrc.$USER
+test -n "$NODE_PATH" || export NODE_PATH=$npm_config_prefix/lib/node_modules
+unset NODE_DIR
+# Setup hex-games environment
+alias cdh="cd $PWD"
+export __open=yes
+eval $(./admin.sh alias)
+h=$PWD
+eval $(admin env | grep WS)
+export __appd=$WS/appd
+alias cdh="cd \$h"
+alias lsapp="ls $__appd"
+alias cdapp="cd $__appd"
+
