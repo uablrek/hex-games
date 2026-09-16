@@ -266,28 +266,25 @@ cmd_data() {
 			lgeneral-orig/lgc-pg $ver/lgc-pg >> $__patch
 	else
 		cd $WS/$ver
-		if grep -q "/tmp/units.js" ./src/unit_lib.c; then
+		if grep -q "/tmp/icons.js" ./src/unit_lib.c; then
 			log "Already patched"
 		else
 			patch -p1 < $__patch
 		fi
 	fi
-	# emit json data
-	findar pg-data || die "Not found [pg-data]"
-	mkdir -p $tmp $tmp/nations $tmp/gfx/flags $tmp/units $tmp/gfx/units \
-		$tmp/sounds/pg $tmp/maps $tmp/gfx/terrain/pg $tmp/scenarios/pg
-	tar -C $tmp -xf $f
-	cd $WS/$ver/lgc-pg
-	make || die "make lgc-pg"
-	./lgc-pg -s $tmp/pg-data -d $tmp || die lgc-pg
-	mkdir -p $dst
-	cp $(find $tmp -name '*.json') $dst
-	# Scenarios are generated to /tmp. Convert to lower-case and '_'
-	local f n
-	for f in /tmp/*.json; do
-		n=$(basename $f | tr 'A-Z-' 'a-z_')
-		mv $f $dst/$n
+	# generate json data from LGeneral files
+	local parse=$dir/parser.py
+	local sd=$idir/share/lgeneral
+	$parse $sd/units/pg.udb | jq .unit_lib > $dst/unit-types.json
+	for f in $sd/maps/pg/*; do
+		n=$(basename $f)
+		$parse $f > $dst/$n.json
 	done
+	for f in $sd/scenarios/pg/*; do
+		n=$(basename $f | tr 'A-Z-' 'a-z_')
+		$parse $f > $dst/$n.json
+	done
+	
 }
 ##   cpdata <dir>
 ##     Copy game data

@@ -58,11 +58,12 @@ function setMap(e) {
 // Infobox
 let infoBox
 function createInfoBox() {
+	const w = 540
 	window.innerWidth
     infoBox = box.info({
-        x: window.innerWidth/2 - 200,
+        x: window.innerWidth/2 - w/2,
         y: 30,
-        width: 400,
+        width: w,
         height: 50,
         destroyable: false,
     })
@@ -108,11 +109,12 @@ function updateHexInfo(e) {
 	const axisOrientation = scenario.sc.data.players["axis"].orientation
 	await units.init(scenario.sc.data.units, axisOrientation)
 	for (const u of scenario.sc.data.units) {
+		if (!u.hex) continue	// delayed?
 		// Use transport for non-air units on ocean hexes
 		let img = u.img
 		const h = map.getHex(u.hex)
-		if (u.t.movt != "air" && h.terrain == "ocean") {
-			if (u.trsp) img = u.timg
+		if (u.t.move_type != "air" && h.terrain == "ocean") {
+			if (u.trsp && u.trsp != "none") img = u.timg
 		}
 		const pos = grid.hexToPixel(u.hex)
 		img.position(pos)

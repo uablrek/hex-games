@@ -1,0 +1,9 @@
+{
+  "name": "test-los",
+  "version": "1.0.0",
+	"description": "Lgeneral - test los (line-of-sight)",
+  "license": "CC-BY-4.0",
+  "author": "",
+  "type": "module",
+  "main": "main.js"
+}

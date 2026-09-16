@@ -18,7 +18,6 @@ const board = ui.stage()
 	let y = 0
 	const bg = new Konva.Group()
 	for (const [i,u] of units.type.entries()) {
-		if (u.id != i) alert(`Fail id: ${unit.id} != ${i}`)
 		const g = new Konva.Group({
 			x: x,
 			y: y,

@@ -94,7 +94,22 @@ eog terrain/pg/mountain_rain.png
 
 Game data, like maps, scenarios, campaigns, are stored in a
 proprietary text format. In JavaScript we want [json](
-https://en.wikipedia.org/wiki/JSON). The `lgc-pg` program is modified
-to emit json. This approach is simpler than to reverse-engineer the
-proprietary format and parse the text files.
+https://en.wikipedia.org/wiki/JSON). My first approach was to modify
+the `lgc-pg` program to emit json, but that quickly got out of hand.
+The proprietary format is very simple, and a <100 line [python parser](
+./parser.py) converts to json.
 
+```
+# LGeneral data format
+# <tag        - either an object or an array item
+#               Two consecutive tag's marks an array
+# >           - End of a tag
+# x=y         - an object item
+# x=a&b&c&c   - The other way of defining an array
+./parser.py $idir/share/lgeneral/units/pg.udb | jq
+```
+
+The unit icons are extracted from *one* image using
+marker-pixels. This is hard in JavaScript, so the `lgeneral` program
+is modified to emit an array of dimension and offset for the
+icons. This is then imported to [units.js](./units.js).

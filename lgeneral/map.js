@@ -11,6 +11,10 @@ const dbg = console.log
 
 export let image = {}
 export let hexGrid
+export let width
+export let height
+export let hmask
+let allHexes
 
 export async function init(mapName) {
 	if (!(mapName in maps)) return -1
@@ -18,14 +22,15 @@ export async function init(mapName) {
 	const m = maps[mapName]
 	// Check data
 	const nTiles = m.data.tiles.length
-	const width = m.data.width
-	const height = m.data.height
+	width = m.data.width
+	height = m.data.height
 	if (nTiles != (width*height)) {
 		throw new Error(`Map data mismatch ${width}x${height} != ${nTiles}`)
 		return
 	}
 	// Configure the grid. Do this before any other grid operations!
 	grid.configure(50, 1.02, {x:-14,y:-25}, true)
+	grid.mapFunctions(map.getAxial)
 	// Build mapProperties and map groups
 	const mprop = new Array(nTiles)
 	const gClear = new Konva.Group()
@@ -83,6 +88,8 @@ export async function init(mapName) {
 		height: height,
 		mapProperties: mprop,
 	})
+	// Create a Set() with all map objects
+	allHexes = new Set(map.hexMap.values())
 	// Build the grid
     const pattern = new Image()
     pattern.src = grid.patternSvg("gray")
@@ -97,6 +104,14 @@ export async function init(mapName) {
 		offsetX: 29,
     }))
     hexGrid.cache()
+	// Create a hex-mask used to "shade" hexes, e.g. out of sight
+	hmask = new Konva.RegularPolygon({
+		sides: 6,
+		radius: 29.5,
+		fill: 'gray',
+		opacity: 0.4,
+	})
+	hmask.rotate(30)
 	return 0
 }
 // Get the hex object from a pointer position
@@ -110,6 +125,10 @@ export function hexFromPointer(pos) {
 		currentHexObject = map.getHex(currentHex)
 	}
 	return currentHexObject
+}
+// Return a Set() of hex objects out of sight (or out of reach)
+export function outOfSight(inSight) {
+	return allHexes.difference(inSight)
 }
 
 // Re-export some map functions

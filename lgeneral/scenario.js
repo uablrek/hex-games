@@ -14,7 +14,8 @@ export let sc
 export async function init(scenarioName) {
 	if (!scenarios.has(scenarioName)) return -1
 	sc = scenarios.get(scenarioName)
-	if (await map.init(sc.data.map)) return -1
+	// the map is prefixed with "pg/"
+	if (await map.init(sc.data.map.substring(3))) return -1
 	// Crop flags from the flag-image (1x24 flags)
 	const flagsImg = new Image()
 	flagsImg.src = flag_data
@@ -51,7 +52,7 @@ export async function init(scenarioName) {
 			f.add(n.flag.clone())
 			f.offset({x:10,y:6.5})
 		}
-		const pos = grid.hexToPixel(t.hex)
+		const pos = grid.hexToPixel({x:t.x,y:t.y})
 		f.position({x:pos.x, y:pos.y+15})
 		map.hexGrid.add(f)
 	}
@@ -86,7 +87,7 @@ import kharkov from './kharkov.json'
 import kiev from './kiev.json'
 import kursk from './kursk.json'
 import lowcountries from './lowcountries.json'
-import marketgarden from './market_garden.json'
+import marketgarden from './marketgarden.json'
 import middleeast from './middleeast.json'
 import moscow41 from './moscow41.json'
 import moscow42 from './moscow42.json'
@@ -97,7 +98,7 @@ import poland from './poland.json'
 import sealion40 from './sealion40.json'
 import sealion43 from './sealion43.json'
 import sealionplus from './sealionplus.json'
-import sevastopol from './sevastopol.json'
+import sevastopol from './sevastapol.json'
 import stalingrad from './stalingrad.json'
 import torch from './torch.json'
 import warsaw from './warsaw.json'
