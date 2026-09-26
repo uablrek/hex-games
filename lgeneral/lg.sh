@@ -43,7 +43,8 @@ findar() {
 #     Used to set bash command completion and command alias;
 #       eval $(./lg.sh alias)
 cmd_commands() {
-	grep -E "^cmd_$1.*\(" $me | sed -E 's,cmd_([^\(]+).*,\1,' \
+	local c=$(echo $1 | tr -- - _)
+	grep -E "^cmd_$c.*\(" $me | sed -E 's,cmd_([^\(]+).*,\1,' \
 		| grep -Ev '^(commands|alias)$' | tr -- _ -
 }
 cmd_alias() {
@@ -168,17 +169,20 @@ cmd_emit_scenario() {
 ##     Emil a scenario list in markdown or html
 cmd_emit_scenario_list() {
 	local sdir=$idir/share/lgeneral/scenarios/pg
+	local mdir=$WS/data
 	test -d $sdir || die "Not a directory [$sdir]"
 	cd $sdir
-	local map sc i
+	local map sc i w h
 	for i in $(seq 1 38); do
 		map=$(printf "map%02d" $i)
+		w=$(jq .width < $mdir/$map.json)
+		h=$(jq .height < $mdir/$map.json)
 		sc=$(grep $map * | cut -d: -f1)
 		test "$sc" = "Sevastapol" && sc="Sevastopol"
 		if test "$__html" = "yes"; then
-			echo "<li><a href=\"scenario.html?scenario=$sc\">$sc ($map)</a></li>"
+			echo "<li><a href=\"scenario.html?scenario=$sc\">$sc ($map ${w}x$h=$((w*h)))</a></li>"
 		else
-			echo "* [$sc](index.html?scenario=$sc) ($map)"
+			echo "* [$sc](index.html?scenario=$sc) ($map ${w}x$h=$((w*h)))"
 		fi
 	done
 }

@@ -21,10 +21,10 @@ let attackerFactorsToRemove = 0
 let defenderFactorsToRemove = 0
 let href
 let log = console.log
-//let log = function(){}
+let dbg = function(){}
 
 const keyFn = [
-	{key:'h', fn:createHelpBox},
+	{key:'h', fn:toggleHelpBox},
 	{key:' ', fn: rotateStack},
 	{key:'Enter', fn:nextStep },
 	{key:'x', fn:nextStep },
@@ -120,37 +120,45 @@ const client = {
 }
 
 function cbClose() {
-	alert("Lost connection")
+	me = ''
+	sequence.jump({}, "connection-failed")
 }
 function cbMessage(msg) {
-	log("cbMessage", msg)
-	if (msg.type == "server") {
-		if (msg.connected) handleConnectMessage(msg)
-		return
-	}
-	handlePeerMessage(msg)
+	dbg("cbMessage", msg)
+	if (msg.type == "server")
+		handleServerMessage(msg)
+	else
+		handlePeerMessage(msg)
 }
 
-function handleConnectMessage(msg) {
-	// First player to connect becomes French.
-	// That is, if my client-id is the lowest in the "connected" array
-	
-	if (!me) {
-		if (msg.player == 'A') {
-			me = "French"
-			// We must wait for the English player
-			updateInfoBox("Waiting for English player...")
-			return
-		} else
-			// Here we know that player 'A' is already connected as French
-			me = "English"
+function handleServerMessage(msg) {
+	if (msg.version) {
+		// This is the first message from the server
+		return
 	}
-	g.player = "English"
-	updateInfoBox(`You are playing as: ${me}`)
-	ws.onclose = brokenConnection
-	ws.onerror = brokenConnection
-	ws.onmessage = handlePeerMessage
-	sequence.nextStep()
+	if (msg.connected) {
+		// We got an array of connected clients. Either a player has
+		// connected, or a player has left the server. Sort the array,
+		// first id is French, second is English, the rest are
+		// "observers"
+		if (me) {
+			// Another player has left the game. It *might* be an
+			// observer, but we assume it's the other player
+			me = ''
+			sequence.jump({}, "connection-failed")
+			return
+		}
+		// A player has connected to the server (it may be ourselves)
+		if (msg.connected.length < 2) return
+		msg.connected.sort(function (a,b) {return a - b})
+		if (client.id == msg.connected[0]) {
+			me = "French"
+		} else if (client.id == msg.connected[1]) {
+			me = "English"
+		}
+		sequence.nextStep()
+		return
+	}
 }
 function handlePeerMessage(msg) {
 	// A message from the other player
@@ -223,13 +231,8 @@ function restore(msg) {
 	// Restore the sequence
 	let seq = sequence.restore(g.seq)
 	g.seq = null
-	log("restore", g)
+	dbg("restore", g)
 	seq.nextStep()
-}
-function brokenConnection() {
-	me = null
-	ws = null
-	alert("The connection was broken. Please reload the page")
 }
 function sendPlayerDeployment() {
 	let msg = {type: "deployment", units: []}
@@ -238,13 +241,13 @@ function sendPlayerDeployment() {
 		if (!u.hex) continue
 		msg.units.push({i:u.i, hex:u.hex})
 	}
-	ws.send(JSON.stringify(msg))
+	server.send(client, msg)
 }
 function sendNextStep() {
-	ws.send('{"type":"nextstep"}')
+	server.send(client, {type:"nextstep"})
 }
 function sendMsg(msg) {
-	ws.send(JSON.stringify(msg))
+	server.send(client, msg)
 }
 
 // ----------------------------------------------------------------------
@@ -255,6 +258,7 @@ let g = {
 	phase: '',
 	nat: '',
 	winner: '',
+	// These are set during "snapshot"
 	//deployment: [],
 	//seq: [],
 }
@@ -290,6 +294,17 @@ function updatePhase(seq, txt) {
 	updateInfoBox(txt)
 }
 
+function connectRetry(seq, delay) {
+	if (delay) {
+		let txt = `Failed connect to ${client.url}\n\n` +
+			`Rettry in ${delay} seconds...`
+		updatePhase(seq, txt)
+		setTimeout(connectRetry, 1000, seq, delay - 1)
+	} else {
+		seq.gotoStep("Connect to Server")
+	}
+}
+
 // This is the top sequence
 sequence.add(new sequence.Sequence({
 	name: "game",
@@ -309,14 +324,22 @@ sequence.add(new sequence.Sequence({
 			},
 		},
 		{
+			name: "Connect Result",
 			start: function(seq) {
 				if (!client.id) {
-					alert("Connection failed")
+					connectRetry(seq, 5)
 					return
 				}
-				log("Connected as client:", client.id)
+				dbg("Connected as client:", client.id)
 				if (server.local)
-					log("Connected to the local server (AI)")
+					dbg("Connected to the local server (AI)")
+				seq.nextStep()
+			}
+		},
+		{
+			name: "Waiting for other player",
+			start: function(seq) {
+				updatePhase(seq)
 			}
 		},
 		{
@@ -423,9 +446,15 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Declare Winner",
 			start: function(seq) {
-				g.player = 'England'
-				if (g.winner == "France") g.player = "France"
-				updatePhase(seq)
+				let txt
+				if (g.winner == "France") {
+					g.player = "France"
+					txt = sequence.getSeqHelp("French Winner")
+				} else {
+					g.player = 'England'
+					txt = sequence.getSeqHelp("English Winner")
+				}
+				updatePhase(seq, txt)
 			}
 		},
 		{
@@ -451,7 +480,7 @@ sequence.add(new sequence.Sequence({
 					}
 					g.deployment = d
 					let msg = {type: "save", name: "the-hill", game: g}
-					ws.send(JSON.stringify(msg))
+					//ws.send(JSON.stringify(msg))
 					g.deployment = null
 					g.seq = null
 				}
@@ -465,7 +494,7 @@ sequence.add(new sequence.Sequence({
 				recomputeZOC()
 			},
 			end: function(seq) {
-				log("Movement:end", me, g)
+				dbg("Movement:end", me, g)
 				for (const u of units) {
 					if (u.nat != g.nat) continue
 					unit.removeMark1(u)
@@ -496,7 +525,18 @@ sequence.add(new sequence.Sequence({
 		},
 	],
 }))
-
+sequence.add(new sequence.Sequence({
+	name: "connection-failed",
+	steps: [
+		{
+			name: "Connection Failed",
+			start: function(seq) {
+				ui.clearKeys()
+				updatePhase(seq)
+			}
+		},
+	],
+}))
 
 // ----------------------------------------------------------------------
 // Units
@@ -625,23 +665,19 @@ function boxDestroy(box) {
 box.destroyCallback(boxDestroy)
 
 let theHelpBox
-function createHelpBox() {
-	const helpTxt =
-		  'Attack from river, or up-slope is halved. ' +
-		  'Defence in forrest is doubled\n\n' +
-		  'h - This help\n' +
-		  'Enter,x - Next phase\n' +
-		  'r - Regret move\n' +
-		  'a - Attack\n' +
-		  'Space - Rotate Stack\n' +
-		  'l - Load snapshot\n'
-	if (theHelpBox) return
+function toggleHelpBox() {
+	if (theHelpBox) {
+		theHelpBox.destroy()
+		theHelpBox = null
+		return
+	}
+	
 	theHelpBox = box.info({
 		x: 400,
 		y: 200,
 		width: 300,
 		label: "Help",
-		text: helpTxt,
+		text: sequence.getSeqHelp("help"),
 	})
 	board.add(theHelpBox)
 }
@@ -739,6 +775,7 @@ let allowedHexes
 function movementClick(e) {
 	let u = unit.fromImg(e.target)
 	let h = map.getHex(u.hex)
+	dbg(u, h)
 	// Check if this click i a movement-click (not a unit-select click)
 	if (allowedHexes && allowedHexes.has(h)) return
 	removeMarkers()				// (clears allowedHexes)

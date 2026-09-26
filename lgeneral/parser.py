@@ -18,10 +18,12 @@ ETAG = re.compile(r'>')
 ITEM = re.compile(r'\w+=.+')
 index = 0
 # objtags - should not be arrays
-objtags = {'players'}
-ignoretags = {'result', '#', '~', 'unit_db'}
+objtags = {'players', 'cond', 'and', 'weather', 'terrain', 'spot_cost',
+           'move_cost', 'move_types', 'unit_classes'}
+ignoretags = {'unit_db'}
 ignorekeys = {'terrain_db', 'nation_db', 'domain', 'authors', 'allied_players',
               "control", "strategy", "ai_module", "nations"}
+tagtrans = {'#':"Fld", '~':"Rg"}
 
 def parse(lines, p):
     if len(lines) == 0:
@@ -30,11 +32,12 @@ def parse(lines, p):
     l = lines.pop(0)
     if TAG.match(l):
         k = l[1:]
+        if k in tagtrans:
+            k = tagtrans.get(k)
         if k in ignoretags:
             parse(lines, {})
             return parse(lines, p)
         isArray = not (k in objtags) and TAG.match(lines[0])
-            
         # the same tag can be used for arrays. We don't care about the
         # tag for array items, so just add an index
         if k in p:

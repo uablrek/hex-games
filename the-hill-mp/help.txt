@@ -4,5 +4,66 @@ Welcome to "The Hill Multi-Player" game
 ^It is a test game used for development and test of various hex-game features.
 It is made up by "sequences" and "steps".
 ^
+^The game starts at 10am April 6 1806, and ends at 12am. Each turn is
+15 minutest, which means 8 turns in total.
+^
+^The French player wins my occupying the 3 objectives before the game ends,
+otherwise the English player wins.
+^
 ^To continue to the next step, press "Enter"
+
+|Connection Failed|
+The connection to the server is lost. We can't recover from this state.
+^
+^Please reload the page (F5) ...
+
+|French Winner|
+The French player is the winner. The Hill is succesfully conquered.
+Vive la France!
+
+|English Winner|
+The English player is the winner. The Hill is succesfully defended.
+God save the King!
+
+|Waiting for other player|
+We are waiting for the other player to connect...
+
+|English Deployment|
+
+The English player may drag units from the UnitBox to the map. English
+unit may be deployed anywhere west of The River.
+
+|French Deployment|
+
+The French player may drag units from the UnitBox to the map. French
+unit may be deployed on clear terrain anywhere east of the dotted line.
+
+|Movement|
+
+The active player may click on friendly units to mark all possible
+target hexes. The click on a marked hex to go there. Moved units have
+a red mark.
+^
+^r - Regret move
+
+|Combat|
+
+The active player may click enemy units to mark them as targets. Then
+click on friendly units to participate in the attack. Watch the Combat
+Resolution Table (CRT) for odds.
+^
+^a - Attack
+^
+^If the result is EX, the player with least points is eliminated, and
+the other is requested to remove at least as many points.
+
+|help|
+
+Attack from river, or up-slope is halved. Defence in forrest is doubled.
+^
+^h - Toggle this help
+^Enter,x - Next phase
+^r - Regret move
+^a - Attack
+^Space - Rotate Stack
 

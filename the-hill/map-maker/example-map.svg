@@ -293,6 +293,18 @@
          stdDeviation="3.4739832"
          id="feGaussianBlur2055" />
     </filter>
+    <pattern
+       id="Hex-3"
+       width="50.00"
+       height="86.60"
+       patternUnits="userSpaceOnUse">
+      <path
+         fill="none"
+         stroke="black"
+         stroke-width="1"
+         d="m 25.00 0 l 0 28.87 l -25.00 14.43 l 0 28.87 l 25.00 14.43 l 25.00 -14.43 l 0 -28.87 l -25.00 -14.43"
+         id="path4-6" />
+    </pattern>
   </defs>
   <sodipodi:namedview
      id="namedview11"
@@ -305,14 +317,14 @@
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
      inkscape:zoom="1.3172389"
-     inkscape:cx="636.93837"
-     inkscape:cy="399.32012"
+     inkscape:cx="572.40945"
+     inkscape:cy="582.27858"
      inkscape:window-width="2560"
      inkscape:window-height="1379"
      inkscape:window-x="0"
      inkscape:window-y="37"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="svg9"
      showguides="false" />
   <metadata
      id="metadata2">
@@ -347,6 +359,16 @@
        d="m 25.00 0 l 0 28.87 l -25.00 14.43 l 0 28.87 l 25.00 14.43 l 25.00 -14.43 l 0 -28.87 l -25.00 -14.43"
        id="path4" />
   </pattern>
+  <rect
+     x="-0.11729617"
+     y="-0.11787903"
+     fill="url(#Hex)"
+     stroke="#000000"
+     width="1400"
+     height="1000"
+     stroke-width="1"
+     id="rect7-7"
+     style="display:inline;opacity:1;fill:#eee9da;fill-opacity:1" />
   <g
      inkscape:groupmode="layer"
      id="layer1"
@@ -374,7 +396,7 @@
        cy="394.04443"
        cx="197.75003" />
     <path
-       style="fill:#dedede;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:#afafaf;fill-opacity:1;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 449.60311,1002.2756 115.84182,-188.68607 124.7459,4.51151 105.70592,184.48666 z"
        id="path6206" />
     <text
@@ -476,5 +498,5 @@
      height="1000"
      stroke-width="1"
      id="rect7"
-     style="display:inline;opacity:0.605561" />
+     style="display:inline;opacity:0.605561;fill:url(#Hex);fill-opacity:1.0" />
 </svg>

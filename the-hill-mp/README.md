@@ -12,8 +12,7 @@ The rules are the same, but the start is different:
 When connections are established, the English player starts with
 initial deployment.
 
-A "snapshot" is saved at the start of every player turn (French or
-English) and can be restored with `l` (load).
+TIP: Use "split view" to see both sides.
 
 Start the server:
 ```
@@ -21,6 +20,7 @@ Start the server:
 cd the-hill-mp
 admin server-app .
 # Open http://localhost:8081/ with your browswe twice
+$BROWSER --new-window http://localhost:8081/
 # Or start the server in a docker container:
 admin docker-app .
 admin docker-run --tag=the-hill-mp:latest

@@ -245,30 +245,14 @@ create a key something like:
 But, please note that the actual map-hex-objects *can* be used as keys
 in a Map() or objects in a Set() since their reference never changes.
 
-## Multi-player
+## Server
 
-<img src="./figures/game-server.svg" width="50%" />
-
-Multi-player gaming requires a server. Games are interactive, so
-[websockets](https://en.wikipedia.org/wiki/WebSocket) are used. How
-functions are distributed between the server and clients is
-described in a good way in [this post](
-https://longwelwind.net/blog/networking-turn-based-game/). The
-extremes are something like:
-
-* The server only relays messages between players. It knows nothing
-  about the game (and can thus be generic)
-
-* The server controls everything. The clients just send user actions
-  to the server, and updates the UI on server commands
-
-Both have pros and cons. In `hex-games` a generic (dumb) server is
-provided. It relays messages between two clients named 'A'
-and 'B' using [express-ws](https://www.npmjs.com/package/express-ws).
-It can also save games, and a die-roll function is planned.
+A [generic server](./server/README.md) is provided. A server is
+required for multi-player, but is also used for save/restore since the
+file system on the client is inaccessible.
 
 [the-hill-mp](./the-hill-mp/README.md) is a multi player version of
-[The Battle for The Hill](./the-hill/README.md) example game using
+[The Battle for The Hill](./the-hill/README.md) game, and is using
 the generic server.
 
 
