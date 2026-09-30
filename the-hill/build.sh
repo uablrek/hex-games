@@ -1,5 +1,5 @@
 #! /bin/sh
-cp $dir/map-maker/example-map.svg $dir/map-maker/map-data.json $__appd
-cp $dir/combat/crt.svg $__appd
+cp $src/map-maker/example-map.svg $src/map-maker/map-data.json $__appd
+cp $src/combat/crt.svg $__appd
 test -r $HOME/the-hill.json && cp $HOME/the-hill.json $__appd
 

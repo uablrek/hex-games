@@ -218,7 +218,7 @@ function getMovementCost(h,n,i,u) {
 			}
 		}
 	}
-	if (h.zoc) return 3
+	if (h.zoc && n.zoc) return 3
 	if (n.prop) {
 		if (n.prop.includes('w')) return 100
 		if (n.prop.includes('f')) {
@@ -260,7 +260,7 @@ function moveSelectedUnit(h) {
 	unit.moveTo(selectedUnit, h.hex)
 }
 function recomputeZOC() {
-	for (const h of map.hexMap.values()) delete h.zoc
+	for (const h of map.hexMap.values()) h.zoc = false
 	for (const u of units) {
 		if (u.nat != 'en') continue
 		if (u.type == 'gen') continue

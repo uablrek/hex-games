@@ -38,8 +38,8 @@ Unzip release-asset `waterloo.zip` or `ws-im.zip` and open
 
 #### Docker container
 
-To play the [The battle for The Hill](./the-hill-mp/README.md)
-multi-player version from a docker container:
+To play the [The battle for The Hill](./the-hill/README.md)
+in PvP mode from a docker container:
 ```
 docker pull uablrek/the-hill:latest
 docker run -d -p 8081:8081 uablrek/the-hill:latest
@@ -251,10 +251,31 @@ A [generic server](./server/README.md) is provided. A server is
 required for multi-player, but is also used for save/restore since the
 file system on the client is inaccessible.
 
-[the-hill-mp](./the-hill-mp/README.md) is a multi player version of
-[The Battle for The Hill](./the-hill/README.md) game, and is using
-the generic server.
+[the-hill](./the-hill/README.md) uses the generic server in PvP mode.
 
+## AI
+
+This is about an computer opponent, not about how to use AI for
+programming.
+
+I am experimenting with `influence maps`. It seems to be the way to go
+for turn based games. There are plenty of articles, but I haven't
+found any that stands out yet, so make a search yourself, and I am
+grateful if you share if you find something good.
+
+The [The Hill game](./the-hill) has a super-simple AI built on a
+static influence map that simply gives the objective hexes high
+weights.
+
+### AI as a client to the local server
+
+The server lib supports a local server, and it seemed to be a good
+idea to keep the main multi-player logic and implement AI as a local
+client. It wasn't. You may implement an AI as a remote client, with
+it's own map, sequences, units, etc, but with a local client you
+already have everything, and you don't want to duplicate it. So it's
+better to just call an ai-module, like in [ws&im](
+https://github.com/uablrek/hex-games/blob/main/ws-im/README.md).
 
 ## Red Blob Games
 

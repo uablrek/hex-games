@@ -1,16 +1,32 @@
 |Welcome|
-Welcome to "The Hill Multi-Player" game
+Welcome to "The Hill" game
 ^
 ^It is a test game used for development and test of various hex-game features.
 It is made up by "sequences" and "steps".
 ^
 ^The game starts at 10am April 6 1806, and ends at 12am. Each turn is
-15 minutest, which means 8 turns in total.
+15 minutes, which means 8 turns in total.
 ^
 ^The French player wins my occupying the 3 objectives before the game ends,
 otherwise the English player wins.
 ^
-^To continue to the next step, press "Enter"
+^Enter, x - Continue to next step
+^h - Toggle help-box
+
+|solitarie|
+
+You play a solitarie game, and control both sides. You can control the
+die-rolls for test purposes.
+
+|pvp|
+
+This is a Player v.s. Player (PvP) game. The first to connect to the
+game server becomes French player.
+
+|ai|
+
+You play against a computer opponent (AI).
+^You (human player) is:
 
 |Connection Failed|
 The connection to the server is lost. We can't recover from this state.
@@ -32,11 +48,15 @@ We are waiting for the other player to connect...
 
 The English player may drag units from the UnitBox to the map. English
 unit may be deployed anywhere west of The River.
+^
+^l - Automatic deployment
 
 |French Deployment|
 
 The French player may drag units from the UnitBox to the map. French
 unit may be deployed on clear terrain anywhere east of the dotted line.
+^
+^l - Automatic deployment
 
 |Movement|
 
@@ -45,6 +65,7 @@ target hexes. The click on a marked hex to go there. Moved units have
 a red mark.
 ^
 ^r - Regret move
+^l - Let the AI move
 
 |Combat|
 
@@ -57,13 +78,18 @@ Resolution Table (CRT) for odds.
 ^If the result is EX, the player with least points is eliminated, and
 the other is requested to remove at least as many points.
 
+|Wait for Combat|
+
+Wait for the active player
+
 |help|
 
 Attack from river, or up-slope is halved. Defence in forrest is doubled.
 ^
 ^h - Toggle this help
 ^Enter,x - Next phase
+^l - Let the AI play (lazy)
 ^r - Regret move
 ^a - Attack
 ^Space - Rotate Stack
-
+^1-6 - Roll die (solitarie mode)

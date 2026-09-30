@@ -1,20 +1,18 @@
 # The battle for The Hill
 
-This is a complete game example for the [hex-games](
+This is the test game for the [hex-games](
 https://github.com/uablrek/hex-games) project.
 
 The battle takes place at April 6 1806 at 10am, and is between French and
 English troops. The French must secure "The Hill" within 2 hours
 game-time (8 turns).
 
-By default the English are pre-deployed and stands passive. Only the
-French player takes turns. This can be changed with the `passiveBrits`
-variable. Since time is a factor, this is not as easy as it seems. Bad
-tactics, or bad luck will result in an English victory.
+The game can be played solitarie, Player v.s. player (PvP) or against
+an AI. PvP requires a game server, and the AI can only play as English.
 
 ## Rules
 
-* English deploys first anywhere west of "The River" (unless passive)
+* English deploys first anywhere west of "The River"
 * French deploys anywhere east/south of the dotted line, but not in
   "The Forrest" or in "The Mountain"
 * Stacking limit is 2
@@ -47,11 +45,30 @@ If you want to abort the attack, just click on another enemy.
 ### EX result
 
 The player with most factors (usually the attacker) may be asked to
-remove a number of factors. *This is shown in the info-box*. The units
-that can be removed have a red mark. Click on a unit to remove it.
+remove a number of factors. The units that can be removed have a red
+mark. Click on a unit to remove it.
 
 ## Deployment validation
 
 After initial deployment a validation is made. Any units that violates
 the deployment rules are put back in the UnitBox, and you can place
 them again.
+
+## PvP
+
+Start the server, then open the server address twice. The first to
+connect becomes French.
+
+TIP: Use "split view" to see both sides when testing
+
+```
+cd the-hill
+admin server-app .
+# Open http://localhost:8081/ with your browser twice
+$BROWSER --new-window http://localhost:8081/
+# Or start the server in a docker container:
+admin docker-app .
+admin docker-run --tag=the-hill:latest
+# Use the printed address. Example: http://172.17.0.2:8081/, or
+# http://localhost:8081/ (port 8081 is exported)
+```
