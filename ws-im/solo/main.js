@@ -7,7 +7,7 @@ import * as map from './map.js'
 import * as ship from './ship.js'
 import hixData from './solo.json'
 
-export const board = ui.stage()
+export const board = ui.init()
 export const info = new Konva.Layer({name: "info"})
 export const g = {}
 export const sc = {}

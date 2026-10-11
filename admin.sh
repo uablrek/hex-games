@@ -192,15 +192,6 @@ cmd_mapgen2_build() {
 cmd_unit_test() {
 	cd $dir/test
 	node ./test.js || die "Local tests failed"
-	appdir
-	cp $dir/lib/* $__appd
-	cp $dir/rdtr/rdtr-unit.js $dir/rdtr/rdtr-map.js $dir/rdtr/test-rdtr.js \
-		$dir/rdtr/rdtr-map.json $__appd
-	echo "export function map() {return{}}" > $__appd/rdtr-images.js
-	cd $__appd
-	mv lib.js hex-games.js
-	npm link --silent konva || "die npm link konva"
-	node test-rdtr.js || die "RDTR tests failed"
 }
 ##   build-lib
 ##     Build the hex-games library module (.tgz)
@@ -240,6 +231,7 @@ cmd_release() {
 ##     Build a container with an app (a game server)
 ##   server-app <dir>
 ##     Build, and run a server for the app
+##     Only the server: admin run --appd=$WS/server ./server
 cmd_docker_build() {
 	if test "$__client" = "yes"; then
 		__open=no
@@ -277,34 +269,6 @@ cmd_server_app() {
 	$me build --open=no $src || die build
 	export APPD=$__appd
 	$me run --appd=$WS/server $dir/server
-}
-##   rdtr-build-demos [--appd=dir] [--clean] page
-##     Build the "Rise and Decline of the Third Reich" demos.
-##     Normally invoked with "admin build --demos rdtr"
-cmd_rdtr_build_demos() {
-	src=$dir/rdtr
-	appdir
-	cd $__appd
-	cp $src/figures/tr-counters-* $src/figures/rdtr-map.png \
-		$src/figures/rdtr-combat-chart.png .
-	cp $src/*.json $src/*.js .
-	cp $src/scenario/scenario-* .
-	local hg=$WS/hex-games/hex-games.tgz
-	test -r "$hg" || die "hex-games.tgz not built"
-	if npm ls -g konva > /dev/null; then
-		# Use locally installed Konva
-		npm link konva
-	fi
-	npm install $hg
-	local sub
-	cp $src/demos/* .
-	for sub in map-demo units-demo deployment-demo restore-demo\
-		map-maker map-demo2 seq-demo; do
-		esbuild --bundle --outfile=$sub-bundle.js --loader:.png=dataurl \
-			--loader:.svg=dataurl $sub.js  || die esbuild
-	done
-	# Clean up
-	rm $(find . -name '*.js' | grep -v bundle) package.json
 }
 ##   build [--appd=dir] [--clean] [--open] <dir> [esbuild-opts...]
 ##     Build an example/project.
@@ -351,16 +315,8 @@ cmd_open() {
 	test -n "$BROWSER" || die 'Not set [$BROWSER]'
 	cd $__appd || die "Failed [cd $__appd]"
 	eset __page=index.html
-	if which xdotool > /dev/null && test "$__close" = "yes"; then
-		# Try to close the old window
-		# https://askubuntu.com/questions/616738/how-do-i-close-a-new-firefox-window-from-the-terminal
-		# TODO: examine why this works with Firefox, but not with Chrome
-		local file=$(echo "$__page" | cut -d'?' -f1)
-		test -r "./$file" || die "Not readable [$__appd/$file]"
-		local title=$(grep -F '<title>' ./$file | cut -d'>' -f2 | cut -d'<' -f1)
-		local window=$(xdotool search --name "$title")
-		test -n "$window" && xdotool key --window $window Ctrl+Shift+w
-	fi
+	# To close the old window doesn't work well
+	# https://askubuntu.com/questions/616738/how-do-i-close-a-new-firefox-window-from-the-terminal
 	cd $dir
 	GTK_MODULES= $BROWSER --new-window "file://$__appd/$__page"
 }

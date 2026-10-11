@@ -6,7 +6,7 @@
 import {ui} from '@uablrek/hex-games'
 import * as units from './units.js'
 const dbg = console.log
-const board = ui.stage()
+const board = ui.init()
 
 // ----------------------------------------------------------------------
 // main

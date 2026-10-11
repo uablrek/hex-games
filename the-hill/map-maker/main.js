@@ -9,7 +9,7 @@ import {ui, grid, box, lsave} from '@uablrek/hex-games'
 import mapData from './example-map.svg'
 import mapProperties from './map-data.json'
 
-let board = ui.stage()
+let board = ui.init()
 
 const keyFn = [
 	{key: 'j', fn: function (e) {

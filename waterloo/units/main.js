@@ -7,7 +7,7 @@
 import Konva from 'konva'
 import {ui, unit} from '@uablrek/hex-games'
 import {units, unitInit} from './naw-units.js'
-let board = ui.stage()
+let board = ui.init()
 
 function displayUnits() {
 	let x, y, p

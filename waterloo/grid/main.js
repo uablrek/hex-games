@@ -7,7 +7,7 @@
 import {ui, grid, box} from '@uablrek/hex-games'
 import mapData from './waterloo.png'
 
-const board = ui.stage()		// (board is a draggable Konva.Layer)
+const board = ui.init()		// (board is a draggable Konva.Layer)
 const info = new Konva.Layer({name: "info"})
 let infoBox
 let ref							// Axial coordinate of La Haye Sainte

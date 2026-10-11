@@ -7,7 +7,7 @@ import Konva from 'konva'
 import {ui, grid} from '@uablrek/hex-games'
 import * as map from './map.js'
 const dbg = console.log
-const board = ui.stage()
+const board = ui.init()
 
 function randomHex() {
 	const x = Math.floor(Math.random()*map.width)

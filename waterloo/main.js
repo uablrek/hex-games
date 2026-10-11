@@ -17,11 +17,11 @@ import seqHelp from './seq-help.txt'
 // UI setup, including keyboard and Boxes
 // Async setup is done in "main"
 
-const board = ui.stage()
+const board = ui.init()
 const info = new Konva.Layer({name: "info"})
 board.getStage().add(info)
 sequence.parseSeqHelp(seqHelp)
-const release = {version:"4.3.0-rc1", date:"2026-09-02"}
+const release = {version:"5.0.0-rc1", date:"2026-10-11"}
 
 let infoBox
 function createInfoBox() {

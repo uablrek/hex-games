@@ -7,7 +7,7 @@ import {ui, grid} from '@uablrek/hex-games'
 import * as terrain from './terrain.js'
 const dbg = console.log
 
-const board = ui.stage()
+const board = ui.init()
 
 ;(async () => {
 	await terrain.init()

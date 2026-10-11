@@ -8,7 +8,7 @@ import Konva from 'konva'
 import {ui, grid, box, lsave} from '@uablrek/hex-games'
 import * as map from './map.js'
 import mapProperties from './map-data.json'
-export let board = ui.stage()
+export let board = ui.init()
 export const g = {}
 const info = new Konva.Layer({name: "info"})
 board.getStage().add(info)

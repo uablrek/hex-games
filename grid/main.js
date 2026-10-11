@@ -4,7 +4,7 @@ import {grid, ui} from '@uablrek/hex-games'
 // Imports image data to the bundle. Must be on top level
 import gridData from './grid.svg'
 
-const board = ui.stage()
+const board = ui.init()
 const href = new URL(location.href)
 const p = href.searchParams.get("pattern")
 if (p == "svg") {

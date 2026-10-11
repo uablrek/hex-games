@@ -16,7 +16,7 @@ import gunAudioData from './universfield-powerful-cannon-shot-352459.mp3'
 
 // ----------------------------------------------------------------------
 // UI
-export const board = ui.stage()
+export const board = ui.init()
 export const info = new Konva.Layer({name: "info"})
 board.getStage().add(info)
 sequence.parseSeqHelp(help)
@@ -30,7 +30,7 @@ export let me = ''          // The players nat(). ''=both (solitarie game)
 let other					// The "other" player (i.e. not 'me')
 let aiInPlay = false		// Disable user input when AI is in play
 let playerUsesAIForCombat
-const release = {version:"4.3.0-rc1", date:"2026-09-02"}
+const release = {version:"5.0.0-rc1", date:"2026-10-11"}
 
 let infoBox
 function createInfoBox() {

@@ -6,7 +6,7 @@
 import {ui, grid, box} from '@uablrek/hex-games'
 import * as map from './map.js'
 const dbg = console.log
-const board = ui.stage()
+const board = ui.init()
 const info = new Konva.Layer({name: "info"})
 board.getStage().add(info)
 

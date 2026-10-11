@@ -1,0 +1,14 @@
+{
+	"name": "rdtr-map-maker",
+	"version": "1.0.0",
+	"description": "Map-maker for RDTR",
+	"main": "main.js",
+	"keywords": [],
+	"author": "",
+	"license": "CC-BY-4.0",
+	"type": "module",
+	"dependencies": {
+		"konva": "^10.0.12",
+        "hex-games": "^4.0.0"
+	}
+}

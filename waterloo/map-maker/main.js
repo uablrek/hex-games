@@ -9,7 +9,7 @@ import {ui, grid, box, lsave} from '@uablrek/hex-games'
 import mapData from './waterloo.png'
 import mapProperties from './map-data.json'
 
-let board = ui.stage()
+let board = ui.init()
 const info = new Konva.Layer({name: "info"})
 
 const keyFn = [

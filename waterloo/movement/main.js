@@ -9,7 +9,7 @@ import {units, unitInit} from './naw-units.js'
 import mapData from './waterloo.png'
 import mapProperties from './map-data.json'
 
-const board = ui.stage()		// (board is a draggable Konva.Layer)
+const board = ui.init()		// (board is a draggable Konva.Layer)
 const info = new Konva.Layer({name: "info"})
 let infoBox
 

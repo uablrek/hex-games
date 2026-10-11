@@ -25,6 +25,7 @@ let defenderFactorsToRemove = 0
 let href
 let theInfoBox
 let theHelpBox
+let testMode = true
 
 const keyFn = [
 	{key:'h', fn:toggleHelpBox},
@@ -33,6 +34,12 @@ const keyFn = [
 	{key:'x', fn:nextStep },
 	{key:'r', fn:regretMove },
 	{key:'a', fn:attack},
+	{key:'1', fn:attack},
+	{key:'2', fn:attack},
+	{key:'3', fn:attack},
+	{key:'4', fn:attack},
+	{key:'5', fn:attack},
+	{key:'6', fn:attack},
 	{key:'l', fn:lazy},
 ]
 ui.setKeys(keyFn)
@@ -43,14 +50,18 @@ function toggleHelpBox() {
 		theHelpBox = null
 		return
 	}
+	let txt = sequence.getSeqHelp("help")
+	if (testMode)
+		txt += "\n1-6 - Roll die (test mode)"
 	theHelpBox = box.info({
 		x: 400,
 		y: 200,
 		width: 300,
 		label: "Help",
 		destroyable: false,
-		text: sequence.getSeqHelp("help"),
+		text: txt,
 	})
+		
 	board.add(theHelpBox)
 }
 function rotateStack(e) {
@@ -89,6 +100,12 @@ function lazy() {
 	if (!isActive()) return
 	dbg("lazy", me, g.player, g.phase)
 	ai.play()
+}
+function attack(e) {
+	if (testMode)
+		combat(Number(e.key))
+	else
+		combat(0)
 }
 
 // Click functions
@@ -326,7 +343,7 @@ function updatePhase(seq, txt) {
 function connectRetry(seq, delay) {
 	if (delay) {
 		let txt = `Failed connect to ${client.url}\n\n` +
-			`Rettry in ${delay} seconds...`
+			`Retry in ${delay} seconds...`
 		updatePhase(seq, txt)
 		setTimeout(connectRetry, 1000, seq, delay - 1)
 	} else {
@@ -962,11 +979,11 @@ function computeOdds(die=0) {
 	if (x > 5) return 'DE'
 	return ctrMatrix[die-1][x]
 }
-function attack(e) {
+function combat(die) {
 	if (!isActive()) return
 	if (!targetHex || attackers.size == 0) return
 	for (const u of attackers) u.hasAttacked = true
-	let die = Math.floor(Math.random() * 6) + 1
+	if (!die) die = Math.floor(Math.random() * 6) + 1
 	let outcome = computeOdds(die)
 	// TODO: send to server
 	if (outcome == "EX") {
@@ -1044,7 +1061,7 @@ function exDone() {
 
 // ----------------------------------------------------------------------
 ;(async function() {
-	board = ui.stage()
+	board = ui.init()
 	g.board = board
 	board.on('click', boardOnClick)
 	let mapImage = await ui.mapImage(mapData)
@@ -1067,7 +1084,8 @@ function exDone() {
 		u.s = Number(s[0])
 		u.m = Number(s[1])
 	}	
-	await unit.init(units, nations, 0.75)
+	unit.init(units, nations, 0.75)
+	await unit.toImages()
 	g.units = units
 	// Map
 	map.init({

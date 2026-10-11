@@ -1,0 +1,215 @@
+|Welcome|
+
+This is a browser version of the board game "Rise and Decline of the
+Third Reich" from 1975, by Avalon Hill.
+^
+^Enter - Proceed
+^l - Let AI play for you
+^h - Toggle Help
+^arrows - scroll map (or drag it)
+^
+^Version:
+
+|Waiting for other player|
+
+You are playing in PvP mode. The other player must connect before we
+can proceed.
+^
+^As the first player, you will play as Axis
+
+|deployment-po-1939|
+
+Deploy Polish units. Hit 'l' to deploy automatically (you may drag
+units afterwards)
+^
+^3 x 2-3
+^7 x 1-3
+^2 x 1-4 air
+
+|deployment-it-1939|
+Deploy Italian units. Hit 'l' to deploy automatically (you may drag
+units afterwards)
+^
+^At least:
+^1 x 1-3 in Albania
+^2 x 1-3 in Libya
+^All fleets in the Mediterranian
+
+|deployment-fr-1939|
+Deploy French units. Hit 'l' to deploy automatically (you may drag
+units afterwards)
+^
+^At least:
+^1 x 2-3 in Lebanon-Syria
+^1 x 2-3 in Morocco, Tunisia or Algeria 
+
+|deployment-uk-1939|
+Deploy British units. Hit 'l' to deploy automatically (you may drag
+units afterwards)
+^
+^At least:
+^1x1-3 in Palestine
+^1x1-3, 1x1-4 air in Malta
+^1x1-3, 1x2-5 pz, 2x1-4 air, 1xNav in Egypt
+^1x1-4 air, 2xNav in Gibraltar
+
+|deployment-su-1939|
+Deploy U.S.S.R units. Hit 'l' to deploy automatically (you may drag
+units afterwards)
+^
+^At least:
+^1x2-3 in Leningrad
+^1x3-5 pz in Moscow
+^1x1-3 in Odessa
+^1x1-3 in Kharkov
+^1x1-3 in Grozny
+
+|deployment-ge-1939|
+Deploy German units. Hit 'l' to deploy automatically (you may drag
+units afterwards)
+^
+^At least:
+^20 air/ground cf on the east front
+^
+^As most:
+^20 air/ground cf in minor allies (max 5 in Finland)
+
+|Order of Play|
+
+The side with the highest combined BRP goes first. Germany and Italy
+is always combined, even when Italy i neutral. US is included spring
+1942, and USSR when war is declared.
+^
+^You must select the first player manually. In PvP games, the
+Axis player makes the choice
+
+|Declaration of War (DoW)|
+
+Click on a land to declare war. The other player will deploy minor
+country forces.
+^
+^The game doesn't know about DoW, so this is only about
+deployment. Major countries, and their controlled minor countries,
+are ignored, as well as neutral countries without forces.
+^
+^The Axis player always deploys the minor allies. So, to activate a
+minor ally, the Axis player may "declare war" on it in this phase.
+
+|Movement|
+
+Drag any unit
+^
+^The game will not check if the move is legal (but your opponent in
+PvP will)
+
+|Unit Construction|
+
+Drag units from the UnitBox to the map
+^
+^No bookkeeping is made by the game. You must keep track of
+BRP yourself outside the game
+
+|Strategic Redeployment (SR)|
+
+Drag any units
+^
+^Limits:
+^Germany - 9
+^Italy - 5
+^Britain - 7
+^France - 5
+^USSR -6
+^USA - 10
+
+|Remove units|
+
+Click on units, and hit 'd' to remove them
+^
+^Unsupplied, and overstacked units are removed here (after Unit
+Construction)
+^
+^Units owned by the non-active player may be deleted as result of
+conquest of a country.
+^
+If France is conquered, remove half of the factors in main France
+rounded up. These become Vichy forces in the next step.
+
+|Control|
+
+The active player may take control over countries (including colonies)
+by clicking on them.
+
+|Attrition resolution|
+
+On all fronts where Attrition was selected
+^
+^The active player may remove units by selecting them and hit 'd'
+
+|Offensive Option|
+
+You may skip the Offensive sequence by pressing 's'
+^
+^Both players may delete any unit during the offensive sequence.
+The active player, which is the defender during defensive missions,
+may drag any friendly unit.
+^
+^To split air/naval units, click on the unit, and hit 'x'.
+^
+The Combat Result Table (CRT) will be shown during the offensive sequence
+
+|Attacker naval+air|
+
+The active player announces naval missions, and performs counter air
+missions.
+
+|Defender inteception+DAS|
+
+The defender allocates Defensive Air Support to ground units.
+^
+^The defender may intecept any naval missions with air o fleets
+
+|Sea Transport Missions|
+
+Succesful sea transport missions are concluded, and fleets returns to
+their base.
+
+|Airborne drops|
+
+Drop airborne units
+
+|Combat|
+
+Resolve ground attacks. Exploiting units are moved to breakthrough
+hexes
+
+|Exploitation|
+
+Exploiting units move and attack. Unused air and airborne units may be
+used, but no naval units.
+
+|YSS|
+
+Year Start Sequence
+^
+^The game does no bookkeeping, so this is informative.
+^
+^In PvP mode, the Axis is the active player, but YSS is performed by both 
+
+|SW resolution|
+
+Strategic Warfare Resolution
+
+|BRP calculation|
+
+^Growth rate:
+^Germany - 50%
+^Italy - 20%
+^Britain - 40%
+^France - 30%
+^USSR - 30%
+^US - 60%
+
+|Game Ended|
+
+The game has ended. Welcome back
+

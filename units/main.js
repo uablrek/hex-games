@@ -9,7 +9,7 @@ import Konva from 'konva'
 import {unit, grid, box, ui} from '@uablrek/hex-games'
 import * as gen from './unit-gen.js'
 
-let board = ui.stage()
+let board = ui.init()
 
 const nations = {
 	ge: {color:'black', stroke:'white'},

@@ -15,8 +15,9 @@ otherwise the English player wins.
 
 |solitarie|
 
-You play a solitarie game, and control both sides. You can control the
-die-rolls for test purposes.
+You play a solitarie game, and control both sides. You may let the AI
+play for you by hitting 'l'
+
 
 |pvp|
 
@@ -92,4 +93,4 @@ Attack from river, or up-slope is halved. Defence in forrest is doubled.
 ^r - Regret move
 ^a - Attack
 ^Space - Rotate Stack
-^1-6 - Roll die (solitarie mode)
+
