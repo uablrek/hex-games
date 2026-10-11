@@ -18,13 +18,14 @@ sequence.add(new sequence.Sequence({
 			start: function(seq) {
 				// AI, server or solitarie?
 				const myUrl = new URL(location.href)
-				const param = myUrl.searchParams.get("ai")
+				let param = myUrl.searchParams.get("ai")
 				if (param) {
 					g.mode = "ai"
 					ai.player(param)
 					g.me = (ai.me == "Allies" ? "Axis" : "Allies")
 				} else if (server.getUrl()) {
-					g.mode = "pvp"
+					param = myUrl.searchParams.get("mode")
+					if (!param || param != "offline") g.mode = "pvp"
 				}
 				if (g.mode != "pvp") {
 					sequence.back(seq)
