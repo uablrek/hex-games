@@ -7,8 +7,6 @@
 import {ui, grid, box} from '@uablrek/hex-games'
 import mapData from './waterloo.png'
 
-const board = ui.init()		// (board is a draggable Konva.Layer)
-const info = new Konva.Layer({name: "info"})
 let infoBox
 let ref							// Axial coordinate of La Haye Sainte
 
@@ -27,14 +25,14 @@ function createInfoBox() {
         destroyable: false,
     })
     updateInfoBox()
-	info.add(infoBox)
+	ui.info.add(infoBox)
 }
 function updateInfoBox(e) {
 	if (!e) {
 		box.update(infoBox, "Click on the map")
 		return
 	}
-	const pos = board.getRelativePointerPosition()
+	const pos = ui.board.getRelativePointerPosition()
 	const hex = grid.pixelToHex(pos)
 	let txt = `Pos: ${pos.x}, ${pos.y}\n`
 	txt += `Hex: ${hex.x}, ${hex.y}\n`
@@ -72,17 +70,17 @@ const marker = new Konva.Circle({
 function placeMarker(hex) {
 	const pos = grid.hexToPixel(hex)
 	marker.position(pos)
-	if (!marker.getParent()) board.add(marker)
+	if (!marker.getParent()) ui.board.add(marker)
 }
 
 // ----------------------------------------------------------------------
 // Main
 ;(async () => {
+	ui.init()
 	const mapImage = await ui.mapImage(mapData)
-	board.add(mapImage)
+	ui.board.add(mapImage)
 	grid.configure(71.6, 1.0, {x:12, y:26}, true)
 	ref	= grid.hexToAxial(nawToHex('1310'))
-	board.getStage().add(info)
 	createInfoBox()
-	board.on('click', updateInfoBox)
+	ui.board.on('click', updateInfoBox)
 })()

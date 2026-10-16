@@ -13,7 +13,7 @@ import * as server from './server.js'
 const log = console.log
 
 function stepInit(seq, info='') {
-	let txt = sequence.getSeqHelp(`deployment-${seq.nat}-${sc.turn.year}`)
+	let txt = ui.getHelp(`deployment-${seq.nat}-${sc.turn.year}`)
 	if (!txt) txt = `Deploy unit in ${units.natName[seq.nat]}`
 	if (g.me)
 		txt += `\n\nYou play as: ${g.me}`
@@ -29,9 +29,7 @@ sequence.add(new sequence.Sequence({
 	steps: [
 		{
 			start: function(seq) {
-				ui.pushKeys([
-					{key:'l', fn:autoDeploy},
-				])
+				ui.setKeys([{key:'l', fn:autoDeploy}])
 				unit.unselectAll()
 				if (!seq.deploy) {
 					seq.deploy = []
@@ -78,7 +76,7 @@ sequence.add(new sequence.Sequence({
 			start: function(seq) {
 				seq.ni++
 				if (seq.ni >= seq.deploy.length) {
-					ui.popKeys()
+					ui.removeKeys('l')
 					// Restore the active player. The non-active
 					// player deploys countries that are attacked
 					g.active = g.player == "ax" ? "Axis" : "Allies"

@@ -48,17 +48,9 @@ framework. Bundles are created with [esbuild](https://esbuild.github.io/).
 
 I will document the development process for myself, and others. I will
 include dead-ends, abandoned ideas, new ideas, mess-up's, etc. I am
-new at JavaScript, so there may be many of them. I will create relases
-on [github](https://github.com/uablrek/hex-games/releases). To test a
-release:
+new at JavaScript, so there may be many of them.
 
-1. Download `hex-games.zip` release Asset
-2. Unpack it locally (you *must* unpack on Windows. Not just dive into the zip archive)
-3. Open `rdtr/index.html` in your browser
-
-
-
-## The game, version <3.0.0
+## The game
 
 to play RDTR you need [the rules](
 https://boardgamegeek.com/filepage/246525/third-reich-4th-edition-rulebook-clone)
@@ -79,59 +71,15 @@ for book-keeping. When you start a game you will see something like this:
 The screen-shot shows the initial deployment phase for the 1939
 scenario. The gray box is called a `UnitBox`. You can drag counters
 from the UnitBox and place them anywhere on the board. The UnitBox
-itself can also be dragged to a convenient place. The player cards
-says that the order of deployment for 1939 is: Poland, Italy, France,
-Britain, Russia, Germany. But in a solitaire game, that doesn't matter of
-course.
+itself can also be dragged to a convenient place.
 
-Make sure to deploy *all* counters in the Initial Deployment, then
-**Save!**. In general, save often! If you reload the page, or close
-the browser, everything from the last save is lost. You don't have to
-copy the save file to the app directory each time you save, just when
-you want to restore.
+Make sure to deploy *all* counters in the Initial Deployment.
+
+**You can't save!** If you reload the page, or close the browser,
+everything is lost (for now).
+
 
 Instructions:
-
-* **Help** - hit `h` for a key help page
-* **Move around on the map** - The map is draggable (but not scrollable)
-* **Deploy units** - Drag them from a UnitBox and drop them on the map
-* **Save game** - Hit `s`. A download dialogue will pop-up, and
-    you can select the local file
-* **Restore game** - Copy a save-file to "rdtrSaveData.js" in the
-    app directory (/path/to/hex-games/rdtr). Then reload the game page (F5).
-	([more info](#save-and-restore))
-* **Resize and zoom the browser window** - *Save-and-Restore, then*
-    experiment to your heart's content. Reload the page (F5) to test a
-    new setting
-* **Movement** - Drag any counter to any place on the map
-* **Remove a counter** - `Shift-click` on the counter
-* **Combat** - Move your counters into place, compute the odds. Hit
-    `c` to open a box with the combat chart and die. Remove losers,
-    and move succesful attackers. The game will not help you with
-    this.
-* **Buy units** - Hit `b` to bring up units allowable for
-    buying. You must keep track of BRP and players yourself. If you make a
-    misstake and remove a counter you just bought, it will *not* be
-    returned to the open UnitBox. But if you close the UnitBox and re-open, it
-    will be there
-* **Break up 5-4 air units** - Hit `a` to bring up the Air Exchange
-    box. Remove the 5-4 unit, and drag replacements from the box.
-	Air bases are also in this box
-* **Break up naval units** - Hit `f` to bring up the Fleet Exchange
-    box, and do the same as for air units
-* **Neutrals and minor allies** - Hit `n` to bring up the Neutrals
-    box. Drag counters to the map
-* **Advance the game turn** - Hit `t` to see the current turn and `T`
-    to advance to the next turn. The game doesn't care about turns,
-    *except* that new units becomes allowable at certain turns in the
-    Campaign game (please see the player cards). In non-campaign
-    games, the turn is purely informational
-* **Year Start Sequence (YSS)** - Is handled by you outside the game
-* **Strategic Warfare (SR)** - Including Murmansk Convoy, Lend Lease,
-    etc. Is handled by you outside the game
-
-
-## The game, version >=3.0.0
 
 The game is played in `phases` belonging to a `sequence`. For instance
 a "turn" has a sequence, and many sub-sequences, each with many
@@ -140,37 +88,27 @@ like the phase name, and player. It also shows a help text when
 available, possibly with a reference to the rule book. When done with
 a phase, hit `Enter` to move to the next phase.
 
-## Game server
+* **Move the map around** - The map is draggable (but not scrollable).
+    You can also scroll the map with the arrow keys
+* **Deploy units** - Drag them from a UnitBox and drop them on the map
+* **Resize and zoom the browser window** - Do this before the game
+    starts Reload the page (F5) to test a new setting
 
-The game server is started in a docker container:
-```
-# (stop any already running servers)
-export __tag=rdtr:latest
-admin docker-build --client .
-admin docker-run
-```
-Port 8081 is exported.
+* **Movement** - Drag counters to any place on the map
 
-**WARNING**: There is no security for the server! I recommend using it
-  in LANs only, or behind a reversed proxy
+* **Remove a counter** - Press 'd', the pointer will change
+    shape. Then click on units to remove
+* **Combat** - Move your counters into place, compute the odds. Hit
+    `c` to open a box with the combat chart and die. Remove losers,
+    and move succesful attackers. The game will not help you with
+    this.
+* **Buy units** - In the "Unit Construction" phase the UnitBoxes appear.
+    You must keep track of BRP and players yourself.
+* **Break up air/naval units** - Hit `x` and click on the unit
+* **Year Start Sequence (YSS)** - Is handled by you outside the game
+* **Strategic Warfare (SR)** - Including Murmansk Convoy, Lend Lease,
+    etc. Is handled by you outside the game
 
-
-## Correction mode
-
-Since the rules are very complex, and faults and misinterpretations
-are expected, there is a "Correction mode". In Correction mode *all*
-units can be dragged anywhere on the map, or added/removed. BRP values
-can be set for any nation. Select nation in the UI under the map. If
-you find that you *must* use Correction mode to follow the rules,
-please write an issue.
-
-## Initial Deployment
-
-The first phase in a new game is "Initial Deployment".
-
-After Initial Deployment a validation is made. If the deployment does
-not follow the rules, you will return to Initial Deployment. If
-possible, violating unit are put back in the UnitBox.
 
 
 ## Contributions
@@ -185,12 +123,6 @@ The following sections are mostly for developers, or people who want
 to learn about the program. Please check the demos. They are simpler
 prototype versions of features in the game.
 
-## Unit test
-
-Execute with:
-```
-admin unit-test
-```
 
 ## The map
 
@@ -329,8 +261,6 @@ human readable form is needed, like `fr,inf,2-3,Alp` or `uk,nav,9` or
 	fi: Finland                    int: Interceptor
 	iq: Iraq
 ```
-
-
 
 
 ## Save and Restore

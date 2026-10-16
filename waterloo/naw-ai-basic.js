@@ -6,7 +6,7 @@
 
 import {sequence} from '@uablrek/hex-games'
 import {ais} from './naw-ai.js'
-import {units} from './naw-units.js'
+import {units} from './units.js'
 import {
 	g, prepareCombatAssignment, computeZOC, nat, removeTargetMarkers,
 	setTargetMarker

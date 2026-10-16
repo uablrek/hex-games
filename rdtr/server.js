@@ -141,10 +141,10 @@ function handlePeerMessage(msg) {
 		u = unit.units[msg.i]
 		if (!map.isVisible(msg.hex)) {
 			map.center(msg.hex)
-			setTimeout(unit.moveTo, 300, u, msg.hex)
+			setTimeout(unit.moveTo, 300, u, msg.hex, true, false)
 			return
 		}
-		unit.moveTo(u, msg.hex)
+		unit.moveTo(u, msg.hex, true, false)
 		break
 	case "removeunit":
 		u = unit.units[msg.i]

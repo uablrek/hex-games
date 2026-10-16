@@ -9,8 +9,6 @@ import {ui, grid, box, lsave} from '@uablrek/hex-games'
 import mapData from './waterloo.png'
 import mapProperties from './map-data.json'
 
-let board = ui.init()
-const info = new Konva.Layer({name: "info"})
 
 const keyFn = [
 	{key: 'j', fn: function (e) {
@@ -98,13 +96,13 @@ function markProp() {
 			y: pos.y - offset,
 		}))
 	}	
-	board.add(propMarkers)
+	ui.board.add(propMarkers)
 }
 function moveMarker(h) {
 	let pos = grid.hexToPixel(h)
 	marker.position(pos)
 	if (!marker.getParent()) {
-		board.add(marker)
+		ui.board.add(marker)
 	}
 }
 function hexEqual(h1, h2) {
@@ -223,7 +221,7 @@ function boardOnClick(e) {
 		propMarkers.destroy()
 		propMarkers = undefined
 	}
-	let pos = board.getRelativePointerPosition()
+	let pos = ui.board.getRelativePointerPosition()
 	let hex = grid.pixelToHex(pos)
 	let h = getHex(hex, false)	// don't create just yet
 	if (funcFn) {
@@ -257,7 +255,7 @@ function createHelpBox() {
 		label: "Help",
 		text: helpTxt,
 	})
-	board.add(theHelpBox)
+	ui.board.add(theHelpBox)
 }
 
 let hexInfoBox
@@ -272,7 +270,7 @@ function createHexInfoBox() {
 		label: "Hex Information",
 		destroyable: false,
 	})
-	info.add(hexInfoBox)
+	ui.info.add(hexInfoBox)
 }
 
 function updateHexInfo(h, hex) {
@@ -335,7 +333,7 @@ function markEdge() {
 			y: pos.y - offset,
 		}))
 	}
-	board.add(propMarkers)
+	ui.board.add(propMarkers)
 }
 function clearEdge(hex) {
 	let h = getHex(hex, false)	// don't create
@@ -362,7 +360,7 @@ function selectEdgeHex(hex) {
 	let pos = grid.hexToPixel(h.hex)
 	edgeArrow.position(pos)
 	edgeArrow.rotate(60)
-	board.add(edgeArrow)
+	ui.board.add(edgeArrow)
 	updateHexInfo(edgeHex)
 }
 function setEdge(e) {
@@ -386,12 +384,12 @@ function setEdge(e) {
 // ----------------------------------------------------------------------
 // Main
 ;(async () => {
+	ui.init()
 	let map = await ui.mapImage(mapData, true)
 	grid.configure(71.6, 1.0, {x:12, y:26}, true)
-	board.add(map)
-	board.getStage().add(info)
+	ui.board.add(map)
 	createHelpBox()
 	createHexInfoBox()
 	updateHexInfo()
-	board.on('click', boardOnClick)
+	ui.board.on('click', boardOnClick)
 })()

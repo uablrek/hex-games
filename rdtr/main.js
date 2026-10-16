@@ -13,7 +13,7 @@ import helpTxt from './help.txt'
 import {stepTurn, g} from './game.js'
 
 const log = console.log
-const release = {version:"5.0.0-rc1", date:"2026-10-11"}
+const release = {version:"5.0.0-rc1", date:"2026-10-16"}
 export let sc
 
 // ----------------------------------------------------------------------
@@ -24,7 +24,7 @@ import {scroll as scrollMap} from './map.js'
 ui.setKeys([
 	{key: 'Enter', fn:nextStep},
 	{key: ' ', fn:rotateStack},
-	{key: 'r', fn:rotateStack},
+	{key: 'i', fn:toggleInfo},
 	{key: 'ArrowUp', fn:scrollMap},
 	{key: 'ArrowDown', fn:scrollMap},
 	{key: 'ArrowLeft', fn:scrollMap},
@@ -39,6 +39,12 @@ function rotateStack(e) {
 	let hex = grid.pixelToHex(pos)
 	unit.rotateStack(hex)
 }
+function toggleInfo(e) {
+	if (infoBox.isVisible())
+		infoBox.hide()
+	else
+		infoBox.show()
+}
 // Clicks
 export const selected = {
 	u: null,
@@ -48,11 +54,14 @@ export const selected = {
 function setClicks() {
 	ui.board.on('click', boardClick)
 	for (const u of unit.units) u.img.on('click', unitClick)
+	// Wen we get here the UI is blocked and the cursor is 'wait'
+	g.blockUI = false
+	initializingBox.destroy()
+	console.timeEnd("toImages")
 }
 function unitClick(e) {
 	selected.u = unit.fromImg(e.target)
 	selected.h = map.getHex(selected.u.hex)
-	log("unitClick", selected)
 	// Prevent a unitClick to "bubble" up to a boardClick, or other units
 	e.cancelBubble = true
 	if (selected.fn) selected.fn()
@@ -66,7 +75,6 @@ function boardClick(e) {
 }
 
 // Boxes
-const info = new Konva.Layer({name: "info"})
 export let infoBox
 function createInfoBox() {
 	infoBox = box.info({
@@ -76,14 +84,14 @@ function createInfoBox() {
 		height: 600,
 		destroyable: false,
 	})
-	info.add(infoBox)
+	ui.info.add(infoBox)
 }
-export function updateInfo(postTxt='', preTxt='', label) {
+export function updateInfo(txt='', env) {
 	const step = sequence.currentSequence().currentStep
-	const help = step.name ? sequence.getSeqHelp(step.name) : ''
+	const help = step.name ? ui.getHelp(step.name, env) : ''
 	if (step.name) g.phase = step.name
-	if (!label) label = step.name ? step.name : "Info"
-	box.update(infoBox, preTxt + help + postTxt, label)
+	const label = step.name ? step.name : "Info"
+	box.update(infoBox, help + txt, label)
 }
 
 export function isActive() {
@@ -91,7 +99,17 @@ export function isActive() {
 	if (!g.me) return true
 	return g.me == g.active
 }
-
+let initializingBox
+function initializing() {
+	initializingBox = box.info({
+		label: "Initializing...",
+		width: 240,
+		height: 50,
+		destroyable: false,
+	})
+	initializingBox.position(ui.center(initializingBox))
+	ui.info.add(initializingBox)
+}
 // ----------------------------------------------------------------------
 // Top sequence
 
@@ -102,10 +120,6 @@ sequence.add(new sequence.Sequence({
 			name: "Welcome",
 			start: function(seq) {
 				updateInfo(`\n${release.version}, ${release.date}`)
-				// OK to cache unit images when marks are not unsed
-				// setTimeout() is used to prevent gray screen during init
-				//setTimeout(()=>{for (const u of unit.units) u.img.cache()})
-				//unit.toImages()
 			}
 		},
 		{
@@ -149,16 +163,25 @@ import './deployment.js'
 import './server.js'
 
 ;(async () => {
+	// unit.toImages takes a lot of time on weak systems (4s on my old
+	// laptop), So to prevent a gray screen on startup we make this
+	// asynchronous, and show an "Initializing..." box
+	console.time("startup")
 	sc = sc1939
 	ui.init()
-	ui.stage.add(info)
-	sequence.parseSeqHelp(helpTxt)
-	await initMap()
-	initUnits()
-	unit.toImages()				// don't await, run in "background"
+	await initMap()				// show the map asap
+	initializing()
+	ui.parseHelp(helpTxt)
 	initGame()
+	initUnits()
 	createInfoBox()
-	setClicks()
+	setTimeout(function() {
+		g.blockUI = true
+		console.time("toImages")
+		unit.toImages().then(setClicks)
+		// restore in setClicks()
+	})
+	console.timeEnd("startup")
 	// Start the game
 	sequence.nextStep()
 })()

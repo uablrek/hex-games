@@ -7,9 +7,9 @@ import {ui, grid} from '@uablrek/hex-games'
 import * as terrain from './terrain.js'
 const dbg = console.log
 
-const board = ui.init()
 
 ;(async () => {
+	ui.init()
 	await terrain.init()
     grid.configure(50, 1.02, {x:0,y:0}, true)
     const pattern = new Image()
@@ -31,8 +31,8 @@ const board = ui.init()
 			const h = t.clone({
 				position: pos,
 			})
-			board.add(h)
+			ui.board.add(h)
 		}
 	}
-	board.add(hexGrid)
+	ui.board.add(hexGrid)
 })()

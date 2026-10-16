@@ -3,14 +3,15 @@
   This is a test program for for:
   https://github.com/uablrek/hex-games/tree/main/lgeneral
 */
+import Konva from 'konva'
 import {ui} from '@uablrek/hex-games'
 import * as units from './units.js'
 const dbg = console.log
-const board = ui.init()
 
 // ----------------------------------------------------------------------
 // main
 ;(async () => {
+	ui.init()
 	await units.init()
 	const w = 100
 	const h = 80
@@ -42,10 +43,9 @@ const board = ui.init()
 			y += h
 		}
 	}
-	const bgImage = await bg.toImage()
 	const bgImg = new Konva.Image({
-		image: bgImage,
+		image: await bg.toImage(),
 	})
 	bgImg.cache()
-	board.add(bgImg)
+	ui.board.add(bgImg)
 })()

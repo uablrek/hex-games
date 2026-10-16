@@ -8,9 +8,6 @@ import * as scenario from './scenario.js'
 import * as map from './map.js'
 import * as units from './units.js'
 const dbg = console.log
-const board = ui.init()
-const info = new Konva.Layer({name: "info"})
-board.getStage().add(info)
 
 // Keyboard
 ui.setKeys([
@@ -48,7 +45,7 @@ function setMap(e) {
 	img.hide()
 	// align the new map with the shown one
 	img.position(shownMap.position())
-	board.add(img)
+	ui.board.add(img)
 	img.moveToBottom()
 	img.show()
 	shownMap.remove()
@@ -67,7 +64,7 @@ function createInfoBox() {
         height: 50,
         destroyable: false,
     })
-    info.add(infoBox)
+    ui.info.add(infoBox)
 }
 function updateInfoBox(info) {
 	box.update(infoBox, "", info)
@@ -93,6 +90,7 @@ function updateHexInfo(e) {
 // ----------------------------------------------------------------------
 // main
 ;(async () => {
+	ui.init()
 	let scenarioName = "Norway"
 	const myUrl = new URL(location.href)
 	const param = myUrl.searchParams.get("scenario")
@@ -103,8 +101,8 @@ function updateHexInfo(e) {
 		return
 	}
 	shownMap = map.image.clear
-	board.add(shownMap)
-	board.add(map.hexGrid)
+	ui.board.add(shownMap)
+	ui.board.add(map.hexGrid)
 	// Add units
 	const axisOrientation = scenario.sc.data.players["axis"].orientation
 	await units.init(scenario.sc.data.units, axisOrientation)
@@ -118,14 +116,14 @@ function updateHexInfo(e) {
 		}
 		const pos = grid.hexToPixel(u.hex)
 		img.position(pos)
-		board.add(img)
+		ui.board.add(img)
 		// Add the unit to the map hex-object
 		if (!h.units) h.units = new Set()
 		h.units.add(u)
 	}
 	// Add a marker to check grid.hexToPixel()
 	if (false) {
-		board.add(new Konva.Circle({
+		ui.board.add(new Konva.Circle({
 			radius: 10,
 			fill: "red",
 			stroke: "black",

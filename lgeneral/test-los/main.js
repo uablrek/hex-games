@@ -7,7 +7,6 @@ import Konva from 'konva'
 import {ui, grid} from '@uablrek/hex-games'
 import * as map from './map.js'
 const dbg = console.log
-const board = ui.init()
 
 function randomHex() {
 	const x = Math.floor(Math.random()*map.width)
@@ -38,9 +37,11 @@ function createInSight() {
 		alert(`Invalid map: ${mapName}`)
 		return
 	}
+	ui.init()
 	const shownMap = map.image.clear
-	board.add(shownMap)
-	board.add(map.hexGrid)
+	ui.board.add(shownMap)
+	ui.board.add(map.hexGrid)
+	console.time("createLos")
 	const o = map.outOfSight(createInSight())
 	const mask = new Konva.Group()
 	for (const h of o.values()) {
@@ -49,6 +50,7 @@ function createInSight() {
 			position: pos,
 		}))
 	}
-	mask.cache()
-	board.add(mask)
+	//mask.cache()  // do NOT cache the mask! 
+	console.timeEnd("createLos")
+	ui.board.add(mask)
 })()

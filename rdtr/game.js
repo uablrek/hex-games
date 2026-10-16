@@ -8,7 +8,7 @@
 
 import Konva from 'konva'
 import {sequence, box, ui, unit, grid} from '@uablrek/hex-games'
-import {sc, updateInfo, isActive, selected} from './main.js'
+import {sc, infoBox, isActive, selected} from './main.js'
 import {sendMsg} from './server.js'
 import * as map from './map.js'
 import * as units from './units.js'
@@ -19,12 +19,14 @@ export let g
 // ----------------------------------------------------------------------
 // Sequences
 
-function updatePhase(seq) {
+function updatePhase(seq, env) {
 	let txt = `Turn: ${g.turn.year}, ${g.turn.season}\n`
 	if (g.active) txt += `Active Player: ${g.active}\n`
 	if (g.me) txt += `You play as: ${g.me}\n`
 	txt += '\n'
-	updateInfo('', txt)
+	const label = seq.currentStep.name
+	const help = ui.getHelp(label, env)
+	box.update(infoBox, txt + help, label)
 }
 function sendNextStep() {
 	if (isActive() && g.mode == "pvp") sendMsg({type:"nextstep"})
@@ -69,10 +71,13 @@ sequence.add(new sequence.Sequence({
 				// in pvp-mode it is the Axis player, ai-mode is NYI
 				g.active = "Axis"
 				if (isActive()) {
+					const pos = ui.center()
 					choiceBox({
 						text: "Who goes first?",
 						choices: ['Axis', 'Allies'],
-					}).then(function(value) {
+						x: pos.x,
+						y: pos.y,
+					}, true).then(function(value) {
 						sendMsg({type: "choice", value: value})
 						g.active = value
 						seq.nextStep()
@@ -118,7 +123,7 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Declaration of War (DoW)",
 			start: function(seq) {
-				updatePhase()
+				updatePhase(seq)
 				selected.fn = dow.bind(selected, seq)
 			},
 			end: function(seq) {
@@ -160,7 +165,7 @@ sequence.add(new sequence.Sequence({
 							u.img.draggable(true)
 				}
 				units.enableSplitBox()
-				updatePhase()
+				updatePhase(seq)
 			},
 			end: function(seq) {
 				for (const u of unit.units) if (u.hex) u.img.draggable(false)
@@ -192,7 +197,7 @@ sequence.add(new sequence.Sequence({
 						if (u.hex && g[g.active].has(u.nat))
 							u.img.draggable(true)
 				}
-				updatePhase()
+				updatePhase(seq)
 			},
 			end: function(seq) {
 				for (const u of unit.units) if (u.hex) u.img.draggable(false)
@@ -243,13 +248,13 @@ sequence.add(new sequence.Sequence({
 			start: function(seq) {
 				updatePhase(seq)
 				if (isActive()) {
-					ui.pushKeys([
+					ui.setKeys([
 						{key:'s', fn:skipSequence.bind(seq)},
 					])
 				}
 			},
 			end: function(seq) {
-				ui.popKeys()
+				ui.removeKeys('s')
 				sendNextStep()
 			},
 		},
@@ -273,7 +278,6 @@ sequence.add(new sequence.Sequence({
 					u.img.draggable(false)
 					u.deletable = false
 				}
-				ui.popKeys()
 				sendNextStep()
 			},
 		},
@@ -320,7 +324,7 @@ sequence.add(new sequence.Sequence({
 					for (const u of unit.units)
 						if (u.hex && g[g.active].has(u.nat)) u.deletable = true
 				}
-				updatePhase()
+				updatePhase(seq)
 			},
 			end: function(seq) {
 				disableDelete()
@@ -340,39 +344,40 @@ sequence.add(new sequence.Sequence({
 
 let deleteMode = false
 function enableDelete() {
-	ui.pushKeys([{key:'d', fn:toggleDelete}])
+	ui.setKeys([{key:'d', fn:toggleDelete}])
 	selected.oldFn = selected.fn
+	selected.fn = null
 }
 function disableDelete() {
 	deleteMode = false
 	selected.fn = selected.oldFn
 	document.body.style.cursor = 'default'
-	ui.popKeys()
+	ui.removeKeys('d')
 }
 function toggleDelete() {
 	if (deleteMode) {
 		deleteMode = false
-		selected.fn = selected.oldFn
+		selected.fn = null
 		document.body.style.cursor = 'default'
 	} else {
 		deleteMode = true
 		document.body.style.cursor = 'not-allowed'
-		selected.oldFn = selected.fn
 		selected.fn = deleteSelected
 	}
 }
 function deleteSelected() {
+	//log("deleteSelected", selected.u)
 	if (!selected.u || !selected.u.deletable) return
 	unit.remove(selected.u)
 	sendMsg({type:"removeunit", i:selected.u.i})
 	selected.u = null
 }
-
+// called on key 's' in step "Offensive Option"
 function skipSequence(e) {
-	// this = sequence
-	ui.popKeys()
+	ui.removeKeys('s')
 	// Tell the remote side
 	sendMsg({ type: "skipsequence" })
+	// this = sequence
 	sequence.back(this)
 }
 
@@ -394,13 +399,13 @@ function dow(seq) {
 		y: pos.y,
 	}).then(function(value){
 		if (value == "Yes") {
-			g.blockUI = false
 			seq.deploy.add(nat)
 			if (units.isMinorAlly(nat))
 				g.Axis.add(nat)
 			else
 				g[otherFaction(g.active)].add(nat)
 		}
+		g.blockUI = false
 	})
 }
 function otherFaction(p) {
@@ -459,12 +464,19 @@ function addAllowables(allowable) {
 // blocked until a choice has been made. Use g.blockUI and .then()
 let theChoiceBox
 let choiceResolve
-async function choiceBox(obj) {
+async function choiceBox(obj, center) {
 	if (theChoiceBox) return
 	theChoiceBox = box.choice(obj)
-	ui.board.add(theChoiceBox)
-	const pos = grid.pixelToHex(theChoiceBox.position())
-	if (!map.isVisible(pos)) map.center(pos)
+	if (center) {
+		// center on screen
+		const pos = ui.center(theChoiceBox)
+		theChoiceBox.position(pos)
+		ui.info.add(theChoiceBox)
+	}
+	else
+		ui.board.add(theChoiceBox)
+	//const pos = grid.pixelToHex(theChoiceBox.position())
+	//if (!map.isVisible(pos)) map.center(pos)
 	return new Promise(function(resolve) {choiceResolve = resolve})
 }
 function destroyBox(e, group) {

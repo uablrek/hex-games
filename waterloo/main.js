@@ -5,7 +5,7 @@
 */
 
 import {ui, grid, sequence, map, unit, box} from '@uablrek/hex-games'
-import {units, unitInit} from './naw-units.js'
+import {units, unitInit} from './units.js'
 import * as client from './naw-client.js'
 import * as ai from './naw-ai.js'
 import mapData from './waterloo.png'
@@ -17,11 +17,7 @@ import seqHelp from './seq-help.txt'
 // UI setup, including keyboard and Boxes
 // Async setup is done in "main"
 
-const board = ui.init()
-const info = new Konva.Layer({name: "info"})
-board.getStage().add(info)
-sequence.parseSeqHelp(seqHelp)
-const release = {version:"5.0.0-rc1", date:"2026-10-11"}
+const release = {version:"5.0.0-rc1", date:"2026-10-16"}
 
 let infoBox
 function createInfoBox() {
@@ -32,7 +28,7 @@ function createInfoBox() {
         height: 800,
         destroyable: false,
     })
-	info.add(infoBox)
+	ui.info.add(infoBox)
 }
 function updateInfoBox(info) {
 	let txt = `Turn: ${g.turn}, time: ${g.turn+12}:00\n`
@@ -48,7 +44,7 @@ function updateInfoBox(info) {
 	if (remainingEX) txt += `CF to remove: ${remainingEX}\n`
 	if (g.testMode) txt += "TEST MODE ENABLED!\n"
 	txt += '\n'
-	txt += sequence.getSeqHelp(g.phase)
+	txt += ui.getHelp(g.phase)
 	if (info) txt += info
 	box.update(infoBox, txt, g.phase)
 }
@@ -62,7 +58,7 @@ function createAlertBox(txt) {
 		height: 200,
 		text: txt
 	})
-	info.add(theAlertBox)
+	ui.info.add(theAlertBox)
 }
 function boxDestroyed(box) {
 	if (box == theAlertBox) theAlertBox = null
@@ -82,7 +78,7 @@ async function createCrt() {
 		x: 30,
 		y: 30,
 	})
-	info.add(crt)
+	ui.info.add(crt)
 }
 let selectedUnit
 function unitOnClick(e) {
@@ -131,7 +127,7 @@ function unitOnClick(e) {
 }
 function boardOnClick(e) {
 	if (!isActive()) return
-	let pos = board.getRelativePointerPosition()
+	let pos = ui.board.getRelativePointerPosition()
 	let hex = grid.pixelToHex(pos)
 	let h = map.getHex(hex)
 	switch (g.phase) {
@@ -164,7 +160,7 @@ function markSelected(u) {
 	selectedUnit = u
 	const pos = grid.hexToPixel(selectedUnit.hex)
 	selectMarker.position(pos)
-	if (!selectMarker.getParent()) board.add(selectMarker)
+	if (!selectMarker.getParent()) ui.board.add(selectMarker)
 }
 function unmarkSelected() {
 	selectedUnit = null
@@ -208,20 +204,20 @@ function nextStep(e) {
 	switch (g.phase) {
 	case "Movement":
 		if (overstackedUnits()) {
-			createAlertBox(sequence.getSeqHelp("overstacked"))
+			createAlertBox(ui.getHelp("overstacked"))
 			return
 		}
 		break
 	case "Combat Assignment":
 		if (!combatRulesOK()) {
-			createAlertBox(sequence.getSeqHelp("combatrules"))
+			createAlertBox(ui.getHelp("combatrules"))
 			return
 		}
 		break
 	case "Combat Resolution":
 		if (cres) {
 			// We are in an un-finished combat resolution
-			createAlertBox(sequence.getSeqHelp(cres))
+			createAlertBox(ui.getHelp(cres))
 			return
 		}
 		break
@@ -234,7 +230,7 @@ function nextStep(e) {
 		for (const u of cg.attackers)
 			if (u.hex && !u.bombarding) onlyBombarding = false
 		if (remainingEX != 0 && !onlyBombarding) {
-			createAlertBox(sequence.getSeqHelp("remainingEX"))
+			createAlertBox(ui.getHelp("remainingEX"))
 			return
 		}
 	}
@@ -249,7 +245,7 @@ function rollDie(e) {
 }
 function rotateStack() {
 	if (!isActive()) return
-	let pos = board.getRelativePointerPosition()
+	let pos = ui.board.getRelativePointerPosition()
 	let hex = grid.pixelToHex(pos)
 	unit.rotateStack(hex)
 }
@@ -346,7 +342,7 @@ sequence.add(new sequence.Sequence({
 				if (client.mode == "sol" && client.side != 'A') {
 					// Allow test mode in stand-alone solitarie games
 					updatePhase(
-						seq, '\n' + sequence.getSeqHelp("test-mode") + ver)
+						seq, '\n' + ui.getHelp("test-mode") + ver)
 				} else
 					updatePhase(seq, ver)
 			},
@@ -394,7 +390,7 @@ sequence.add(new sequence.Sequence({
 			start: function(seq) {
 				g.nat = "none"
 				const key = "winner-" + g.winner
-				updatePhase(seq, sequence.getSeqHelp(key))
+				updatePhase(seq, ui.getHelp(key))
 			}
 		},
 	],
@@ -410,7 +406,7 @@ sequence.add(new sequence.Sequence({
 					seq.nextStep()
 					return
 				}
-				board.add(unitBox.box)
+				ui.board.add(unitBox.box)
 				updatePhase(seq)
 			},
 			end: function(seq) {
@@ -768,7 +764,7 @@ function showMoves(u, hexes) {
 		m.position(grid.hexToPixel(h.hex))
 		movMarkers.add(m)
 	}
-	board.add(movMarkers)
+	ui.board.add(movMarkers)
 }
 function clearMoves() {
 	reachableHexes = null
@@ -978,7 +974,7 @@ export function setTargetMarker(u) {
 	let pos = grid.hexToPixel(u.hex)
 	if (!targetMarkers) {
 		targetMarkers = new Konva.Group()
-		board.add(targetMarkers)
+		ui.board.add(targetMarkers)
 	}
 	const targetMarker = targetMarkerTemplate.clone()
 	targetMarker.position(pos)
@@ -1253,7 +1249,7 @@ function initialDeployment() {
 		if (!u.ih) continue
 		const hex = nawToHex(u.ih)
 		unit.moveTo(u, hex, false)
-		board.add(u.img)
+		ui.board.add(u.img)
 	}
 }
 function hexToNaw(hex) {
@@ -1273,19 +1269,21 @@ export function nat(u) {
 // ----------------------------------------------------------------------
 // Main
 ;(async () => {
+	ui.init()
+	ui.parseHelp(seqHelp)
     grid.configure(71.6, 1.0, {x:12, y:26}, true)
 	const mapImage = await ui.mapImage(mapData, false)
 	map.init({mapProperties: mapProperties})
 	unit.config({ cornerRadius: unit.side*0.09 })
 	await unitInit()
-	board.add(mapImage)
+	ui.board.add(mapImage)
 	// Align the board with the bottom and left edge of the map
-	const boardAdjust = {x:-216, y:board.height() - mapImage.height()}
-	board.position(boardAdjust)
+	const boardAdjust = {x:-216, y:ui.board.height() - mapImage.height()}
+	ui.board.position(boardAdjust)
 	createInfoBox()
 	createUnitBox()
 	await createCrt()
-	board.on('click', boardOnClick)
+	ui.board.on('click', boardOnClick)
 	for (const u of units) {
 		u.img.on('click', unitOnClick)
 		u.consumedMF = 0

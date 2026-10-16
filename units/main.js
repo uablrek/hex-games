@@ -9,7 +9,6 @@ import Konva from 'konva'
 import {unit, grid, box, ui} from '@uablrek/hex-games'
 import * as gen from './unit-gen.js'
 
-let board = ui.init()
 
 const nations = {
 	ge: {color:'black', stroke:'white'},
@@ -103,9 +102,11 @@ function ugenGen(conf, u, side) {
 	return true
 }
 
+let board
 ;(async () => {
+	ui.init()
+	board = ui.board
 	await gen.init()			// define the "gen" unit type
-	unit.addUnitGenerator('nav', unit.ugenNav)
 	unit.addUnitGenerator('ab', unit.ugenAb)
 	await unit.init(units, nations, 1.2, false)
 

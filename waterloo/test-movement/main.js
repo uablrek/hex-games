@@ -5,17 +5,14 @@
 */
 
 import {ui, grid, box, unit, map} from '@uablrek/hex-games'
-import {units, unitInit} from './naw-units.js'
+import {units, unitInit} from './units.js'
 import mapData from './waterloo.png'
 import mapProperties from './map-data.json'
-
-const board = ui.init()		// (board is a draggable Konva.Layer)
-const info = new Konva.Layer({name: "info"})
-let infoBox
 
 // ----------------------------------------------------------------------
 // InfoBox
 
+let infoBox
 const help = `Keys:
 ^'Enter' - Flip sides
 ^'d' - Delete selected unit
@@ -37,7 +34,7 @@ function createInfoBox() {
     })
 	let shelp = help.replaceAll('\n', ' ').replaceAll('^', '\n')
     updateInfoBox(shelp)
-	info.add(infoBox)
+	ui.info.add(infoBox)
 }
 function updateInfoBox(info) {
 	let txt = ''
@@ -79,7 +76,7 @@ function regretMove(e) {
 	unit.regretMove(selectedUnit)
 }
 function rotateStack(e) {
-	let pos = board.getRelativePointerPosition()
+	let pos = ui.board.getRelativePointerPosition()
 	let hex = grid.pixelToHex(pos)
 	unit.rotateStack(hex)
 }
@@ -94,13 +91,13 @@ function setup() {
 		if (!('ih' in u)) continue
 		const hex = nawToHex(u.ih)
 		unit.moveTo(u, hex, false)
-		board.add(u.img)
+		ui.board.add(u.img)
 		u.img.draggable(true)
 		u.img.on('click', unitOnClick)
 		u.img.on('dragstart', (e)=>{e.target.moveToTop()})
 		u.img.on('dragend', unitDragEnd)
 	}
-	board.on('click', boardOnClick)
+	ui.board.on('click', boardOnClick)
 	grid.mapFunctions(map.getAxial)
 	for (const h of map.hexMap.values()) {
 		// ZOC is never blocked (under basic rules), so pre-compute
@@ -139,7 +136,7 @@ function unitDragEnd(e) {
 	computeZOC()
 }
 function boardOnClick(e) {
-	let pos = board.getRelativePointerPosition()
+	let pos = ui.board.getRelativePointerPosition()
 	let hex = grid.pixelToHex(pos)
 	let h = map.getHex(hex)
 	moveUnit(selectedUnit, h)
@@ -175,7 +172,7 @@ function computeZOC() {
 		//console.log(h.hex)
 		zocMarkers.add(marker)
 	}
-	board.add(zocMarkers)
+	ui.board.add(zocMarkers)
 }
 
 // ----------------------------------------------------------------------
@@ -222,7 +219,7 @@ function showMoves(u, hexes) {
 		m.position(grid.hexToPixel(h.hex))
 		movMarkers.add(m)
 	}
-	board.add(movMarkers)
+	ui.board.add(movMarkers)
 }
 function clearMoves() {
 	reachableHexes = null
@@ -242,13 +239,13 @@ function moveUnit(u, h) {
 // ----------------------------------------------------------------------
 // Main
 ;(async () => {
+	ui.init()
 	grid.configure(71.6, 1.0, {x:12, y:26}, true)
 	const mapImage = await ui.mapImage(mapData)
 	map.init({mapProperties: mapProperties})
 	unit.config({ cornerRadius: unit.side*0.09 })
 	await unitInit()
-	board.add(mapImage)
-	board.getStage().add(info)
+	ui.board.add(mapImage)
 	createInfoBox()
 	setup()
 })()

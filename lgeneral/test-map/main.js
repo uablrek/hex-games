@@ -6,9 +6,6 @@
 import {ui, grid, box} from '@uablrek/hex-games'
 import * as map from './map.js'
 const dbg = console.log
-const board = ui.init()
-const info = new Konva.Layer({name: "info"})
-board.getStage().add(info)
 
 // Keyboard
 ui.setKeys([
@@ -46,7 +43,7 @@ function setMap(e) {
 	img.hide()
 	// align the new map with the shown one
 	img.position(shownMap.position())
-	board.add(img)
+	ui.board.add(img)
 	img.moveToBottom()
 	img.show()
 	shownMap.remove()
@@ -64,7 +61,7 @@ function createInfoBox() {
         height: 50,
         destroyable: false,
     })
-    info.add(infoBox)
+    ui.info.add(infoBox)
 }
 function updateInfoBox(info) {
 	box.update(infoBox, "", info)
@@ -90,9 +87,10 @@ function updateHexInfo(e) {
 		alert(`Invalid map: ${mapName}`)
 		return
 	}
+	ui.init()
 	shownMap = map.image.clear
-	board.add(shownMap)
-	board.add(map.hexGrid)
+	ui.board.add(shownMap)
+	ui.board.add(map.hexGrid)
 	// The 'mousemove' handler must be added to all maps, and the hex-grid
 	map.image.clear.on('mousemove', updateHexInfo)
 	map.image.mud.on('mousemove', updateHexInfo)

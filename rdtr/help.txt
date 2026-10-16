@@ -4,8 +4,8 @@ This is a browser version of the board game "Rise and Decline of the
 Third Reich" from 1975, by Avalon Hill.
 ^
 ^Enter - Proceed
-^l - Let AI play for you
-^h - Toggle Help
+^Space - Rotate stack
+^i - Toggle the Info Box
 ^arrows - scroll map (or drag it)
 ^
 ^Version:
@@ -19,16 +19,18 @@ can proceed.
 
 |deployment-po-1939|
 
-Deploy Polish units. Hit 'l' to deploy automatically (you may drag
-units afterwards)
+Deploy Polish units.
+^
+^'l' - Deploy automatically (you may dragunits afterwards)
 ^
 ^3 x 2-3
 ^7 x 1-3
 ^2 x 1-4 air
 
 |deployment-it-1939|
-Deploy Italian units. Hit 'l' to deploy automatically (you may drag
-units afterwards)
+Deploy Italian units.
+^
+^'l' - Deploy automatically (you may drag units afterwards)
 ^
 ^At least:
 ^1 x 1-3 in Albania
@@ -54,7 +56,7 @@ units afterwards)
 ^1x1-4 air, 2xNav in Gibraltar
 
 |deployment-su-1939|
-Deploy U.S.S.R units. Hit 'l' to deploy automatically (you may drag
+Deploy USSR units. Hit 'l' to deploy automatically (you may drag
 units afterwards)
 ^
 ^At least:
@@ -123,7 +125,9 @@ Drag any units
 
 |Remove units|
 
-Click on units, and hit 'd' to remove them
+'d' - Toggle delete mode. The pointer will change shape
+^
+^In delete mode, click on units to remove them
 ^
 ^Unsupplied, and overstacked units are removed here (after Unit
 Construction)
@@ -141,26 +145,39 @@ by clicking on them.
 
 |Attrition resolution|
 
-On all fronts where Attrition was selected
+On all fronts where Attrition was selected. The non-active player may
+remove any unit.
 ^
-^The active player may remove units by selecting them and hit 'd'
+'d' - Toggle delete mode. The pointer will change shape
+^
+^In delete mode, click on units to remove them
 
 |Offensive Option|
-
-You may skip the Offensive sequence by pressing 's'
+'s' - Skip the Offensive sequence
+^'x' - Bring up combine/split box for the clicked unit
+^'d' - Toggle delete mode. The pointer changes shape
 ^
 ^Both players may delete any unit during the offensive sequence.
 The active player, which is the defender during defensive missions,
 may drag any friendly unit.
 ^
-^To split air/naval units, click on the unit, and hit 'x'.
-^
-The Combat Result Table (CRT) will be shown during the offensive sequence
+^The Combat Result Table (CRT) will be shown during the offensive sequence
 
 |Attacker naval+air|
 
 The active player announces naval missions, and performs counter air
 missions.
+^
+^Counter air:
+^
+^Both sides roll a die. The side with more factors adds the difference.
+National modifications:
+^
+^0 - Germany, Britain, US
+^-1 - Russia, France, Italy
+^-2 - All others
+^
+^The side with lower (modified) die roll removes the difference
 
 |Defender inteception+DAS|
 

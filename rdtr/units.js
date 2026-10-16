@@ -17,8 +17,8 @@ export async function init() {
 		if ('s' in u)
 			u.stat = u.m ? `${u.s}-${u.m}` : `${u.s}`
 	}
-	unit.addUnitGenerator('nav', unit.ugenNav)
-    unit.addUnitGenerator('ab', unit.ugenAb)
+	unit.addUnitGenerator('nav', ugenNav)
+	unit.addUnitGenerator('ab', ugenAb)
 	unit.addUnitGenerator('bh', ugenBh)
 	await unit.init(units, nations, 0.88)
 	// Mark initial-deployment units
@@ -39,6 +39,46 @@ export async function init() {
 	for (const u of units)
 		if (u.type == "ab") u.initial = u.allowable = true
 	unit.unselectAll()
+}
+
+function ugenNav(conf, u, side) {
+	const pathNav = 'm 570.04688,237.1875 -10.53907,1.4082 -7.37109,4.41797 1.93945,15.24414 -23,2.67774 -4.8125,11.34179 -5.05664,3.82227 -6.52539,18.60742 -10.47656,7.39453 -11.8457,20.74024 -11.69727,-1.03125 -2.82422,-10.99024 h -50.25195 l -1.05469,3.44727 -36.47461,-12.89258 -3.54883,10.04102 36.90821,13.04492 -1.9629,6.41992 -7.45117,21.47266 -13.26953,-26.0254 h -45.72851 l -9.26172,5.34766 -0.61328,2.29297 -37.84571,-13.37695 -3.54882,10.04101 38.6289,13.65235 -1.8418,6.875 -168.08007,-3.04883 -10.51953,-6.97266 -15.04493,-1.5 -3.05078,-5.96875 H 123.6875 v 15.06836 l 36.76953,32.66797 h 701.43164 l 5.79492,-5.79492 v -14.89258 l -2.70507,-0.0488 -6.60157,-11.14648 -21.37304,0.43945 -5.07422,10.10742 -39.43164,-0.71484 -5.0625,-12.14063 h -25.03321 l -9.84961,-13.875 h -20.56054 l -6.62696,-11.10742 -8.91406,2.38867 -3.73633,7.57227 -3.32031,0.0352 -9.15234,-5.60352 v -32.77148 h -13.84766 l -11.73047,43.77929 h -19.98437 l 3.27539,-12.22656 7.27148,-7.26953 -13.67578,-15.37695 -22.10351,8.10156 -21.35743,24.01562 -10.01172,-2.68359 v -25.29297 h -16.67773 l -13.17578,-7.68945 V 260.6114 l 4.90234,-10.625 6.68946,-5.97656 z'
+	const nscale = 0.06
+	u.add(new Konva.Path({
+		x: -2,
+		y: 0,
+		data: pathNav,
+		fill: conf.stroke,
+		scale: {x:nscale,y:nscale}
+	}))
+ 	let txt = new Konva.Text({
+		text: conf.stat,
+		x: unit.c.tx,
+		y: side*0.47,
+		fontSize: unit.c.tz,
+		fontStyle: unit.c.fontStyle,
+		fontFamily: unit.c.fontFamily,
+		fill: conf.stroke,
+	})
+	txt.offsetX(txt.width()/2)
+	u.add(txt)
+	return true
+}
+function ugenAb(conf, u, side) {
+	u.add(new Konva.Circle({
+		stroke: conf.stroke,
+		radius: side*0.33,
+		strokeWidth: 3,
+		x: side/2,
+		y: side/2,
+	}))
+	u.add(new Konva.Path({
+		stroke: conf.stroke,
+		data: unit.pathAirRaw,
+		x: side*0.23,
+		y: side*0.3,
+	}))
+	return true
 }
 function ugenBh(conf, u, side) {
 	u.add(new Konva.Circle({

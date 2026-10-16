@@ -10,7 +10,7 @@ import mapData from './example-map.svg'
 import mapProperties from './map-data.json'
 import * as gen from './unit-gen.js'
 
-let board = ui.init()
+let board
 const keyFn = [
     {key: 'h', fn:createHelpBox},
     {key: ' ', fn:removeMarkers},
@@ -319,8 +319,9 @@ function rotateStack(e) {
 // ----------------------------------------------------------------------
 // Main
 ;(async () => {
+	ui.init()
+	board = ui.board
 	await gen.init()			// define the "gen" unit type
-	unit.addUnitGenerator('nav', unit.ugenNav)
 	await unit.init(units, nations, 0.75)
 
 	let mapImage = await ui.mapImage(mapData)

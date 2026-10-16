@@ -13,7 +13,7 @@ import mapData from './example-map.svg'
 import crtData from './crt.svg'
 import mapProperties from './map-data.json'
 import helpTxt from './help.txt'
-sequence.parseSeqHelp(helpTxt)
+ui.parseHelp(helpTxt)
 const log = console.log
 const dbg = function(){}
 
@@ -50,7 +50,7 @@ function toggleHelpBox() {
 		theHelpBox = null
 		return
 	}
-	let txt = sequence.getSeqHelp("help")
+	let txt = ui.getHelp("help")
 	if (testMode)
 		txt += "\n1-6 - Roll die (test mode)"
 	theHelpBox = box.info({
@@ -327,7 +327,7 @@ function updateInfoBox(info) {
 	let str = `April 6 1806, ${g.turn.h}:${m}\n`
 	if (me != '') str += `Player: ${me}\n`
 	str += `Active player: ${g.player}\n\n`
-	const help = sequence.getSeqHelp(g.phase)
+	const help = ui.getHelp(g.phase)
 	if (help) {
 		str += help
 		str += "\n\n"
@@ -368,7 +368,7 @@ sequence.add(new sequence.Sequence({
 				} else if (server.getUrl()) {
 					g.mode = "pvp"
 				}
-				let mtxt = sequence.getSeqHelp(g.mode)
+				let mtxt = ui.getHelp(g.mode)
 				if (g.mode == "ai")
 					mtxt += ` ${me}`
 				updatePhase(seq, mtxt)				
@@ -503,10 +503,10 @@ sequence.add(new sequence.Sequence({
 				let txt
 				if (g.winner == "France") {
 					g.player = "France"
-					txt = sequence.getSeqHelp("French Winner")
+					txt = ui.getHelp("French Winner")
 				} else {
 					g.player = 'England'
-					txt = sequence.getSeqHelp("English Winner")
+					txt = ui.getHelp("English Winner")
 				}
 				updatePhase(seq, txt)
 			}
@@ -1084,8 +1084,7 @@ function exDone() {
 		u.s = Number(s[0])
 		u.m = Number(s[1])
 	}	
-	unit.init(units, nations, 0.75)
-	await unit.toImages()
+	await unit.init(units, nations, 0.75)
 	g.units = units
 	// Map
 	map.init({

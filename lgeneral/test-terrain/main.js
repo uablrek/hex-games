@@ -3,13 +3,13 @@
   This is a test program for for:
   https://github.com/uablrek/hex-games/tree/main/lgeneral
 */
+import Konva from 'konva'
 import {ui} from '@uablrek/hex-games'
 import * as terrain from './terrain.js'
 const dbg = console.log
 
-const board = ui.init()
-
 ;(async () => {
+	ui.init()
 	await terrain.init()
 	const bg = new Konva.Group()
 	let y = 0
@@ -20,11 +20,10 @@ const board = ui.init()
 		}))
 		y += 64
 	}
-	const timg = await bg.toImage()
+	// without this the bg is only draggable when grabbing a tile
 	const map = new Konva.Image({
-		image: timg,
-		draggable: true,
+		image: await bg.toImage(),
 	})
-	map.cache()
-	board.add(map)
+	//map.cache()  // not really needed for a Konva.Image
+	ui.board.add(map)
 })()

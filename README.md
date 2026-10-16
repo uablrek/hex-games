@@ -36,25 +36,6 @@ Unzip release-asset `waterloo.zip` or `ws-im.zip` and open
 **WARNING:** On Windows you can click on the zip-file without
   unpacking it. This is **not sufficient**. The zip-file must be extracted.
 
-#### Docker container
-
-To play the [The battle for The Hill](./the-hill/README.md)
-in PvP mode from a docker container:
-```
-docker pull uablrek/the-hill:latest
-docker run -d -p 8081:8081 uablrek/the-hill:latest
-# Both players opens http://<host-ip>:8081
-```
-**WARNING**: This container has no security. Anyone with the
-  ip-address can access it!
-
-This container is generic, it just connects player A with player
-B. So, it can be used as base for other games. Dockerfile:
-```
-FROM uablrek/the-hill:latest
-COPY --chown=0:0 / /html/
-CMD ["node", "/bundle.cjs"]
-```
 
 ## Development
 
@@ -108,6 +89,8 @@ Incompatible updates from 4.x:
 * `ui.init()` replaces "ui.stage()"
 * `sequence.jump()`: the 3'rd parameter is now a config object, not "reset"
 * `unit.init()` is no longer async. Use `unit.toImages()` instead
+* `sequence.*SeqHelp` is moved to `ui.*help`
+* Units unique for RDTR removed from lib: `ugenNav`, `ugenAb`
 
 ### JavaScript/npm
 
@@ -274,6 +257,17 @@ required for multi-player, but is also used for save/restore since the
 file system on the client is inaccessible.
 
 [the-hill](./the-hill/README.md) uses the generic server in PvP mode.
+
+The generic server Docker container:
+```
+docker pull uablrek/hex-games-server:latest
+docker run -d -p 8081:8081 uablrek/hex-games-server:latest
+# Both players adds "?server=http://localhost:8081/ws" to the url
+admin build --page="index.html?server=http://localhost:8081/ws" ./the-hill
+```
+
+**WARNING**: This container has no security. Anyone with the
+  ip-address can access it!
 
 ## AI
 

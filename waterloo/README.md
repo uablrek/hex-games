@@ -6,15 +6,9 @@ not yet implemented.
 A browser version of the [Napoleon at Waterloo game](
 https://en.wikipedia.org/wiki/Napoleon_at_Waterloo_(board_wargame)) (NaW)
 ([BGG](https://boardgamegeek.com/boardgame/3573/napoleon-at-waterloo)).
+To check it out, please visit:
 
-No installation needed, just unpack the "waterloo.zip" asset and open
-`index.html` in your browser for a solitarie game. For AI, add:
-
-```
-index.html?mode=ai-fr
-# Or
-index.html?mode=ai-al
-```
+* https://uablrek.github.io/hex-games/waterloo/waterloo.html
 
 The game is built with the work of [Christian Holm Christensen](
 https://boardgamegeek.com/profile/cholmcc), and my own JavaScript
@@ -152,8 +146,8 @@ development can be defined as:
 
 ```js
 function updatePhase(seq) {
-  const key = seq.name + '/' + seq.currentStep.name
-  let txt = sequence.getSeqHelp(key)
+  const key = seq.currentStep.name
+  let txt = ui.getHelp(key)
   updateInfoBox(txt)
 }
 steps: [
@@ -184,7 +178,7 @@ from the rule-book.
 
 The movement rules in NaW are simple, so the `grid.movementAxial`
 function can be used. As before a test program is in
-[movement/](./movement).
+[test-movement/](./test-movement).
 
 In the movement phase the active player can click on a unit and the
 possible movements are marked, and then click on a marked hex to move

@@ -6,8 +6,7 @@
 
 import Konva from 'konva'
 import {ui, unit} from '@uablrek/hex-games'
-import {units, unitInit} from './naw-units.js'
-let board = ui.init()
+import {units, unitInit} from './units.js'
 
 function displayUnits() {
 	let x, y, p
@@ -20,7 +19,7 @@ function displayUnits() {
 		if (!('ih' in u)) continue
 		if (u.nat != 'al') continue
 		u.img.position({x:x, y:y})
-		board.add(u.img)
+		ui.board.add(u.img)
 		x += dx
 		if (x > 660) {
 			y += dy
@@ -42,7 +41,7 @@ function displayUnits() {
 				x = ox
 			}
 			u.img.position({x:x, y:y})
-			board.add(u.img)
+			ui.board.add(u.img)
 			x += dx
 		}
 	}
@@ -52,7 +51,7 @@ function displayUnits() {
 		if (!('ih' in u)) continue
 		if (u.nat != 'fr') continue
 		u.img.position({x:x, y:y})
-		board.add(u.img)
+		ui.board.add(u.img)
 		x += dx
 		if (x > 400) {
 			y += dy
@@ -72,7 +71,7 @@ function displayUnits() {
 			x = ox
 		}
 		u.img.position({x:x, y:y})
-		board.add(u.img)
+		ui.board.add(u.img)
 		x += dx
 	}
 }
@@ -80,13 +79,14 @@ function displayUnits() {
 // ----------------------------------------------------------------------
 // Main
 ;(async () => {
+	ui.init()
 	unit.config({
 		//tz: unit.side*0.32,
 		//ty: unit.side*0.63,
 		cornerRadius: unit.side*0.09
 	})
 	await unitInit()
-	board.add(new Konva.Rect({
+	ui.board.add(new Konva.Rect({
 		x:0,
 		y:0,
 		width: 1600,

@@ -19,7 +19,7 @@ import gunAudioData from './universfield-powerful-cannon-shot-352459.mp3'
 export const board = ui.init()
 export const info = new Konva.Layer({name: "info"})
 board.getStage().add(info)
-sequence.parseSeqHelp(help)
+ui.parseHelp(help)
 let selectedShip			// Most recently clicked ship
 export let sc				// Current Scenario
 export let ships			// The ship array. Initiated from scenario
@@ -30,7 +30,7 @@ export let me = ''          // The players nat(). ''=both (solitarie game)
 let other					// The "other" player (i.e. not 'me')
 let aiInPlay = false		// Disable user input when AI is in play
 let playerUsesAIForCombat
-const release = {version:"5.0.0-rc1", date:"2026-10-11"}
+const release = {version:"5.0.0-rc1", date:"2026-10-16"}
 
 let infoBox
 function createInfoBox() {
@@ -375,7 +375,7 @@ export function shipHexMap() {
 
 export function updatePhase(seq) {
 	g.phase = seq.currentStep.name
-	helpTxt = sequence.getSeqHelp(g.phase)
+	helpTxt = ui.getHelp(g.phase)
 	if (selectedShip) {
 		ship.unmark(selectedShip)
 		selectedShip = null
@@ -391,21 +391,21 @@ sequence.add(new sequence.Sequence({
 			name: "Welcome",
 			start: function(seq) {
 				g.phase = seq.currentStep.name
-				helpTxt = sequence.getSeqHelp(g.phase)
+				helpTxt = ui.getHelp(g.phase)
 				if (sc.id == "test") {
-					let txt = sequence.getSeqHelp("Test Mode")
+					let txt = ui.getHelp("Test Mode")
 					txt += `\n\nVersion: ${release.version}, ${release.date}`
 					box.update(infoBox, txt, g.phase)
 					return
 				}
-				let txt = sequence.getSeqHelp("Welcome0")
+				let txt = ui.getHelp("Welcome0")
 				txt += `\nVersion: ${release.version}, ${release.date}`
 				txt += `\n\nSenario:\n${sc.name}\n`
 				if (sc.description) txt += `${sc.description}\n`
 				txt += '\n'
 				txt += helpTxt
 				txt += '\n\n'
-				txt += sequence.getSeqHelp("zoom")
+				txt += ui.getHelp("zoom")
 				if (me)
 					txt += `\n\nYou are playing against AI, as ${me}`
 				box.update(infoBox, txt, g.phase)
