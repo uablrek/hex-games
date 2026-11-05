@@ -187,6 +187,14 @@ cmd_mapgen2_build() {
 	test -x "$BROWSER" || die "Not executable [$BROWSER]"
 	GTK_MODULES= $BROWSER --new-window file://$WS/mapgen2/embed.html
 }
+##   vassal
+##     Start the Vassal game engine
+cmd_vassal() {
+	local ver=VASSAL-3.8.0
+	findar $ver-linux || die "Not found [$ver-linux]"
+	test -d $WS/$ver || tar -C $WS -xf $f
+	exec $WS/$ver/VASSAL.sh > $WS/vassal.log 2>&1 &
+}
 ##   unit-test
 ##     Execute unit-tests
 cmd_unit_test() {

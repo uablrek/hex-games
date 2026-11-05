@@ -4,22 +4,21 @@
   https://github.com/uablrek/hex-games/tree/main/waterloo
 */
 
-import {ui, grid, sequence, map, unit, box} from '@uablrek/hex-games'
-import {units, unitInit} from './units.js'
-import * as client from './naw-client.js'
-import * as ai from './naw-ai.js'
+import {ui, grid, sequence, map, unit, box, server} from '@uablrek/hex-games'
+import {units} from './units.js'
 import mapData from './waterloo.png'
 import crtData from './crt.png'
 import mapProperties from './map-data.json'
-import seqHelp from './seq-help.txt'
+import seqHelp from './help.txt'
+const log = console.log
 
 // ----------------------------------------------------------------------
 // UI setup, including keyboard and Boxes
 // Async setup is done in "main"
 
-const release = {version:"5.0.0-rc1", date:"2026-10-16"}
+const release = {version:"5.0.0-rc2", date:"2026-11-05"}
 
-let infoBox
+export let infoBox
 function createInfoBox() {
 	infoBox = box.info({
         x: window.innerWidth - 430,
@@ -32,8 +31,8 @@ function createInfoBox() {
 }
 function updateInfoBox(info) {
 	let txt = `Turn: ${g.turn}, time: ${g.turn+12}:00\n`
-	if (client.mode == "ai" || client.mode == "pvp") {
-		txt += `Mode: ${client.mode}. You are ${playerStr[client.nat]}\n`
+	if (g.mode == "ai" || g.mode == "pvp") {
+		txt += `Mode: ${g.mode}. You are ${playerStr[g.nat]}\n`
 	} else
 		txt += "Mode: Solitarie game\n"
 	txt += `Current player: ${playerStr[g.nat]}\n`
@@ -47,6 +46,11 @@ function updateInfoBox(info) {
 	txt += ui.getHelp(g.phase)
 	if (info) txt += info
 	box.update(infoBox, txt, g.phase)
+}
+export function updateInfo(key) {
+	let txt = ui.getHelp(key)
+	if (!txt) txt = "Nope, nothing..."
+	box.update(infoBox, txt, key)
 }
 let theAlertBox
 function createAlertBox(txt) {
@@ -82,7 +86,7 @@ async function createCrt() {
 }
 let selectedUnit
 function unitOnClick(e) {
-	if (client.waiting || !isActive()) return
+	if (!isActive()) return
 	const u = unit.fromImg(e.target)
 	switch (g.phase) {
 	case "Movement":
@@ -189,12 +193,12 @@ ui.setKeys([
 ])
 function nextStep(e) {
 	if (theAlertBox) return
-	if (client.mode == "ai" && g.nat == "none") {
+	if (g.mode == "ai" && g.nat == "none") {
 		// Allow start-game in ai-mode
 		sequence.nextStep()
 		return
 	}
-	if (client.mode == "pvp" && g.nat == "none" && client.side == 'A') {
+	if (g.mode == "pvp" && g.nat == "none" && g.side == 'A') {
 		// Allow side A to start-game in pvp-mode
 		sequence.nextStep()
 		return
@@ -303,7 +307,7 @@ function escape(e) {
 }
 function setTestMode() {
 	if (me) return				// not a solitarie game
-	if (g.phase == "Initial Deployment") {
+	if (g.phase == "Welcome") {
 		g.testMode = true
 		sequence.nextStep()
 	}
@@ -326,36 +330,54 @@ sequence.add(new sequence.Sequence({
 	name: "game",
 	steps: [
 		{
+			name: "Welcome",
 			start: function(seq) {
-				sequence.jump(seq, "server-connect")
+				server.getUrl(g)
+				let txt = ui.getHelp(g.mode)
+				ui.env.set("MODE", txt)
+				if (g.side != g.sides[1]) g.side = g.sides[0]
+				ui.env.set("SIDE", g.side)
+				if (g.mode == "solitarie")
+					ui.env.set("TEST_MODE", ui.getHelp("test-mode"))
+				else
+					ui.env.set("TEST_MODE", '')
+				g.phase = this.name
+				updateInfo(this.name)
 			},
-			end: function(seq) {
-				if (client.mode == "ai") ai.init()
-				me = client.nat
-			}
 		},
 		{
-			name: "Initial Deployment",
+			name: "snapshot",
 			start: function(seq) {
-				initialDeployment()
-				const ver = `\n\nVersion ${release.version}, ${release.date}`
-				if (client.mode == "sol" && client.side != 'A') {
-					// Allow test mode in stand-alone solitarie games
-					updatePhase(
-						seq, '\n' + ui.getHelp("test-mode") + ver)
-				} else
-					updatePhase(seq, ver)
-			},
+				if (g.mode != "solitarie") {
+					seq.nextStep()
+					return
+				}
+				if (g.turn == 1) {
+					if (localStorage.getItem("waterloo")) {
+						box.choiceBox({
+							text: "A snapshot was found",
+							choices: ['Use it', 'Discard'],
+						}, ui.info, true).then(function(value) {
+							if (value == "Use it")
+								restoreGame()
+							else {
+								localStorage.removeItem("waterloo")
+								initialDeployment()
+							}
+							seq.nextStep()
+						})
+						return
+					} else initialDeployment()
+				} else saveGame()
+				seq.nextStep()
+			}
 		},
 		{
 			name: "French Turn",
 			start: function(seq) {
 				g.nat = "fr"
 				g.onat = "al"
-				if (client.mode == "ai" && me == "al")
-					sequence.jump(seq, "ai-player")
-				else
-					sequence.jump(seq, "player")
+				sequence.jump(seq, "player")
 			}
 		},
 		{
@@ -366,10 +388,7 @@ sequence.add(new sequence.Sequence({
 			start: function(seq) {
 				g.nat = "al"
 				g.onat = "fr"
-				if (client.mode == "ai" && me == "fr")
-					sequence.jump(seq, "ai-player")
-				else
-					sequence.jump(seq, "player")
+				sequence.jump(seq, "player")
 			},
 		},
 		{
@@ -380,7 +399,7 @@ sequence.add(new sequence.Sequence({
 			start: function(seq) {
 				g.turn++
 				if (g.turn <= 10)
-					seq.gotoStep("French Turn")
+					seq.gotoStep("snapshot")
 				else
 					seq.nextStep()
 			}
@@ -630,6 +649,8 @@ sequence.add(new sequence.Sequence({
 // ----------------------------------------------------------------------
 // Game related
 export let g = {
+	sides: ["French", "Allied"],
+	me: '',
 	turn: 1,
 	nat: "none",				// Active player
 	onat: "none",				// "other" player
@@ -682,6 +703,23 @@ function removeUnit(u) {
 	else if (g.fr.demoralized)
 		g.winner = "al"
 	updateInfoBox()
+}
+
+function saveGame() {
+	g.deployment = []
+	for (const u of unit.units)
+		if (u.hex) g.deployment.push({i:u.i, hex:u.hex})
+	localStorage.setItem("waterloo", JSON.stringify(g))
+}
+function restoreGame() {
+	log("restoreGame")
+	g = JSON.parse(localStorage.getItem("waterloo"))
+	for (const uh of g.deployment) {
+		const u = unit.units[uh.i]
+		unit.moveTo(u, uh.hex, false)
+		ui.board.add(u.img)
+	}
+	g.deployment = null			// (for GC)
 }
 
 // ----------------------------------------------------------------------
@@ -1268,14 +1306,15 @@ export function nat(u) {
 }
 // ----------------------------------------------------------------------
 // Main
+import {init as unitsInit} from './units.js'
 ;(async () => {
 	ui.init()
+	ui.env.set("VERSION",`${release.version}, ${release.date}`)
 	ui.parseHelp(seqHelp)
     grid.configure(71.6, 1.0, {x:12, y:26}, true)
 	const mapImage = await ui.mapImage(mapData, false)
 	map.init({mapProperties: mapProperties})
-	unit.config({ cornerRadius: unit.side*0.09 })
-	await unitInit()
+	await unitsInit()
 	ui.board.add(mapImage)
 	// Align the board with the bottom and left edge of the map
 	const boardAdjust = {x:-216, y:ui.board.height() - mapImage.height()}

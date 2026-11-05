@@ -36,6 +36,15 @@ Unzip release-asset `waterloo.zip` or `ws-im.zip` and open
 **WARNING:** On Windows you can click on the zip-file without
   unpacking it. This is **not sufficient**. The zip-file must be extracted.
 
+## Snapshots
+
+Most games take a "snapshot" to [localStorage](
+https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
+on the start of every turn. If a snapshot is found on load (or reload)
+you will get a choice to use it.
+
+I test this with Firefox and Chromium, so it "should work" on Chromium
+based browsers like Chrome or Edge.
 
 ## Development
 
@@ -91,6 +100,7 @@ Incompatible updates from 4.x:
 * `unit.init()` is no longer async. Use `unit.toImages()` instead
 * `sequence.*SeqHelp` is moved to `ui.*help`
 * Units unique for RDTR removed from lib: `ugenNav`, `ugenAb`
+* `server.getUrl()` sets an object and doesn't return anything
 
 ### JavaScript/npm
 
@@ -253,8 +263,7 @@ in a Map() or objects in a Set() since their reference never changes.
 ## Server
 
 A [generic server](./server/README.md) is provided. A server is
-required for multi-player, but is also used for save/restore since the
-file system on the client is inaccessible.
+required for multi-player, but may also used for save/restore.
 
 [the-hill](./the-hill/README.md) uses the generic server in PvP mode.
 
@@ -286,8 +295,8 @@ weights.
 ### AI as a client to the local server
 
 The server lib supports a local server, and it seemed to be a good
-idea to keep the main PvP logic and implement AI as a local client. It
-wasn't. You may implement an AI as a remote client, with it's own map,
+idea to keep the main PvP logic and implement AI as a local client.
+**It wasn't**. You may implement an AI as a remote client, with it's own map,
 sequences, units, etc, but with a local client you already have
 everything, and you don't want to duplicate it. So it's better to just
 call an ai-module, like in [ws&im](

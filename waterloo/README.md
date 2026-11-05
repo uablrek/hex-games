@@ -120,12 +120,13 @@ for the phases can be written in a separate plain-text file.
 Some sequences (simplified):
 
 1. Initial Deployment
-2. French turn
-3. Check winner
-4. Allied turn
-5. Check winner
-6. Step turn and check end of game
-7. Goto 2
+2. Snapshot
+3. French turn
+4. Check winner
+5. Allied turn
+6. Check winner
+7. Step turn and check end of game
+8. Goto 2
 
 The "turn" sequence is:
 
@@ -134,9 +135,7 @@ The "turn" sequence is:
 3. Combat Assignment
 4. Combat resolution
 
-For PvP (or AI) more steps are added. When the sequences are
-defined, the game starts by calling:
-
+When the sequences are defined, the game starts by calling:
 ```js
 sequence.nextStep()
 ```

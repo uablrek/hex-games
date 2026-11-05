@@ -1,9 +1,13 @@
 {
-  "name": "ws-im",
-  "version": "1.0.0",
+	"name": "ws-im",
+	"version": "1.0.0",
 	"description": "Wooden Ships and Iron Men",
-  "license": "CC-BY-4.0",
-  "author": "",
-  "type": "module",
-  "main": "main.js"
+	"license": "CC-BY-4.0",
+	"author": "",
+	"type": "module",
+	"main": "main.js",
+	"dependencies": {
+		"konva": "^10.0.12",
+		"@uablrek/hex-games": "^5"
+	}
 }

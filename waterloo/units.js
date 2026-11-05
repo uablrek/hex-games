@@ -6,12 +6,26 @@
 
 import {unit} from '@uablrek/hex-games'
 
+// Add fields m-movement,s-strength
+export async function init() {
+	unit.c.cornerRadius = unit.side*0.09
+	for (const u of units) {
+		const s = u.stat.split('-')
+		u.s = Number(s[0])
+		u.m = Number(s[1])
+	}
+	return unit.init(units, nations, 1.0)
+}
+
+
+
+// ----------------------------------------------------------------------
+// Data
 export const nations = {
 	al: {color: '#CC0000', stroke:'white'},
 	pu: {color: '#ECECEC'},
 	fr: {color: '#002654', stroke:'white'},
 }
-
 export const units = [
 	// 'ih' is initial hex, t:arrival turn, p:probability of 1d6
 	{nat:"al", type:"inf", sz:"xx", ll:"1", lbl:"1", stat:"7-4", ih:"1010"},
@@ -112,13 +126,3 @@ unit.addUnitGenerator("inf-du", ugenCol)
 unit.addUnitGenerator("cav-du", ugenCol)
 unit.addUnitGenerator("inf-ha", ugenCol)
 unit.addUnitGenerator("inf-bw", ugenCol)
-
-// Add fields m-movement,s-strength
-export async function unitInit() {
-	for (const u of units) {
-		const s = u.stat.split('-')
-		u.s = Number(s[0])
-		u.m = Number(s[1])
-	}
-	return unit.init(units, nations, 1.0)
-}

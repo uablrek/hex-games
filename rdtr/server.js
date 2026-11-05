@@ -16,18 +16,10 @@ sequence.add(new sequence.Sequence({
 	steps: [
 		{
 			start: function(seq) {
-				// AI, server or solitarie?
-				const myUrl = new URL(location.href)
-				let param = myUrl.searchParams.get("ai")
-				if (param) {
-					g.mode = "ai"
-					ai.player(param)
-					g.me = (ai.me == "Allies" ? "Axis" : "Allies")
-				} else if (server.getUrl()) {
-					param = myUrl.searchParams.get("mode")
-					if (!param || param != "offline") g.mode = "pvp"
-				}
-				if (g.mode != "pvp") {
+				// AI, pvp or solitarie?
+				server.getUrl(g)
+				if (g.mode == "ai") g.mode = "solitarie" // NYI
+				if (!g.server) {
 					sequence.back(seq)
 					return
 				}
@@ -37,7 +29,7 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Connect to Server",
 			start: function(seq) {
-				client.url = server.getUrl()
+				client.url = g.server
 				updateInfo(`\n\nServer URL: ${client.url}`)
 				server.join(client, {}).then(sequence.nextStep)
 			},
@@ -56,6 +48,10 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Waiting for other player",
 			start: function(seq) {
+				if (g.mode != "pvp") {
+					sequence.back(seq)
+					return
+				}
 				g.me = "None"	// no side is active. Disables the UI
 				updateInfo()
 			}

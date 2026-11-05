@@ -75,6 +75,7 @@ function nextStep(e) {
 		return
 	}
 	if (!isActive()) return
+
 	if (attackerFactorsToRemove > 0) {
 		alert(`Attacker have ${attackerFactorsToRemove} factors to remove`)
 		return
@@ -181,6 +182,11 @@ function handleServerMessage(msg) {
 		return
 	}
 	if (msg.connected) {
+		// If not PvP, the server may be used for storing games
+		if (g.mode != "pvp") {
+			sequence.nextStep()
+			return
+		}
 		// We got an array of connected clients. Either a player has
 		// connected, or a player has left the server. Sort the array,
 		// first id is French, second is English, the rest are
@@ -339,7 +345,6 @@ function updatePhase(seq, txt) {
 	g.phase = seq.currentStep.name
 	updateInfoBox(txt)
 }
-
 function connectRetry(seq, delay) {
 	if (delay) {
 		let txt = `Failed connect to ${client.url}\n\n` +
@@ -358,26 +363,26 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Welcome",
 			start: function(seq) {
-				// AI, server or solitarie?
-				const myUrl = new URL(location.href)
-				const param = myUrl.searchParams.get("ai")
-				if (param) {
-					g.mode = "ai"
-					ai.player(param)
-					me = (ai.me == "English" ? "French" : "English")
-				} else if (server.getUrl()) {
-					g.mode = "pvp"
+				// AI, pvp or solitarie?
+				server.getUrl(g)
+				if (g.mode == "ai") {
+					if (!g.side || g.side != "English") {
+						me = "French"
+						ai.player("English")
+					} else {
+						me = "English"
+						ai.player("French")
+					}
 				}
 				let mtxt = ui.getHelp(g.mode)
-				if (g.mode == "ai")
-					mtxt += ` ${me}`
+				if (g.mode == "ai") mtxt += ` ${me}`
 				updatePhase(seq, mtxt)				
 			}
 		},
 		{
 			//name: "connect to server",
 			start: function(seq) {
-				if (g.mode == "pvp") {
+				if (g.server) {
 					sequence.jump(seq, "server-connect")
 					return
 				}
@@ -601,7 +606,7 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Connect to Server",
 			start: function(seq) {
-				client.url = server.getUrl()
+				client.url = g.server
 				updatePhase(seq, `Server URL: ${client.url}`)
 				server.join(client, {}).then(sequence.nextStep)
 			},

@@ -1,0 +1,162 @@
+|Welcome|
+This is a browswe version of the Napoleon at Waterloo board game.
+Please see https://github.com/uablrek/hex-games/tree/main/waterloo
+^
+^Version: VERSION
+^
+^If you want to zoom in/out, NOW is the time! Adjust your browser and
+reload this page (F5) before you start the game.
+^
+^MODE
+^
+^Enter - Proceed to next phase
+^TEST_MODE
+
+|offline|
+You are playing "offline", meaning that you CAN'T SAVE! So, if you
+close or reload this page, all progress is lost
+
+|server|
+Connect to "SERVER".
+
+
+|Connect to Server|
+Connecting to SERVER ...
+
+|Waiting for other player|
+Waiting for the other player...
+
+|Connection Failed|
+Failed to connect to SERVER
+^
+^Retry in DELAY seconds...
+
+|solitarie|
+You play in solitarie mode. You play as both sides, and may do pretty
+much anything.
+^
+^A snapshot is taken at the beginning of each turn. On a later
+(re)load of this page you may choice to start from the latest snapshot
+
+|pvp|
+You play in Player v.s. Player mode (PvP). The first player to connect
+to the server will become the "French" player, the runner up
+becomes "Allies". Snapshots are NOT taken!
+
+|ai|
+You play as "SIDE" against the game AI.
+^But as AI is Not Yet Implemented, we resort to solitarie mode.
+
+|Initial Deployment|
+The order of battle is setup according to the basic rules
+^
+^Enter - Proceed to next phase
+
+|test-mode|
+t - Start game in Test Mode
+^
+^Test Mode:
+^All units becomes draggable during movement phase, which let you
+setup any situation. During Combat Resolution you will select the die roll.
+
+|Reinforcements|
+Reinforcements are available. Drag units from the UnitBox to a
+rightmost hex on the map (23XX), out of forrest and enemy ZOC.
+Reinforcment units may be stacked, but stacking rules must be obeyed
+after the Movement phase. One movement factor (MF) is consumed for
+entering the map.
+^
+Units dragged to an illegal hex will be returned to the UnitBox
+before the Movement phase.
+^
+^Enter - Allied Movement phase
+^Space - Rotate stack
+
+|Movement|
+Click on a friendly unit to select it and mark all possible
+moves. Click on a marker to move the unit. Moved units have red
+marks. Units may be temporary stacked during movement.
+^
+^Enter - Combat phase
+^Esc - Un-select
+^r - Regret move
+^Space - Rotate stack
+
+|Combat Assignment|
+All engaged units have yellow marks and *must* fight.  Click on enemy
+units to select them as a target for attack. They will be marked with
+a cross-hair. then, select friendly units to attack the targets. The
+odds is shown in the CRT. Unit assigned to combat will get green
+marks. Repeat until all engaged units are assigned.
+^
+^Enter - Combat Resolution
+^Esc - Re-do Combat Assignment
+
+|Combat Resolution|
+Select an engaged unit, they have green marks. The
+odds is updated in the CRT.
+^
+^Enter - Commence Attack
+^l - Voluntarily reduce odds
+^Esc - Restore odds
+
+|Roll the Die|
+Test mode is enabled, and you must select the die roll.
+^
+^1-6 - Roll the Die
+
+|Retreat|
+
+Retreat after combat. Units that must retreat have a yellow mark.  If
+a friendly unit is in the way it can be "displaced", unless it has
+been in a battle. Retreat into enemy ZOC is not allowed. If a unit
+can't retreat it must be deleted. The defender may choose to delete a
+unit instead of retreating. Units that have not retreated will be
+automatically deleted when moving to Advance phase.
+^
+^Enter - Advance phase
+^d - Delete unit
+
+|Remove Attackers|
+
+Exhange (EX) combat result. All defenders are eliminated. The attacker
+must remove combat factors equal or more than the defender losses.
+^
+^d - Delete unit
+
+|Advance|
+Advance after combat. Vacated hexes are marked, and units that can advance
+have yellow marks. Click on a unit to select it, and on a vacated hex (if
+there is more than one). Advancing is optional.
+^^Advance *may* be done regardless of ZOC. Advance to a forrest hex is
+only allowed via a road.
+^^You can't "regret" an advance, so be careful
+^
+^Enter - Proceed without advancing
+
+|winner-fr|
+Napoleon Bonaparte is the winner!!
+^^He will march to Brussels and beyond. Vive la France!
+
+|winner-al|
+The allies under Wellington and Blücher are the winners!!
+^^Napoleon will be exiled to St'Helena.
+
+|winner-|
+The battle is a tie. Nobody wins, and the fight continues...
+
+|overstacked|
+There are overstacked counters. You can either remove units, or
+regret/redo moves until the stacking rules are obeyed.
+
+|combatrules|
+All engaged units are not assigned to combat. Add attackers, or hit
+'Esc' to reset the Combat Assignment phase
+
+|Remove Attackers|
+EX combat result. The attacker must remove combat factors (CF) equal
+to the defenders losses, or more. Bombarding units are unaffected by
+an EX result and may not be removed to fulfil the requirements
+
+|remainingEX|
+More attacker combat factors (CF) must be removed

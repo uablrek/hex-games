@@ -33,6 +33,8 @@ function updateInfoBox(e) {
 		return
 	}
 	const pos = ui.board.getRelativePointerPosition()
+	pos.x = Math.round(pos.x)
+	pos.y = Math.round(pos.y)
 	const hex = grid.pixelToHex(pos)
 	let txt = `Pos: ${pos.x}, ${pos.y}\n`
 	txt += `Hex: ${hex.x}, ${hex.y}\n`
@@ -79,7 +81,23 @@ function placeMarker(hex) {
 	ui.init()
 	const mapImage = await ui.mapImage(mapData)
 	ui.board.add(mapImage)
-	grid.configure(71.6, 1.0, {x:12, y:26}, true)
+	const o = {x:12, y:26}
+	grid.configure(71.6, 1.0, o, true)
+	// superimpose a generated grid on the map
+    const pattern = new Image()
+    pattern.src = grid.patternSvg("black")
+    await new Promise(resolve => pattern.onload = resolve)
+	const hexGrid = new Konva.Rect({
+		width: 1800,
+		height: 1300,
+		fillPatternImage: pattern,
+		fillPatternRepeat: 'repeat',
+		fillPatternScale: grid.patternScale(),
+		offset: o,
+	})	
+	hexGrid.cache()
+	ui.board.add(hexGrid)
+	
 	ref	= grid.hexToAxial(nawToHex('1310'))
 	createInfoBox()
 	ui.board.on('click', updateInfoBox)

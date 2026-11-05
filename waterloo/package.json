@@ -1,9 +1,13 @@
 {
-  "name": "waterloo1",
-  "version": "1.0.0",
-	"description": "Waterloo Board Game - Basic",
-  "license": "CC-BY-4.0",
-  "author": "",
-  "type": "module",
-  "main": "main.js"
+	"name": "waterloo1",
+	"version": "1.0.0",
+	"description": "Waterloo Board Game - Basic rules",
+	"license": "CC-BY-4.0",
+	"author": "",
+	"type": "module",
+	"main": "main.js",
+	"dependencies": {
+		"konva": "^10.0.12",
+		"@uablrek/hex-games": "^5"
+	}
 }

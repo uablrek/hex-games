@@ -1,12 +1,12 @@
 {
-  "name": "the-hill",
-  "version": "1.0.0",
-  "description": "Battle for The Hill",
-  "main": "main.js",
+	"name": "the-hill",
+	"version": "1.0.0",
+	"description": "Battle for The Hill",
+	"main": "main.js",
 	"license": "CC-BY-4.0",
-  "type": "module",
-  "dependencies": {
-	  "konva": "^10.0.12",
-	  "hex-games": "^0.1.0"
-  }
+	"type": "module",
+	"dependencies": {
+		"konva": "^10.0.12",
+		"@uablrek/hex-games": "^5"
+	}
 }

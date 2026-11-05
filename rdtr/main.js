@@ -13,7 +13,7 @@ import helpTxt from './help.txt'
 import {stepTurn, g} from './game.js'
 
 const log = console.log
-const release = {version:"5.0.0-rc1", date:"2026-10-16"}
+const release = {version:"5.0.0-rc2", date:"2026-11-05"}
 export let sc
 
 // ----------------------------------------------------------------------
@@ -54,7 +54,7 @@ export const selected = {
 function setClicks() {
 	ui.board.on('click', boardClick)
 	for (const u of unit.units) u.img.on('click', unitClick)
-	// Wen we get here the UI is blocked and the cursor is 'wait'
+	// When we get here the UI is blocked and the cursor is 'wait'
 	g.blockUI = false
 	initializingBox.destroy()
 	console.timeEnd("toImages")
