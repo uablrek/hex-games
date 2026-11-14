@@ -10,10 +10,10 @@ import Konva from 'konva'
 import {ui, sequence, box, grid, map, unit} from '@uablrek/hex-games'
 import sc1939 from './scenario-1939.json'
 import helpTxt from './help.txt'
-import {stepTurn, g} from './game.js'
+import {stepTurn, g, restore} from './game.js'
 
 const log = console.log
-const release = {version:"5.0.0-rc2", date:"2026-11-05"}
+const release = {version:"5.0.0-rc3", date:"2026-11-14"}
 export let sc
 
 // ----------------------------------------------------------------------
@@ -129,7 +129,27 @@ sequence.add(new sequence.Sequence({
 		},
 		{
 			start: function(seq) {
-				sequence.jump(seq, "deployment", {deploy: sc.orderOfDeployment})
+				const s = localStorage.getItem("rdtr")
+				if (g.mode == "solitarie" && s) {
+					box.choiceBox({
+						text: "A snapshot was found",
+						choices: ['Use it', 'Discard'],
+					}, ui.info, true).then(function(value) {
+						if (value == "Use it") {
+							// will goto the step after snapshot
+							restore(JSON.parse(s))
+							return
+						}
+						localStorage.removeItem("rdtr")
+						sequence.nextStep()
+					})
+				} else seq.nextStep()
+			}
+		},
+		{
+			start: function(seq) {
+				const ood = {deploy: sc.orderOfDeployment}
+				sequence.jump(seq, "deployment", ood)
 			}
 		},
 		{

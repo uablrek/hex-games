@@ -129,6 +129,9 @@ function shuffle(a) {
 function toHex(u) {
 	const h = map.getHex(u.hex)
 	const ta = grid.movementAxial(u.m, h.ax, u)
+	// exclude hexes with >=2 units
+	for (const h of ta)
+		if (h.units && h.units.size >= 2) ta.delete(h)
 	let th = h
 	for (const n of ta.values())
 		if (n.weight > th.weight) th = n

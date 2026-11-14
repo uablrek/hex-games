@@ -5,7 +5,7 @@
 */
 
 import {ui, grid, box, unit, map} from '@uablrek/hex-games'
-import {units, unitInit} from './units.js'
+import {units} from './units.js'
 import mapData from './waterloo.png'
 import mapProperties from './map-data.json'
 
@@ -24,6 +24,7 @@ units that haven't already moved. Click on a marked hex to move the unit.
 Moved units are marked. Over-stacking (2) is allowed during
 movement. All units are draggable
 `
+
 function createInfoBox() {
 	infoBox = box.info({
         x: window.innerWidth - 450,
@@ -178,6 +179,8 @@ function computeZOC() {
 // ----------------------------------------------------------------------
 // Movement
 
+const allHexes = new Set()
+
 function removeD() {
 	for (const h of map.hexMap.values()) h.d = 0
 }
@@ -200,6 +203,7 @@ function getMovementCost(h, n, i, userRef) {
 
 // Mark possible movements for the 'selectedUnit'
 let movMarkers
+let movMask
 const movTemplate = new Konva.Circle({
 	radius: 6,
 	stroke: 'gray',
@@ -213,13 +217,30 @@ function showMoves(u, hexes) {
 		reachableHexes = hexes
 	else
 		reachableHexes = grid.movementAxial(u.m, grid.hexToAxial(u.hex))
-	movMarkers = new Konva.Group()
-	for (h of reachableHexes.values()) {
-		const m = movTemplate.clone()
-		m.position(grid.hexToPixel(h.hex))
-		movMarkers.add(m)
+	if (false) {
+		// Use markers
+		movMarkers = new Konva.Group()
+		for (const h of reachableHexes.values()) {
+			const m = movTemplate.clone()
+			m.position(grid.hexToPixel(h.hex))
+			movMarkers.add(m)
+		}
+		ui.board.add(movMarkers)
+	} else {
+		// Use hex-masks
+		if (reachableHexes.size) {
+			movMask = new Konva.Group()
+			const unreachable = allHexes.difference(reachableHexes)
+			for (const h of unreachable.values()) {
+				movMask.add(grid.hmask.clone({
+					fill: 'black',
+					opacity: 0.3,
+					position: grid.hexToPixel(h.hex),
+				}))
+			}
+			ui.board.add(movMask)
+		}
 	}
-	ui.board.add(movMarkers)
 }
 function clearMoves() {
 	reachableHexes = null
@@ -227,7 +248,12 @@ function clearMoves() {
 		movMarkers.destroy()
 		movMarkers = null
 	}
+	if (movMask) {
+		movMask.destroy()
+		movMask = null
+	}
 }
+
 function moveUnit(u, h) {
 	if (!u || !h || !reachableHexes) return
 	if (u.ohex) return		// already moved
@@ -238,6 +264,7 @@ function moveUnit(u, h) {
 
 // ----------------------------------------------------------------------
 // Main
+import {init as unitInit} from './units.js'
 ;(async () => {
 	ui.init()
 	grid.configure(71.6, 1.0, {x:12, y:26}, true)
@@ -247,5 +274,6 @@ function moveUnit(u, h) {
 	await unitInit()
 	ui.board.add(mapImage)
 	createInfoBox()
+	for (const h of map.hexMap.values()) allHexes.add(h)
 	setup()
 })()

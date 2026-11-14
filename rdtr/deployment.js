@@ -26,28 +26,25 @@ function stepInit(seq, info='') {
 sequence.add(new sequence.Sequence({
 	name: "deployment",
 	ni: 0,
+	deploy: [],
 	steps: [
 		{
 			start: function(seq) {
-				ui.setKeys([{key:'l', fn:autoDeploy}])
-				unit.unselectAll()
 				if (!seq.deploy) {
-					seq.deploy = []
-					seq.gotoStep("Next Deployment")
+					sequence.back(seq)
 					return
 				}
+				ui.setKeys([{key:'l', fn:autoDeploy}])
+				unit.unselectAll()
 				seq.ni = 0
 				seq.nextStep()
 			}
 		},
 		{
-			name: "Deploment",
+			name: "Deployment",
 			start: function(seq) {
 				seq.nat = seq.deploy[seq.ni]
 				g.active = g.Axis.has(seq.nat) ? "Axis":"Allies"
-				// make all already placed units un-draggable
-				for (const u of unit.units)
-					if (u.hex) u.img.draggable(false)
 				if (!isActive()) {
 					stepInit(seq, "\n\nWaiting for other player...")
 					return
@@ -56,7 +53,7 @@ sequence.add(new sequence.Sequence({
 				//log("usesNu", seq.nat, usesNu(seq.nat))
 				if (usesNu(seq.nat)) {
 					seq.unitbox = units.deploy(
-						"nu", (u)=>u.selected, ubHex[seq.nat])
+						"nu", (u)=>u.selected || u.hex, ubHex[seq.nat])
 					return
 				}
 				if (units.isMajor(seq.nat))
@@ -72,7 +69,7 @@ sequence.add(new sequence.Sequence({
 			}
 		},
 		{
-			name: "Next Deployment",
+			//name: "Next Deployment",
 			start: function(seq) {
 				seq.ni++
 				if (seq.ni >= seq.deploy.length) {
@@ -80,6 +77,60 @@ sequence.add(new sequence.Sequence({
 					// Restore the active player. The non-active
 					// player deploys countries that are attacked
 					g.active = g.player == "ax" ? "Axis" : "Allies"
+					// Add a dragend send a move message.
+					// NOTE: handlers are cumulative!
+					for (const u of unit.units)					
+						if (u.hex && !u.dragend) {
+							u.dragend = true
+							u.img.on('dragend.sndmsg', dragEnd)
+						}
+					sequence.back(seq)
+					return
+				}
+				// More nations to deploy
+				//log("More to deploy", seq.deploy[seq.ni])
+				seq.gotoStep("Deployment")
+			}
+		},
+	],
+}))
+// Works similar to "deployment", but only major nations allowed, and
+// only the active player places units
+sequence.add(new sequence.Sequence({
+	name: "unit-construction",
+	ni: 0,
+	deploy: [],
+	steps: [
+		{
+			start: function(seq) {
+				if (!seq.deploy) {
+					sequence.back(seq)
+					return
+				}
+				seq.ni = 0
+				seq.nextStep()
+			}
+		},
+		{
+			name: "Buy Units",
+			start: function(seq) {
+				seq.nat = seq.deploy[seq.ni]
+				const filterOut = function(u) {
+					return u.hex || !u.allowable
+				}
+				seq.unitbox = units.deploy(seq.nat, filterOut)
+			},
+			end: function(seq) {
+				if (seq.unitbox) seq.unitbox.destroy()
+				if (g.mode == "pvp" && isActive())
+					sendDeployment(seq.nat)
+			}
+		},
+		{
+			//name: "Next Deployment",
+			start: function(seq) {
+				seq.ni++
+				if (seq.ni >= seq.deploy.length) {
 					sequence.back(seq)
 					// Add a dragend send a move message.
 					// NOTE: handlers are cumulative!
@@ -92,7 +143,7 @@ sequence.add(new sequence.Sequence({
 				}
 				// More nations to deploy
 				//log("More to deploy", seq.deploy[seq.ni])
-				seq.gotoStep("Deploment")
+				seq.gotoStep("Buy Units")
 			}
 		},
 	],

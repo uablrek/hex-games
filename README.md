@@ -101,6 +101,7 @@ Incompatible updates from 4.x:
 * `sequence.*SeqHelp` is moved to `ui.*help`
 * Units unique for RDTR removed from lib: `ugenNav`, `ugenAb`
 * `server.getUrl()` sets an object and doesn't return anything
+* The local server was removed
 
 ### JavaScript/npm
 
@@ -207,6 +208,7 @@ https://en.wikipedia.org/wiki/Panzer_General). Possible procedure:
 1. Generate a hex-grid (SVG)
 2. Draw the map graphics with [Inkscape](https://inkscape.org/)
 3. Define the map with a `map-maker` program
+4. Improve the map with generative AI (please see [the-hill](./the-hill/README.md))
 
 Draw the map:
 ```
@@ -292,15 +294,6 @@ The [The Hill game](./the-hill) has a super-simple AI built on a
 static influence map that simply gives the objective hexes high
 weights.
 
-### AI as a client to the local server
-
-The server lib supports a local server, and it seemed to be a good
-idea to keep the main PvP logic and implement AI as a local client.
-**It wasn't**. You may implement an AI as a remote client, with it's own map,
-sequences, units, etc, but with a local client you already have
-everything, and you don't want to duplicate it. So it's better to just
-call an ai-module, like in [ws&im](
-https://github.com/uablrek/hex-games/blob/main/ws-im/README.md).
 
 ## Red Blob Games
 

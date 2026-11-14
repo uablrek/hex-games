@@ -29,6 +29,7 @@ function updatePhase(seq, env) {
 	box.update(infoBox, txt + help, label)
 }
 function sendNextStep() {
+	deleteModeOff()
 	if (isActive() && g.mode == "pvp") sendMsg({type:"nextstep"})
 }
 sequence.add(new sequence.Sequence({
@@ -60,7 +61,7 @@ sequence.add(new sequence.Sequence({
 		},
 		{
 			name: "Order of Play",
-			start: (seq) => {
+			start: function(seq) {
 				updatePhase(seq)
 				if (turnEq(g.turn, {year:1939, season:"fall"})) {
 					g.active = "Axis"
@@ -72,12 +73,12 @@ sequence.add(new sequence.Sequence({
 				g.active = "Axis"
 				if (isActive()) {
 					const pos = ui.center()
-					choiceBox({
+					box.choiceBox({
 						text: "Who goes first?",
 						choices: ['Axis', 'Allies'],
 						x: pos.x,
 						y: pos.y,
-					}, true).then(function(value) {
+					}, ui.info, true).then(function(value) {
 						sendMsg({type: "choice", value: value})
 						g.active = value
 						seq.nextStep()
@@ -109,13 +110,18 @@ sequence.add(new sequence.Sequence({
 	name: "player",
 	steps: [
 		{
+			start: function(seq) {
+				if (g.mode == "solitarie") {
+					const s = snapshot()
+					//log("snapshot", s)
+					localStorage.setItem("rdtr", JSON.stringify(s))
+				}
+				seq.nextStep()
+			}
+		},
+		{
 			//name: "Prepare",
 			start: function(seq) {
-				for (const u of unit.units)
-					if (u.hex) {
-						u.img.draggable(false)
-						u.deletable = false
-					}
 				seq.deploy = new Set()
 				seq.nextStep()
 			}
@@ -158,17 +164,18 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Movement",
 			start: function(seq) {
-				// make controlled units draggable
-				if (isActive()) {
-					for (const u of unit.units)
-						if (u.hex && g[g.active].has(u.nat))
-							u.img.draggable(true)
+				// All units draggable and deletable for now!
+				// TODO: Fix This!
+				for (const u of unit.units) {
+					if (!u.hex) continue
+					u.img.draggable(true)
+					u.deletable = true
 				}
+				enableDelete()
 				units.enableSplitBox()
 				updatePhase(seq)
 			},
 			end: function(seq) {
-				for (const u of unit.units) if (u.hex) u.img.draggable(false)
 				units.disableSplitbox()
 				sendNextStep()
 			},
@@ -185,24 +192,19 @@ sequence.add(new sequence.Sequence({
 		},
 		{
 			name: "Unit Construction",
-			start: updatePhase,
+			start: function(seq) {
+				updatePhase(seq)
+				const deploy = []
+				for (const nat of g[g.active])
+					if (units.isMajor(nat)) deploy.push(nat)
+				sequence.jump(seq, "unit-construction", {deploy:deploy})
+			},
 			end: sendNextStep,
 		},
 		{
 			name: "Strategic Redeployment (SR)",
-			start: function(seq) {
-				// make controlled units draggable
-				if (isActive()) {
-					for (const u of unit.units)
-						if (u.hex && g[g.active].has(u.nat))
-							u.img.draggable(true)
-				}
-				updatePhase(seq)
-			},
-			end: function(seq) {
-				for (const u of unit.units) if (u.hex) u.img.draggable(false)
-				sendNextStep()
-			},
+			start: updatePhase,
+			end: sendNextStep,
 		},
 		{
 			name: "Remove units",
@@ -260,26 +262,8 @@ sequence.add(new sequence.Sequence({
 		},
 		{
 			name: "Attacker naval+air",
-			start: function(seq) {
-				updatePhase(seq)
-				// Make the active player's air and naval units draggable.
-				// Make all air units deletable
-				for (const u of unit.units) {
-					if (!u.hex) continue
-					if (u.type == "air") u.deletable = true
-					if (g[p.active].has(u.nat))
-						if (u.type == "air" || u.type == "nav")
-							u.img.draggable(true)
-				}
-			},
-			end: function(seq) {
-				for (const u of unit.units) {
-					if (!u.hex) continue
-					u.img.draggable(false)
-					u.deletable = false
-				}
-				sendNextStep()
-			},
+			start: updatePhase,
+			end: sendNextStep,
 		},
 		{
 			name: "Defender inteception+DAS",
@@ -318,21 +302,12 @@ sequence.add(new sequence.Sequence({
 			start: function(seq) {
 				// flip active player
 				g.active = otherFaction(g.active)
-				// make units for the non-active player deletable
-				if (isActive()) {
-					enableDelete()
-					for (const u of unit.units)
-						if (u.hex && g[g.active].has(u.nat)) u.deletable = true
-				}
 				updatePhase(seq)
 			},
 			end: function(seq) {
-				disableDelete()
 				sendNextStep()
 				// flip active player back, and make units un-deletable
 				g.active = otherFaction(g.active)
-				for (const u of unit.units)
-					if (u.hex) u.deletable = false
 			},
 		},
 		{ start: sequence.back },		
@@ -344,7 +319,7 @@ sequence.add(new sequence.Sequence({
 
 let deleteMode = false
 function enableDelete() {
-	ui.setKeys([{key:'d', fn:toggleDelete}])
+	ui.setKeys([{key:'d', fn:toggleDeleteMode}])
 	selected.oldFn = selected.fn
 	selected.fn = null
 }
@@ -354,7 +329,7 @@ function disableDelete() {
 	document.body.style.cursor = 'default'
 	ui.removeKeys('d')
 }
-function toggleDelete() {
+function toggleDeleteMode() {
 	if (deleteMode) {
 		deleteMode = false
 		selected.fn = null
@@ -364,6 +339,9 @@ function toggleDelete() {
 		document.body.style.cursor = 'not-allowed'
 		selected.fn = deleteSelected
 	}
+}
+function deleteModeOff() {
+	if (deleteMode) toggleDeleteMode()
 }
 function deleteSelected() {
 	//log("deleteSelected", selected.u)
@@ -392,12 +370,12 @@ function dow(seq) {
 	g.blockUI = true
 	let natname = (nat in units.natName) ? units.natName[nat] : nat
 	const pos = grid.hexToPixel(this.h.hex)
-	choiceBox({
+	box.choiceBox({
 		text: `Declare war on ${natname}?`,
 		choices: ["Yes", "No"],
 		x: pos.x,
 		y: pos.y,
-	}).then(function(value){
+	}, ui.board).then(function(value){
 		if (value == "Yes") {
 			seq.deploy.add(nat)
 			if (units.isMinorAlly(nat))
@@ -459,36 +437,42 @@ function addAllowables(allowable) {
 		}
 	}
 }
-
-// The choiceBox is async. The UI (on both sides on PvP) should be
-// blocked until a choice has been made. Use g.blockUI and .then()
-let theChoiceBox
-let choiceResolve
-async function choiceBox(obj, center) {
-	if (theChoiceBox) return
-	theChoiceBox = box.choice(obj)
-	if (center) {
-		// center on screen
-		const pos = ui.center(theChoiceBox)
-		theChoiceBox.position(pos)
-		ui.info.add(theChoiceBox)
-	}
-	else
-		ui.board.add(theChoiceBox)
-	//const pos = grid.pixelToHex(theChoiceBox.position())
-	//if (!map.isVisible(pos)) map.center(pos)
-	return new Promise(function(resolve) {choiceResolve = resolve})
-}
-function destroyBox(e, group) {
-	if (e == theChoiceBox) {
-		theChoiceBox = null
-		choiceResolve(group.name())
-		return
-	}
-}
 // This is called in PvP mode when the remote player is making the choice
 export function setChoice(c) {
 	choice = c
+	sequence.nextStep()
+}
+
+function snapshot() {
+	const s = {}
+	for (const f of ["version", "turn", "mode", "scenario", "active", "player"])
+		s[f] = g[f]
+	log("snapshot", s.turn)
+	s.allowable = []
+	for (const u of unit.units)
+		if (u.allowable) s.allowable.push(u.i)
+	s.deployment = []
+	for (const u of unit.units)
+		if (u.hex) s.deployment.push({i:u.i, hex:u.hex, nat:u.nat})
+	s.Axis = Array.from(g.Axis)
+	s.Allies = Array.from(g.Allies)
+	s.seq = sequence.snapshot()
+	return s
+}
+export function restore(s) {
+	// TODO: check version
+	for (const f of ["turn", "mode", "scenario", "active", "player"])
+		g[f] = s[f]
+	log("restore", s.turn)
+	for (let i of s.allowable) unit.units[i].allowable = true
+	for (const ih of s.deployment) {
+		const u = unit.units[ih.i]
+		if (u.nat == "nu") u.nat = ih.nat
+		unit.place(ih, ui.board, true)
+	}
+	g.Axis = new Set(s.Axis)
+	g.Allies = new Set(s.Allies)
+	sequence.restore(s.seq)
 	sequence.nextStep()
 }
 
@@ -496,7 +480,6 @@ export function setChoice(c) {
 // Init
 export function init() {
 	g = sc						// (to be reconsidered?)
-	box.destroyCallback(destroyBox)
 	// Nations in control. Neutrals will be added to the non-attacking
 	// faction. For now nations are never removed from these sets (but
 	// it doesn't matter)

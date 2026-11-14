@@ -6,7 +6,7 @@
 
 import Konva from 'konva'
 import {ui, unit} from '@uablrek/hex-games'
-import {units, unitInit} from './units.js'
+import {units} from './units.js'
 
 function displayUnits() {
 	let x, y, p
@@ -78,6 +78,7 @@ function displayUnits() {
 
 // ----------------------------------------------------------------------
 // Main
+import {init as unitInit} from './units.js'
 ;(async () => {
 	ui.init()
 	unit.config({

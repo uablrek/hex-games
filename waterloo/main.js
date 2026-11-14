@@ -16,7 +16,7 @@ const log = console.log
 // UI setup, including keyboard and Boxes
 // Async setup is done in "main"
 
-const release = {version:"5.0.0-rc2", date:"2026-11-05"}
+const release = {version:"5.0.0-rc3", date:"2026-11-14"}
 
 export let infoBox
 function createInfoBox() {
@@ -346,29 +346,33 @@ sequence.add(new sequence.Sequence({
 			},
 		},
 		{
-			name: "snapshot",
+			//name: "restore",
 			start: function(seq) {
 				if (g.mode != "solitarie") {
 					seq.nextStep()
 					return
 				}
-				if (g.turn == 1) {
-					if (localStorage.getItem("waterloo")) {
-						box.choiceBox({
-							text: "A snapshot was found",
-							choices: ['Use it', 'Discard'],
-						}, ui.info, true).then(function(value) {
-							if (value == "Use it")
-								restoreGame()
-							else {
-								localStorage.removeItem("waterloo")
-								initialDeployment()
-							}
-							seq.nextStep()
-						})
-						return
-					} else initialDeployment()
-				} else saveGame()
+				if (localStorage.getItem("waterloo")) {
+					box.choiceBox({
+						text: "A snapshot was found",
+						choices: ['Use it', 'Discard'],
+					}, ui.info, true).then(function(value) {
+						if (value == "Use it") {
+							restoreGame()
+							return
+						} else {
+							localStorage.removeItem("waterloo")
+							initialDeployment()
+						}
+						seq.nextStep()
+					})
+				} else initialDeployment()
+			}
+		},
+		{
+			name: "snapshot",
+			start: function(seq) {
+				if (g.mode == "solitarie") saveGame()
 				seq.nextStep()
 			}
 		},
@@ -382,6 +386,12 @@ sequence.add(new sequence.Sequence({
 		},
 		{
 			start: checkWinner
+		},
+		{
+			start: function(seq) {
+				if (g.mode == "solitarie") saveGame()
+				seq.nextStep()
+			}
 		},
 		{
 			name: "Allied Turn",
@@ -709,6 +719,7 @@ function saveGame() {
 	g.deployment = []
 	for (const u of unit.units)
 		if (u.hex) g.deployment.push({i:u.i, hex:u.hex})
+	g.seq = sequence.snapshot()
 	localStorage.setItem("waterloo", JSON.stringify(g))
 }
 function restoreGame() {
@@ -720,6 +731,7 @@ function restoreGame() {
 		ui.board.add(u.img)
 	}
 	g.deployment = null			// (for GC)
+	sequence.restore(g.seq).nextStep()
 }
 
 // ----------------------------------------------------------------------
@@ -780,13 +792,9 @@ function getMovementCost(h, n, i, u) {
 }
 
 // Mark possible movements
-let movMarkers
-const movTemplate = new Konva.Circle({
-	radius: 6,
-	stroke: 'gray',
-	fill: 'green',
-})
+let movMask
 let reachableHexes = null
+const allHexes = new Set()
 function showMoves(u, hexes) {
 	clearMoves()
 	if (u.ohex) return
@@ -796,19 +804,23 @@ function showMoves(u, hexes) {
 	else
 		reachableHexes = grid.movementAxial(
 			u.m - u.consumedMF, grid.hexToAxial(u.hex), u)
-	movMarkers = new Konva.Group()
-	for (const h of reachableHexes.values()) {
-		const m = movTemplate.clone()
-		m.position(grid.hexToPixel(h.hex))
-		movMarkers.add(m)
+	if (reachableHexes.size == 0) return
+	movMask = new Konva.Group()
+	const unreachable = allHexes.difference(reachableHexes)
+	for (const h of unreachable.values()) {
+		movMask.add(grid.hmask.clone({
+			fill: 'black',
+			opacity: 0.3,
+			position: grid.hexToPixel(h.hex),
+		}))
 	}
-	ui.board.add(movMarkers)
+	ui.board.add(movMask)
 }
 function clearMoves() {
 	reachableHexes = null
-	if (movMarkers) {
-		movMarkers.destroy()
-		movMarkers = null
+	if (movMask) {
+		movMask.destroy()
+		movMask = null
 	}
 }
 function moveSelectedUnit(h) {
@@ -1314,6 +1326,7 @@ import {init as unitsInit} from './units.js'
     grid.configure(71.6, 1.0, {x:12, y:26}, true)
 	const mapImage = await ui.mapImage(mapData, false)
 	map.init({mapProperties: mapProperties})
+	for (const h of map.hexMap.values()) allHexes.add(h)
 	await unitsInit()
 	ui.board.add(mapImage)
 	// Align the board with the bottom and left edge of the map

@@ -119,7 +119,7 @@ for the phases can be written in a separate plain-text file.
 
 Some sequences (simplified):
 
-1. Initial Deployment
+1. Welcome
 2. Snapshot
 3. French turn
 4. Check winner

@@ -72,3 +72,15 @@ admin docker-run --tag=the-hill:latest
 # Use the printed address. Example: http://172.17.0.2:8081/, or
 # http://localhost:8081/ (port 8081 is exported)
 ```
+
+## Game AI
+
+The AI player is extremely simple. First, it never attacks, so it can
+only play as English. It uses an [influence map](
+https://www.google.com/search?q=games+influence+map) for movement. You
+lay hit `l` in movement phase to let the AI play for you.
+
+## AI enhanced map
+
+The ugly [original map](./example-map.svg) was enhanced with ChatGPT
+to a [less ugly map](./realistic_map.svg).

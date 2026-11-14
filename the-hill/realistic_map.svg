@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1400" height="1000" viewBox="0 0 1400 1000">
+  <defs>
+    <pattern id="hex-grid" width="50" height="86.6" patternUnits="userSpaceOnUse">
+      <path fill="none" stroke="#1a1815" stroke-width="1.1" d="M25 0v28.87L0 43.3v28.87L25 86.6l25-14.43V43.3L25 28.87"/>
+    </pattern>
+
+    <radialGradient id="land-base" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#e5dec9"/>
+      <stop offset="65%" stop-color="#d7ceb2"/>
+      <stop offset="100%" stop-color="#c2b695"/>
+    </radialGradient>
+
+    <radialGradient id="hill-grad" cx="42%" cy="38%" r="55%">
+      <stop offset="0%" stop-color="#9e7648" stop-opacity="0.85"/>
+      <stop offset="45%" stop-color="#b58d58" stop-opacity="0.65"/>
+      <stop offset="80%" stop-color="#c7a977" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#d7ceb2" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="forest-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3e5c32"/>
+      <stop offset="50%" stop-color="#2d4724"/>
+      <stop offset="100%" stop-color="#1f3318"/>
+    </linearGradient>
+
+    <linearGradient id="lake-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1b4f72"/>
+      <stop offset="70%" stop-color="#2874a6"/>
+      <stop offset="100%" stop-color="#5dade2"/>
+    </linearGradient>
+
+    <linearGradient id="mtn-light" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d5d8dc"/>
+      <stop offset="40%" stop-color="#99a3a4"/>
+      <stop offset="100%" stop-color="#616a6b"/>
+    </linearGradient>
+    <linearGradient id="mtn-shadow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#566573"/>
+      <stop offset="100%" stop-color="#2c3e50"/>
+    </linearGradient>
+
+    <filter id="terrain-relief" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="4" seed="14" result="noise"/>
+      <feDiffuseLighting in="noise" lighting-color="#fffdf5" surfaceScale="1.6" result="light">
+        <feDistantLight azimuth="315" elevation="55"/>
+      </feDiffuseLighting>
+      <feBlend in="SourceGraphic" in2="light" mode="multiply"/>
+    </filter>
+
+    <filter id="organic-edge" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="3" seed="7" result="turb"/>
+      <feDisplacementMap in="SourceGraphic" in2="turb" scale="16" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+
+    <filter id="canopy-texture" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="3" seed="22" result="canopy"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.12  0 0 0 0 0.22  0 0 0 0 0.09  0 0 0 0.45 0" in="canopy" result="darkLeaves"/>
+      <feComposite in="darkLeaves" in2="SourceGraphic" operator="in" result="clippedLeaves"/>
+      <feMerge>
+        <feMergeNode in="SourceGraphic"/>
+        <feMergeNode in="clippedLeaves"/>
+      </feMerge>
+    </filter>
+
+    <filter id="contour-blur" x="-15%" y="-15%" width="130%" height="130%">
+      <feGaussianBlur stdDeviation="4.5"/>
+    </filter>
+
+    <g id="landmark-marker">
+      <circle cx="0" cy="0" r="8" fill="#4a371c" fill-opacity="0.25"/>
+      <path d="M 0,-7 L 2,-2 L 7,0 L 2,2 L 0,7 L -2,2 L -7,0 L -2,-2 Z" fill="#f7f1e1" stroke="#3d2c14" stroke-width="1.3"/>
+    </g>
+  </defs>
+
+  <g id="layer-base">
+    <rect x="0" y="0" width="1400" height="1000" fill="url(#land-base)" filter="url(#terrain-relief)"/>
+  </g>
+
+  <g id="layer-hill">
+    <ellipse cx="198" cy="394" rx="210" ry="245" fill="url(#hill-grad)"/>
+    <ellipse cx="198" cy="394" rx="145" ry="175" fill="url(#hill-grad)"/>
+    <path d="m150.667 420.961-.269-29.84 22.238-14.593 5.327-29.91 23.553-14.292 25.265 15.823-1.05 27.182 25.412 16.49-2.303 28.398-23.851 12.626-23.085-13.311-25.989 12.946z" fill="none" stroke="#63481d" stroke-width="2" stroke-opacity="0.45" filter="url(#contour-blur)"/>
+    <path d="m174.818 464.2 25.882 12.254 26.595-14.234 21.78 13.385 29.257-15.17-.013-29.202 23.951-13.373-1.596-29.114-23.749-12.963-4.64-27.689-22.453-17.077-.385-25.543-23.915-14.442-27.44 14.062-21.797-14.176-25.721 13.644.76 29.946-27.477 13.734 2.077 26.795-26.277 13.41.642 32.002 25.939 11.44.258 30.236 24.454 13.623z" fill="none" stroke="#63481d" stroke-width="1.8" stroke-opacity="0.35" filter="url(#contour-blur)"/>
+    <use xlink:href="#landmark-marker" x="199" y="371"/>
+    <use xlink:href="#landmark-marker" x="173" y="416"/>
+    <use xlink:href="#landmark-marker" x="224" y="416"/>
+  </g>
+
+  <g id="layer-forest" filter="url(#organic-edge)">
+    <path d="M 1405,150 Q 1340,250 1285,345 Q 1165,335 1048,340 Q 965,455 896,576 Q 955,675 1020,773 Q 1172,782 1325,778 L 1405,910 Z" fill="#1b2b14" fill-opacity="0.3" transform="translate(-6, 6)"/>
+    <path d="M 1405,150 Q 1340,250 1285,345 Q 1165,335 1048,340 Q 965,455 896,576 Q 955,675 1020,773 Q 1172,782 1325,778 L 1405,910 Z" fill="url(#forest-grad)" stroke="#23381b" stroke-width="2" filter="url(#canopy-texture)"/>
+  </g>
+
+  <g id="layer-water" filter="url(#organic-edge)">
+    <path d="M 658,-5 C 615,85 535,195 501,275 C 535,355 595,420 629,493 C 575,595 505,705 449,795 C 310,796 150,793 -5,792" fill="none" stroke="#8c7d62" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" opacity="0.65"/>
+    <path d="M 658,-5 C 615,85 535,195 501,275 C 535,355 595,420 629,493 C 575,595 505,705 449,795 C 310,796 150,793 -5,792" fill="none" stroke="#2e7bb8" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 658,-5 C 615,85 535,195 501,275 C 535,355 595,420 629,493 C 575,595 505,705 449,795 C 310,796 150,793 -5,792" fill="none" stroke="#7ec4eb" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/>
+
+    <path d="M 463,-5 C 490,45 520,95 551,130 C 820,126 1120,124 1405,121 L 1405,-5 Z" fill="#85c1e9" stroke="#6e634f" stroke-width="6"/>
+    <path d="M 472,-5 C 498,42 526,88 556,121 C 820,118 1120,116 1405,113 L 1405,-5 Z" fill="url(#lake-grad)"/>
+  </g>
+
+  <g id="layer-mountain">
+    <path d="M 445,1005 L 520,895 L 565,814 L 625,830 L 690,818 L 745,905 L 800,1005 Z" fill="url(#mtn-light)" stroke="#424949" stroke-width="1.5" filter="url(#organic-edge)"/>
+    <polygon points="565,814 605,910 645,1005 690,818 625,830" fill="url(#mtn-shadow)" opacity="0.7"/>
+    <polygon points="690,818 735,915 800,1005 745,905" fill="url(#mtn-shadow)" opacity="0.8"/>
+    <polygon points="520,895 555,955 585,1005 565,814" fill="url(#mtn-shadow)" opacity="0.45"/>
+    <polygon points="565,814 548,848 566,842 581,852" fill="#f8f9f9" opacity="0.85"/>
+    <polygon points="690,818 674,850 692,845 708,854" fill="#f8f9f9" opacity="0.85"/>
+  </g>
+
+  <g id="layer-routes">
+    <path d="M 612.8,813.9 Q 675,705 734.4,595 Q 820,597 908.3,599" fill="none" stroke="#3b2818" stroke-width="2.5" stroke-dasharray="6,6" stroke-linecap="round" opacity="0.8"/>
+  </g>
+
+  <g id="layer-hex-grid">
+    <rect x="0" y="0" width="1400" height="1000" fill="url(#hex-grid)" opacity="0.35"/>
+  </g>
+
+  <g id="layer-labels" font-family="Georgia, serif" font-style="italic" font-weight="bold">
+    <text x="-310" y="762" transform="rotate(-60.763)" font-size="24" fill="none" stroke="#154360" stroke-width="3.5" stroke-linejoin="round">The River</text>
+    <text x="-310" y="762" transform="rotate(-60.763)" font-size="24" fill="#e8f6ff">The River</text>
+
+    <text x="867" y="67" font-size="26" fill="none" stroke="#154360" stroke-width="4" stroke-linejoin="round">The Lake</text>
+    <text x="867" y="67" font-size="26" fill="#ebf5fb">The Lake</text>
+
+    <text x="155" y="396" font-size="24" fill="none" stroke="#f5eedc" stroke-width="3.5" stroke-linejoin="round" opacity="0.85">The Hill</text>
+    <text x="155" y="396" font-size="24" fill="#3b2610" opacity="0.9">The Hill</text>
+
+    <text x="1057" y="540" font-size="28" fill="none" stroke="#182912" stroke-width="4" stroke-linejoin="round" opacity="0.9">The Forrest</text>
+    <text x="1057" y="540" font-size="28" fill="#e9f5e1" opacity="0.95">The Forrest</text>
+
+    <text x="532" y="945" font-size="25" fill="none" stroke="#1c2833" stroke-width="4" stroke-linejoin="round" opacity="0.95">The Mountain</text>
+    <text x="532" y="945" font-size="25" fill="#f8f9f9">The Mountain</text>
+  </g>
+</svg>

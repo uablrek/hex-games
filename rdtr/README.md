@@ -75,8 +75,10 @@ itself can also be dragged to a convenient place.
 
 Make sure to deploy *all* counters in the Initial Deployment.
 
-**You can't save!** If you reload the page, or close the browser,
-everything is lost (for now).
+A `snapshot` is taken at the start of every turn to [localStorage](
+https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
+If a snapshot is found on a later (re)load, you will get a choice to
+use it.
 
 
 Instructions:
@@ -91,11 +93,9 @@ a phase, hit `Enter` to move to the next phase.
 * **Move the map around** - The map is draggable (but not scrollable).
     You can also scroll the map with the arrow keys
 * **Deploy units** - Drag them from a UnitBox and drop them on the map
-* **Resize and zoom the browser window** - Do this before the game
+* **Resize and zoom the browser window** - Do this **before** the game
     starts Reload the page (F5) to test a new setting
-
 * **Movement** - Drag counters to any place on the map
-
 * **Remove a counter** - Press 'd', the pointer will change
     shape. Then click on units to remove
 * **Combat** - Move your counters into place, compute the odds. Hit
@@ -120,8 +120,8 @@ reluctant to bring in too many dependencies (like React). [Konva](
 https://konvajs.org/docs/index.html) though is *absolutely awsome!*
 
 The following sections are mostly for developers, or people who want
-to learn about the program. Please check the demos. They are simpler
-prototype versions of features in the game.
+to learn about the program. Please check the test programs. They are
+simpler prototype versions of features in the game.
 
 
 ## The map
@@ -168,8 +168,7 @@ hex emit-grid --size 58.7 --scale 0.988 --rect 3000x2050 > rdtr-grid.svg
 ```
 
 This helps when we convert a mouse-position on the map to a hex
-coordinate. If you haven't already, please check the `map-demo` in a
-pre-release.
+coordinate.
 
 ### Coordinates
 
@@ -193,10 +192,10 @@ river towards London.
 <img src="./figures/portsmouth.png "/>
 
 While this is not especially complicated, it's *a lot* of work. The
-`map-maker.js` program is a help program for this job. It is altered
-during development to what I need to define at the moment. I'll
-publish it to document the development process. The end goal is an
-array something like:
+[map-maker](map-maker/main.js) program is a help program for this
+job. It is altered (manually) during development to what I need to
+define at the moment. I'll publish it to document the development
+process. The end goal is an array something like:
 
 ```javascript
 var map = [
@@ -218,8 +217,8 @@ Originally I did the same as for the map, I convert the counter [PDF-sheet](
 https://boardgamegeek.com/filepage/246780/third-reich-counters-pdf-for-scaling)
 to (many) PNG files using [Gimp](https://www.gimp.org/). The
 individual counter images are cut out from the sheet with Konva
-`clone/crop`. The old code is still available in the [units-demo.js](
-demos/units-demo.js).
+`clone/crop`. The old code is still available [here](
+test-old-units/main.js).
 
 Now the unit counters are generated from the `units` array:
 
@@ -265,28 +264,13 @@ human readable form is needed, like `fr,inf,2-3,Alp` or `uk,nav,9` or
 
 ## Save and Restore
 
-Since this is a client-only application (a "frontend" if you like),
-save/restore is tricky. If there was a server (backend) available, it
-would be natural to let it handle save/restore. But that's in the future.
+You can't save the game at any point. However, a `snapshot` to [localStorage](
+https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
+is taken at the start of every turn.  If a snapshot is found on a
+later (re)load, you will get a choice to use it.
 
-The save-key is `s`. On save a browser download window pops up
-and the user may select a file-name for the save.
-
-**Idea**: In the future, when a backend exist, `s` will save on the
-  server, while `Shift-S` will save locally (as now)
-
-Restore is harder. I have not found a way to initiate an upload for a
-local file in JavaScript. So:
-
-*The save file must be manually copied to `rdtrSaveData.js` in the app
-directory, then the page must be reloaded (F5)*
-
-**WARNING: a page reload (F5) will discard any changes you have made
-after the save!**
-
-If you have a server here are possibilities, like the [Fetch
+If you have a server here are other possibilities, like the [Fetch
 API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), but
 then the saves must be stored on the server.
 
-TODO: Investigate how save/restore can be handled with a server.
 

@@ -111,7 +111,6 @@ function createHexInfoBox() {
 }
 ui.setKeys([
 	{key:'s', fn:saveMap},
-	{key:'h', fn:createHexInfoBox},
 	{key:'.', fn:setEdge},
 	{key:'x', fn:setEdge},
 	{key:'r', fn:setEdge},

@@ -46,8 +46,10 @@ function createInSight() {
 	const mask = new Konva.Group()
 	for (const h of o.values()) {
 		const pos = grid.hexToPixel(h.hex)
-		mask.add(map.hmask.clone({
+		mask.add(grid.hmask.clone({
 			position: pos,
+			fill: 'gray',
+			opacity: 0.4,
 		}))
 	}
 	//mask.cache()  // do NOT cache the mask! 

@@ -9,17 +9,16 @@
 import Konva from 'konva'
 import {ui, grid, box, unit, sequence, map, server} from '@uablrek/hex-games'
 import * as ai from './ai.js'
-import mapData from './example-map.svg'
+import mapData from './realistic_map.svg'
 import crtData from './crt.svg'
 import mapProperties from './map-data.json'
 import helpTxt from './help.txt'
 ui.parseHelp(helpTxt)
 const log = console.log
 const dbg = function(){}
+const release = {version:"5.0.0-rc2", date:"2026-11-05"}
 
-let board
 let crt
-let me = ''						// ''|English|French
 let attackerFactorsToRemove = 0
 let defenderFactorsToRemove = 0
 let href
@@ -62,10 +61,10 @@ function toggleHelpBox() {
 		text: txt,
 	})
 		
-	board.add(theHelpBox)
+	ui.board.add(theHelpBox)
 }
 function rotateStack(e) {
-	let pos = board.getRelativePointerPosition()
+	let pos = ui.board.getRelativePointerPosition()
 	let hex = grid.pixelToHex(pos)
 	unit.rotateStack(hex)
 }
@@ -99,7 +98,7 @@ function regretMove() {
 function lazy() {
 	// Automatic play
 	if (!isActive()) return
-	dbg("lazy", me, g.player, g.phase)
+	dbg("lazy", g.me, g.player, g.phase)
 	ai.play()
 }
 function attack(e) {
@@ -112,7 +111,7 @@ function attack(e) {
 // Click functions
 function boardOnClick(e) {
 	if (!isActive()) return
-	let pos = board.getRelativePointerPosition()
+	let pos = ui.board.getRelativePointerPosition()
 	let hex = grid.pixelToHex(pos)
 	let h = map.getHex(hex)
 	if (h && g.phase == "Movement") moveSelectedUnit(h)
@@ -163,64 +162,29 @@ const client = {
 	cbMessage: cbMessage,
 	cbClose: cbClose,
 }
-
 function cbClose() {
-	me = ''
+	g.me = ''
 	sequence.jump({}, "connection-failed")
 }
 function cbMessage(msg) {
 	dbg("cbMessage", msg)
 	if (msg.type == "server")
-		handleServerMessage(msg)
+		server.handleServerMessage(client, msg, g)
 	else
 		handlePeerMessage(msg)
 }
 
-function handleServerMessage(msg) {
-	if (msg.version) {
-		// This is the first message from the server
-		return
-	}
-	if (msg.connected) {
-		// If not PvP, the server may be used for storing games
-		if (g.mode != "pvp") {
-			sequence.nextStep()
-			return
-		}
-		// We got an array of connected clients. Either a player has
-		// connected, or a player has left the server. Sort the array,
-		// first id is French, second is English, the rest are
-		// "observers"
-		if (me) {
-			// Another player has left the game. It *might* be an
-			// observer, but we assume it's the other player
-			me = ''
-			sequence.jump({}, "connection-failed")
-			return
-		}
-		// A player has connected to the server (it may be ourselves)
-		if (msg.connected.length < 2) return
-		msg.connected.sort(function (a,b) {return a - b})
-		if (client.id == msg.connected[0]) {
-			me = "French"
-		} else if (client.id == msg.connected[1]) {
-			me = "English"
-		}
-		sequence.nextStep()
-		return
-	}
-}
 function handlePeerMessage(msg) {
 	// A message from the other player
 	let u
 	switch (msg.type) {
 	case "nextstep":
-		log("Got nextstep message", g.phase)
+		dbg("Got nextstep message", g.phase)
 		sequence.nextStep()
 		break
 	case "deployment":
 		for (const uh of msg.units) {
-			unit.place(uh, board)
+			unit.place(uh, ui.board)
 		}
 		break
 	case "move":
@@ -275,7 +239,7 @@ function sendPlayerDeployment() {
 	sendMsg(msg)
 }
 function sendNextStep() {
-	log("sendNextStep")
+	dbg("sendNextStep", g.mode == "pvp")
 	sendMsg({type:"nextstep"})
 }
 function sendMsg(msg) {
@@ -286,15 +250,14 @@ function sendMsg(msg) {
 // Game related
 
 export let g = {
+	sides: ["French", "English"],
 	turn: {h:10, m:0},
-	player: '',					// English|French
+	me: '',						// ''|English|French
+	player: 'None',				// English|French
 	phase: '',
 	nat: '',					// en|fr
 	mode: "solitarie",			// solitarie|pvp|ai
 	objectives: [],
-	// These are set during "snapshot"
-	//deployment: [],
-	//seq: [],
 }
 
 // Returns false at end-of-game
@@ -321,9 +284,30 @@ function checkFrenchVictory() {
 
 function isActive() {
 	if (ai.busy) return false
-	// me=='' for solitarie game
-	return me == '' || me == g.player
+	// g.me=='' for solitarie game
+	return g.me == '' || g.me == g.player
 }
+
+function snapshot() {
+	const s = {}
+	for (const f of ["turn", "mode", "nat", "player", "me"]) s[f] = g[f]
+	s.deployment = []
+	for (const u of unit.units)
+		if (u.hex) s.deployment.push({i:u.i, hex:u.hex})
+	s.seq = sequence.snapshot()
+	localStorage.setItem("the-hill", JSON.stringify(s))
+}
+function restore(s) {
+	for (const f of ["turn", "mode", "nat", "player", "me"]) g[f] = s[f]
+	for (const uh of s.deployment) {
+		const u = unit.units[uh.i]
+		u.img.on('click', unitClick)
+		unit.place(uh, ui.board)
+	}
+	if (s.mode == "ai") ai.player(g.me == "French" ? "English" : "French")
+	sequence.restore(s.seq).nextStep()
+}
+
 
 // ----------------------------------------------------------------------
 // Sequences
@@ -331,7 +315,7 @@ function isActive() {
 function updateInfoBox(info) {
 	let m = String(g.turn.m).padStart(2, '0')
 	let str = `April 6 1806, ${g.turn.h}:${m}\n`
-	if (me != '') str += `Player: ${me}\n`
+	if (g.me != '') str += `Player: ${g.me}\n`
 	str += `Active player: ${g.player}\n\n`
 	const help = ui.getHelp(g.phase)
 	if (help) {
@@ -341,19 +325,18 @@ function updateInfoBox(info) {
 	if (info) str += info
 	box.update(theInfoBox, str, g.phase)
 }
-function updatePhase(seq, txt) {
+function updatePhase(seq) {
 	g.phase = seq.currentStep.name
-	updateInfoBox(txt)
+	const m = String(g.turn.m).padStart(2, '0')
+	ui.env.set("TURN", `${g.turn.h}:${m}`)
+	ui.env.set("PLAYER", `${g.player}`)
+	let txt = ui.getHelp("header") + '\n\n'
+	txt += ui.getHelp(g.phase)
+	box.update(theInfoBox, txt, g.phase)
 }
-function connectRetry(seq, delay) {
-	if (delay) {
-		let txt = `Failed connect to ${client.url}\n\n` +
-			`Retry in ${delay} seconds...`
-		updatePhase(seq, txt)
-		setTimeout(connectRetry, 1000, seq, delay - 1)
-	} else {
-		seq.gotoStep("Connect to Server")
-	}
+function updateInfo(key) {
+	const txt = ui.getHelp(key)
+	box.update(theInfoBox, txt, key)
 }
 
 // This is the top sequence
@@ -363,31 +346,61 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Welcome",
 			start: function(seq) {
-				// AI, pvp or solitarie?
+				// ai, pvp or solitarie?
 				server.getUrl(g)
 				if (g.mode == "ai") {
-					if (!g.side || g.side != "English") {
-						me = "French"
-						ai.player("English")
+					if (!g.side || g.side != g.sides[1]) {
+						g.me = g.sides[0]
+						ai.player(g.sides[1])
 					} else {
-						me = "English"
-						ai.player("French")
+						g.me = g.sides[1]
+						ai.player(g.sides[0])
 					}
-				}
-				let mtxt = ui.getHelp(g.mode)
-				if (g.mode == "ai") mtxt += ` ${me}`
-				updatePhase(seq, mtxt)				
+					ui.env.set("ME", g.me)
+					ui.env.set("MODE", `AI, you are ${g.me}`)
+				} else
+					ui.env.set("MODE", g.mode == "pvp" ? "PvP" : "Solitarie")
+				ui.env.set("PS", ui.getHelp(g.mode))
+				updatePhase(seq)				
 			}
 		},
 		{
 			//name: "connect to server",
 			start: function(seq) {
 				if (g.server) {
-					sequence.jump(seq, "server-connect")
+					sequence.jump(seq, "server.seq", {
+						g: g,
+						client: client,
+						updateInfo: updateInfo,
+					})
 					return
 				}
 				// Solitarie or AI
 				seq.nextStep()
+			},
+			end: function(seq) {
+				if (g.mode == "pvp")
+					ui.env.set("MODE", `PvP, you are ${g.me}`)
+			}
+		},
+		{
+			start: function(seq) {
+				const s = localStorage.getItem("the-hill")
+				if (g.mode == "pvp" || !s) {
+					seq.nextStep()
+					return
+				}
+				box.choiceBox({
+					text: "A snapshot was found",
+					choices: ['Use it', 'Discard'],
+				}, ui.info, true).then(function(value) {
+					if (value == "Use it")
+						restore(JSON.parse(s))
+					else {
+						localStorage.removeItem("the-hill")
+						seq.nextStep()
+					}
+				})
 			}
 		},
 		{
@@ -424,12 +437,12 @@ sequence.add(new sequence.Sequence({
 			},
 		},
 		{
-			name: "French Deployment", // 3
+			name: "French Deployment",
 			start: function(seq) {
 				g.player = "French"
 				g.nat = 'fr'
 				updatePhase(seq)
-				log("French Deployment", isActive())
+				dbg("French Deployment", isActive())
 				if (isActive()) {
 					deployFrench()
 					return
@@ -443,7 +456,7 @@ sequence.add(new sequence.Sequence({
 		{
 			name: "Validate French Deployment",
 			start: function(seq) {
-				log("Validate French Deployment", isActive())
+				dbg("Validate French Deployment", isActive())
 				if (g.mode == "pvp" && !isActive()) {
 					dbg("As non-active, just proceed", g.phase)
 					seq.nextStep()
@@ -458,10 +471,9 @@ sequence.add(new sequence.Sequence({
 			},
 		},
 		{
-			name: "Prepare",
+			//name: "Prepare",
 			start: function(seq) {
-				for (const u of units)
-					u.img.on('click', unitClick)
+				for (const u of units) u.img.on('click', unitClick)
 				seq.nextStep()
 			}
 		},
@@ -470,14 +482,26 @@ sequence.add(new sequence.Sequence({
 			start: function(seq) {
 				g.player = "French"
 				g.nat = 'fr'
-				sequence.jump(seq, "player")
+				if (g.mode != "pvp" && isActive()) snapshot()
+				seq.nextStep()
 			}
+		},
+		{
+			start: function(seq) {
+				sequence.jump(seq, "player")
+			},
 		},
 		{
 			name: "English Turn",
 			start: function(seq) {
 				g.player = "English"
 				g.nat = 'en'
+				if (g.mode != "pvp" && isActive()) snapshot()
+				seq.nextStep()
+			},
+		},
+		{
+			start: function(seq) {
 				sequence.jump(seq, "player")
 			},
 		},
@@ -539,7 +563,7 @@ sequence.add(new sequence.Sequence({
 					updateInfoBox("Wait other player...")
 			},
 			end: function(seq) {
-				dbg("Movement:end", me, g)
+				dbg("Movement:end", g.me, g)
 				for (const u of units) {
 					if (u.nat != g.nat) continue
 					unit.removeMark1(u)
@@ -553,7 +577,7 @@ sequence.add(new sequence.Sequence({
 			name: "Combat",
 			start: function(seq) {
 				updatePhase(seq)
-				board.add(crt)
+				ui.board.add(crt)
 				for (const u of units) u.hasAttacked = false
 				// For game play speed-up:
 				// Check if any units can attack (only friendly units
@@ -571,12 +595,12 @@ sequence.add(new sequence.Sequence({
 						break
 					}
 				}
-				log("canAttack", g.player, seq.canAttack)
+				dbg("canAttack", g.player, seq.canAttack)
 				if (!seq.canAttack) {
 					seq.nextStep()
 					return
 				}
-				board.add(crt)
+				ui.board.add(crt)
 				if (isActive()) return
 				else if (g.mode == "ai") {
 					updateInfoBox("Wait for AI player...")
@@ -601,43 +625,10 @@ sequence.add(new sequence.Sequence({
 }))
 
 sequence.add(new sequence.Sequence({
-	name: "server-connect",
-	steps: [
-		{
-			name: "Connect to Server",
-			start: function(seq) {
-				client.url = g.server
-				updatePhase(seq, `Server URL: ${client.url}`)
-				server.join(client, {}).then(sequence.nextStep)
-			},
-		},
-		{
-			name: "Connect Result",
-			start: function(seq) {
-				if (!client.id) {
-					connectRetry(seq, 5)
-					return
-				}
-				dbg("Connected as client:", client.id)
-				seq.nextStep()
-			}
-		},
-		{
-			name: "Waiting for other player",
-			start: function(seq) {
-				updatePhase(seq)
-			}
-		},
-		{
-			start: sequence.back,
-		},
-	],
-}))
-sequence.add(new sequence.Sequence({
 	name: "connection-failed",
 	steps: [
 		{
-			name: "Connection Failed",
+			name: "Lost Contact",
 			start: function(seq) {
 				ui.clearKeys()
 				updatePhase(seq)
@@ -704,7 +695,7 @@ function deployEnglish() {
 		g.unitBox.addUnit(u)
 	}
 	g.unitBox.box.position({x:400,y:200})
-	board.add(g.unitBox.box)
+	ui.board.add(g.unitBox.box)
 }
 function deployFrench() {
 	g.unitBox = new unit.UnitBox({
@@ -725,7 +716,7 @@ function deployFrench() {
 		g.unitBox.addUnit(u)
 	}
 	g.unitBox.box.position({x:800,y:400})
-	board.add(g.unitBox.box)
+	ui.board.add(g.unitBox.box)
 }
 // Side-effect: if the deployment is valid all deployed units will
 // become "un-draggable"
@@ -775,8 +766,6 @@ function getMovementCost(h,n,i,u) {
 		// The hex is occupied
 		for (const u of n.units)
 			if (u.nat != g.nat) return 100 // enemy
-		// stacking limit is 2
-		if (n.units.size >= 2) return 100
 	}
 	let zoc = 0
 	if (h.zoc && n.zoc) zoc = 3
@@ -798,29 +787,26 @@ function getMovementCost(h,n,i,u) {
 }
 grid.mapFunctions(map.getAxial, blocked, getMovementCost, removeD)
 
-const marker = new Konva.Circle({
-	radius: 6,
-    fill: "lightgreen",
-    stroke: 'lightgray',
-    stroke_width: 1
-})
-let markers
+let mask
+const allHexes = new Set()
 function setMarker(h) {
-	if (!markers) {
-		markers = new Konva.Group()
-		board.add(markers)
+	if (mask) mask.destroy()
+	mask = new Konva.Group()
+	const unreachable = allHexes.difference(allowedHexes)
+	for (const h of unreachable.values()) {
+		mask.add(grid.hmask.clone({
+			fill: 'black',
+			opacity: 0.3,
+			position: grid.hexToPixel(h.hex),
+		}))
 	}
-	let pos = grid.hexToPixel(h.hex)
-	
-	markers.add(marker.clone({
-		position: pos,
-	}))
+	ui.board.add(mask)
 }
 function removeMarkers() {
 	allowedHexes = null
-	if (markers) {
-		markers.destroy()
-		markers = null
+	if (mask) {
+		mask.destroy()
+		mask = null
 	}
 }
 
@@ -830,14 +816,21 @@ function movementClick(e) {
 	let u = unit.fromImg(e.target)
 	let h = map.getHex(u.hex)
 	dbg(u, h)
-	// Check if this click i a movement-click (not a unit-select click)
+	// Check if this click is a movement-click (not a unit-select click)
 	if (allowedHexes && allowedHexes.has(h)) return
 	removeMarkers()				// (clears allowedHexes)
 	selectedUnit = u
 	if (u.nat != g.nat) return	// Other's movement phase
 	if (u.ohex) return			// Has already moved
 	allowedHexes = grid.movementAxial(u.m, h.ax, u)
-	for (const h of allowedHexes) setMarker(h)
+	for (const h of allowedHexes) {
+		// exclude hexes with >=2 friendly units
+		if (h.units && h.units.size >= 2) {
+			allowedHexes.delete(h)
+			continue
+		}
+		setMarker(h)
+	}
 }
 function moveSelectedUnit(h) {
 	if (!selectedUnit || !allowedHexes) return
@@ -846,6 +839,7 @@ function moveSelectedUnit(h) {
 	moveUnit(selectedUnit, h)
 }
 export function moveUnit(u, h) {
+	//log("moveUnit", u, h)
 	u.img.moveToTop()
 	unit.moveTo(u, h.hex)
 	if (g.mode == "pvp") {
@@ -886,11 +880,11 @@ function setTargetMarker(h) {
 	if (!targetMarker) {
 		targetMarker = targetMarkerTemplate.clone()
 		targetMarker.position(pos)
-		board.add(targetMarker)
+		ui.board.add(targetMarker)
 	} else
 		targetMarker.position(pos)
 	crtMarker.remove()
-	if (g.player == me) sendMsg({type: "target", hex: h.hex})
+	if (g.player == g.me) sendMsg({type: "target", hex: h.hex})
 }
 function removeTargetMarker() {
 	if (targetMarker) {
@@ -922,7 +916,7 @@ function addAttacker(u) {
 	attackers.add(u)
 	unit.addMark1(u, 'red')
 	computeOdds()
-	if (g.player == me) sendMsg({type: "addattacker", i: u.i})
+	if (g.player == g.me) sendMsg({type: "addattacker", i: u.i})
 }
 function unsetAttackers() {
 	for (const u of attackers) unit.removeMark1(u)
@@ -998,7 +992,7 @@ function combat(die) {
 		let a = 0, d = 0
 		for (const u of targetHex.units) d += u.s
 		for (const u of attackers) a += u.s
-		if (g.player == me) {
+		if (g.player == g.me) {
 			const msg = {type:"attack", die: die, outcome: "EX"}
 			msg.a = a
 			msg.d = d
@@ -1014,7 +1008,7 @@ function combat(die) {
 		removeAttackers()
 		removeTargetMarker()
 	}
-	if (g.player == me) sendMsg({type:"attack", die: die, outcome: outcome})
+	if (g.player == g.me) sendMsg({type:"attack", die: die, outcome: outcome})
 }
 function removeDefenders() {
 	for (const u of targetHex.units) {
@@ -1066,9 +1060,10 @@ function exDone() {
 
 // ----------------------------------------------------------------------
 ;(async function() {
-	board = ui.init()
-	g.board = board
-	board.on('click', boardOnClick)
+	g.board = ui.init()			// AI uses g.board (why?)
+	grid.configure(50)
+	ui.env.set("VERSION", `${release.version}, ${release.date}`)
+	ui.board.on('click', boardOnClick)
 	let mapImage = await ui.mapImage(mapData)
 	let crtImg = new Image()
 	crtImg.src = crtData
@@ -1097,8 +1092,9 @@ function exDone() {
 		height: 23,
 		mapProperties: mapProperties,
 	})
-	board.add(mapImage)
+	ui.board.add(mapImage)
 	for (const h of map.hexMap.values()) {
+		allHexes.add(h)
 		if (h.prop && h.prop.includes("o")) g.objectives.push(h)
 		h.units = new Set()
 	}
@@ -1107,10 +1103,11 @@ function exDone() {
 		x: window.innerWidth - 500,
 		y: 100,
 		width: 400,
-		height: 600,
+		height: 660,
 		destroyable: false,
 	})
-	board.add(theInfoBox)
+	ui.board.add(theInfoBox)
+	sequence.add(server.sseq)
 	ai.init()					// call when g is initiated
 	sequence.nextStep()
 })()

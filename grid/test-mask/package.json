@@ -1,0 +1,14 @@
+{
+  "name": "grid-test-mak",
+  "version": "1.0.0",
+  "description": "Test - mask",
+  "main": "main.js",
+  "keywords": [],
+  "author": "",
+  "license": "CC0-1.0",
+  "type": "module",
+  "dependencies": {
+	  "konva": "^10.0.12",
+	  "hex-games":"1.0.0"
+  }
+}

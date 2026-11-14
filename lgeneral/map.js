@@ -13,7 +13,6 @@ export let image = {}
 export let hexGrid
 export let width
 export let height
-export let hmask
 let allHexes
 
 export async function init(mapName) {
@@ -104,14 +103,6 @@ export async function init(mapName) {
 		offsetX: 29,
     }))
     hexGrid.cache()
-	// Create a hex-mask used to "shade" hexes, e.g. out of sight
-	hmask = new Konva.RegularPolygon({
-		sides: 6,
-		radius: 29.5,
-		fill: 'gray',
-		opacity: 0.4,
-	})
-	hmask.rotate(30)
 	return 0
 }
 // Get the hex object from a pointer position
