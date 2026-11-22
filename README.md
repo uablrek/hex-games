@@ -46,6 +46,35 @@ you will get a choice to use it.
 I test this with Firefox and Chromium, so it "should work" on Chromium
 based browsers like Chrome or Edge.
 
+## URL
+
+Initial configuration is made in the options sections of the URL
+(after the `?`). Example:
+
+```
+http://localhost:8081/gettysburg.html?server=offline&mode=solitarie&scenario=day2
+```
+
+Supported options:
+
+* **server** - Set to the web-socket server to connect to, or
+    "offline". For http/https it defaults to the server in the URL,
+    `ws://<server>/ws`. For "file://" URLs it defaults to "offline"
+
+* **mode** - Game mode "solitarie|ai|pvp". If ai or pvp is not
+    supported, the mode defaults to "solitarie". If a server is
+    available, the mode defaults to "pvp"
+
+* **scenario** - The scenario to play
+
+* **slot** - The save-slot. Snapshots are named `gamename-slot`, for
+    example "waterloo-0". May be any sane string, and defaults to "0"
+
+* **side** - The side to play in ai-mode, ignored for solitarie and
+    pvp. In pvp-mode the order of player connect determines the sides,
+    and in solitarie you play as both sides
+
+
 ## Development
 
 Dependencies:
@@ -124,6 +153,33 @@ export NODE_DIR=$HOME/lib/node-v26.8.2-linux-x64
 The `Envsettings` file sets up a local environment to install "global"
 packages in your home dir, rather than some place that requires "sudo".
 
+## Code structure
+
+This varies from game to game, but after trying some games i have
+settled for this (sort of):
+
+```
+main.js            # Initiate things, and call sequence.nextStep().
+                   # Holds the InfoBox, and export the info update function.
+                   # May contain UI (keyboard, clicks), and the top sequence.
+game.js            # Holds the game structure 'g', and game sequences.
+                   # Holds save/restore and scenario functions.
+units.js           # Defines the unit array, special units, and UnitBox'es.
+                   # Exports deployment/placement functions
+                   # (note the plural units)
+map.js             # Defines the map using definitions from the "map-maker".
+                   # Exports coordinate transtormation function.
+server.js          # Connect to server, and handles messages
+ai.js              # AI
+help.txt           # Help texts
+test-*             # Test/development programs
+```
+
+Dependencies kept to a minimum of course, but almost every module
+imports the game structure, `g`. The `game.js` tends to grow out of
+control, so it may be split into smaller modules, e.g. "movement.js"
+or "combat.js".
+
 
 ## Hex grid
 
@@ -159,7 +215,11 @@ can use `fillPatternOffset` to align the grid with a map image. And
    fillPatternScale: grid.patternScale(),
 ```
 
-Please, also check the grid demo.
+Please, also check the [grid demo](./grid/main.js).
+
+```
+admin build grid
+```
 
 ## Units
 
@@ -167,7 +227,9 @@ Units are often called "counters" or "unit counters", but it is
 confusing when programming.
 
 Units may be any image or figure really, but there is support for
-generating "standard" unit counters as Konva.Group's. Example:
+generating units with [NATO military symbols](
+https://en.wikipedia.org/wiki/NATO_Joint_Military_Symbology) as
+Konva.Group's. Example:
 
 <img src="./figures/generated-units.png" width="20%" />
 
@@ -197,6 +259,8 @@ await unit.toImages(function(u) {
     return true
 })
 ```
+If you have many complex units, this will take some time.
+
 
 ## Map
 
@@ -285,10 +349,12 @@ admin build --page="index.html?server=http://localhost:8081/ws" ./the-hill
 This is about an computer opponent, not about how to use AI for
 programming.
 
-I am experimenting with `influence maps`. It seems to be the way to go
-for turn based games. There are plenty of articles, but I haven't
-found any that stands out yet, so make a search yourself, and I am
-grateful if you share if you find something good.
+I am experimenting with [influence maps](
+https://www.google.com/search?q=games+influence+map). It seems
+to be the way to go for turn based games. There are plenty of
+articles, but I haven't found any that stands out yet, so make a
+search yourself, and I am grateful if you share if you find something
+good.
 
 The [The Hill game](./the-hill) has a super-simple AI built on a
 static influence map that simply gives the objective hexes high

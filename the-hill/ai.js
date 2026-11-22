@@ -17,7 +17,7 @@
 */
 
 import {grid, unit, sequence, map, server} from '@uablrek/hex-games'
-import {moveUnit, g} from './main.js'
+import {g, moveUnit} from './game.js'
 const log = console.log
 const dbg = function(){}
 export let me = ''

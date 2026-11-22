@@ -443,11 +443,11 @@ export function setChoice(c) {
 	sequence.nextStep()
 }
 
+const saveVersion = 1
+const saveFields = ["turn", "mode", "scenario", "active", "player", "brp"]
 function snapshot() {
-	const s = {}
-	for (const f of ["version", "turn", "mode", "scenario", "active", "player"])
-		s[f] = g[f]
-	log("snapshot", s.turn)
+	const s = {version: saveVersion}
+	for (const f of saveFields) s[f] = g[f]
 	s.allowable = []
 	for (const u of unit.units)
 		if (u.allowable) s.allowable.push(u.i)
@@ -460,9 +460,8 @@ function snapshot() {
 	return s
 }
 export function restore(s) {
-	// TODO: check version
-	for (const f of ["turn", "mode", "scenario", "active", "player"])
-		g[f] = s[f]
+	if (s.version != saveVersion) return false
+	for (const f of saveFields) g[f] = s[f]
 	log("restore", s.turn)
 	for (let i of s.allowable) unit.units[i].allowable = true
 	for (const ih of s.deployment) {
@@ -474,6 +473,7 @@ export function restore(s) {
 	g.Allies = new Set(s.Allies)
 	sequence.restore(s.seq)
 	sequence.nextStep()
+	return true
 }
 
 // ----------------------------------------------------------------------
@@ -490,4 +490,8 @@ export function init() {
 	g.Allies = new Set(a)
 	if (g.turn.year == 1939) g.Allies.add("po")
 	if (g.turn.year >= 1942) g.Allies.add("us")
+	g.brp = {}
+	for (const nat of ["ge", "it", "uk", "fr", "su", "us"])
+		g.brp[nat] = s[nat].brp
+	sc.status = null
 }

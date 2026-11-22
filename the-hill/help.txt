@@ -27,12 +27,13 @@ game server becomes French player.
 
 |ai|
 You play against a computer opponent (AI).
-^You (human player) is: ME
+^You (human player) is: SIDE
 
 |header|
 April 6 1806, TURN
 ^Mode: MODE
-^Active Player: PLAYER
+^You play as: SIDE
+^Active Player: ACTIVE
 
 |Lost Contact|
 The connection to the server is lost. We can't recover from this state.
@@ -75,6 +76,8 @@ a red mark.
 ^
 ^r - Regret move
 ^l - Let the AI move
+^
+^PS
 
 |Combat|
 
@@ -86,10 +89,8 @@ Resolution Table (CRT) for odds.
 ^
 ^If the result is EX, the player with least points is eliminated, and
 the other is requested to remove at least as many points.
-
-|Wait for Combat|
-
-Wait for the active player
+^
+^PS
 
 |help|
 

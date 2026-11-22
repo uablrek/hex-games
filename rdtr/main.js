@@ -13,11 +13,11 @@ import helpTxt from './help.txt'
 import {stepTurn, g, restore} from './game.js'
 
 const log = console.log
-const release = {version:"5.0.0-rc3", date:"2026-11-14"}
+const release = {version:"5.0.0-rc4", date:"2026-11-22"}
 export let sc
 
 // ----------------------------------------------------------------------
-// User Interface (UI). Including keyboard, boxes, adn clicks
+// User Interface (UI). Including keyboard, boxes, and clicks
 
 // Keyboard
 import {scroll as scrollMap} from './map.js'
@@ -110,6 +110,31 @@ function initializing() {
 	initializingBox.position(ui.center(initializingBox))
 	ui.info.add(initializingBox)
 }
+
+function initInput() {
+	const brp = document.getElementById('brp')
+	brp.addEventListener('change', checkInput)
+	const nats = document.getElementsByName('nat')
+	for (const nat of nats) nat.addEventListener('click', checkInput)
+	checkInput({target:{}})
+}
+function checkInput(e) {
+	let nat = "none"
+	const radios = document.getElementsByName('nat')
+	for (const b of radios) {
+		if (b.checked) {
+			nat = b.value
+			break
+		}
+	}
+	let brp = document.getElementById('brp')
+	if (e.target.id == "brp")
+		g.brp[nat] = brp.value
+	else
+		brp.value = g.brp[nat]
+}
+
+
 // ----------------------------------------------------------------------
 // Top sequence
 
@@ -136,9 +161,11 @@ sequence.add(new sequence.Sequence({
 						choices: ['Use it', 'Discard'],
 					}, ui.info, true).then(function(value) {
 						if (value == "Use it") {
-							// will goto the step after snapshot
-							restore(JSON.parse(s))
-							return
+							if (restore(JSON.parse(s))) {
+								checkInput({target:{}})
+								return
+							}
+							log("Discarding obsolete save", s.version)
 						}
 						localStorage.removeItem("rdtr")
 						sequence.nextStep()
@@ -188,13 +215,19 @@ import './server.js'
 	// asynchronous, and show an "Initializing..." box
 	console.time("startup")
 	sc = sc1939
-	ui.init()
+	const input = document.getElementById('input')
+	ui.init({
+		container: 'container',
+		width: window.innerWidth,
+		height: window.innerHeight - input.offsetHeight,
+	})
 	await initMap()				// show the map asap
 	initializing()
 	ui.parseHelp(helpTxt)
 	initGame()
 	initUnits()
 	createInfoBox()
+	initInput()
 	setTimeout(function() {
 		g.blockUI = true
 		console.time("toImages")

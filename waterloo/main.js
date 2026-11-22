@@ -16,7 +16,7 @@ const log = console.log
 // UI setup, including keyboard and Boxes
 // Async setup is done in "main"
 
-const release = {version:"5.0.0-rc3", date:"2026-11-14"}
+const release = {version:"5.0.0-rc4", date:"2026-11-22"}
 
 export let infoBox
 function createInfoBox() {
@@ -71,12 +71,10 @@ box.destroyCallback(boxDestroyed)
 let crt
 async function createCrt() {
 	crt = new Konva.Group()
-	let crtImg = new Image()
-	crtImg.src = crtData
-	await new Promise(resolve => crtImg.onload = resolve)
-	let img = new Konva.Image({image: crtImg})
 	const crtScale = 0.8
-	img.scale({x:crtScale,y:crtScale})
+	let img = await ui.imageFrom(crtData, {
+		scale: {x:crtScale,y:crtScale},
+	})
 	crt.add(img)
 	crt.position({
 		x: 30,
