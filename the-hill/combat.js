@@ -13,6 +13,7 @@ import crtData from './crt.svg'
 import {recomputeZOC} from './map.js'
 import {isActive, testMode} from './main.js'
 import {sendNextStep, sendMsg} from './server.js'
+import * as ai from './ai.js'
 const log = console.log
 
 let crt
